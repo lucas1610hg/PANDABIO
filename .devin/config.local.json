@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Exec(ls)",
+      "Exec(npm install)",
+      "Exec(npm run)",
+      "Exec(mkdir)",
+      "Exec(npx tsx)",
+      "Exec(dir)",
+      "Exec(cmd)",
+      "Exec(npx vite)",
+      "Exec(curl)"
+    ]
+  }
+}
