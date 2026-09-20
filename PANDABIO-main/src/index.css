@@ -1,12 +1,71 @@
 @import 'tailwindcss';
+@config "../tailwind.config.ts";
+
+@theme {
+  /* primary */
+  --color-primary-orange: #ff7a00;
+  --color-primary-orange-dark: #ff5500;
+  --color-primary-orange-strong: #ff6600;
+  --color-primary-orange-deep: #ff4d00;
+  --color-primary-orange-burn: #ff4500;
+  --color-primary-orange-highlight: #ff8533;
+  --color-primary-orange-highlight-soft: #ff944d;
+  --color-primary-orange-light: #fff3e6;
+  --color-primary-orange-medium: #e56e00;
+  /* secondary */
+  --color-secondary-blue: #3525cd;
+  --color-secondary-blue-light: #dae2fd;
+  --color-secondary-blue-dark: #131b2e;
+  --color-secondary-green: #10b981;
+  --color-secondary-green-light: #e6f8f3;
+  --color-secondary-green-dark: #006e4b;
+  --color-secondary-teal: #0284c7;
+  --color-secondary-teal-light: #e0f2fe;
+  /* neutral */
+  --color-neutral-dark: #131b2e;
+  --color-neutral-gray: #464555;
+  --color-neutral-gray-light: #777587;
+  --color-neutral-gray-medium: #969cb0;
+  --color-neutral-light: #f2f3ff;
+  --color-neutral-lighter: #eaedff;
+  --color-neutral-background: #f6efe9;
+  --color-neutral-white: #ffffff;
+  --color-neutral-surface: #faf8ff;
+  --color-neutral-border: #c7c4d8;
+  --color-neutral-muted: #606577;
+  --color-neutral-muted-dark: #7d8396;
+  --color-neutral-muted-light: #8e94a6;
+  --color-neutral-muted-soft: #7c8294;
+  /* functional */
+  --color-functional-success: #10b981;
+  --color-functional-error: #ef4444;
+  --color-functional-error-dark: #ba1a1a;
+  --color-functional-warning: #f59e0b;
+  --color-functional-info: #3b82f6;
+  /* sidebar */
+  --color-sidebar-dark: #0c0e14;
+  --color-sidebar-border: #1c1e28;
+  --color-sidebar-divider: #1d202d;
+  --color-sidebar-card: #141620;
+  --color-sidebar-card-hover: #191c28;
+  --color-sidebar-deep: #12131c;
+  --color-sidebar-elevated: #161823;
+  --color-sidebar-card-border: #262a3c;
+  --color-sidebar-border-light: #232738;
+  --color-sidebar-border-elevated: #2a2f42;
+  --color-sidebar-border-hover: #2f354d;
+  --color-sidebar-gradient-top: #181a25;
+  --color-sidebar-icon: #676c7d;
+  --color-sidebar-chevron: #6b7182;
+}
 
 @layer base {
   body {
     font-family: 'Plus Jakarta Sans', 'Geist', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #faf8ff;
-    color: #131b2e;
+    background-color: var(--color-neutral-surface);
+    color: var(--color-neutral-dark);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -37,11 +96,11 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #c7c4d8;
+  background: var(--color-neutral-border);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #777587;
+  background: var(--color-neutral-gray-light);
 }
 
 /* Dark sidebar scrollbar */

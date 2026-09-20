@@ -19,8 +19,8 @@ export const Card: React.FC<CardProps> = ({
   id,
   className = '',
   icon,
-  iconBg = 'bg-[#eaedff]',
-  iconColor = 'text-[#3525cd]',
+  iconBg = 'bg-neutral-lighter',
+  iconColor = 'text-secondary-blue',
   title,
   subtitle,
   headerRight,
@@ -32,7 +32,7 @@ export const Card: React.FC<CardProps> = ({
   return (
     <div
       id={id}
-      className={`flex flex-col justify-between bg-white rounded-2xl p-4 sm:p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] border border-[#eaedff]/60 ${className}`}
+      className={`flex flex-col justify-between bg-white rounded-2xl p-4 sm:p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] border border-neutral-lighter/60 ${className}`}
     >
       <div>
         <div className={`flex items-center justify-between ${headerClassName}`}>
@@ -43,8 +43,8 @@ export const Card: React.FC<CardProps> = ({
               {icon}
             </div>
             <div className="flex flex-col">
-              <h4 className="text-sm font-bold text-[#131b2e] leading-tight">{title}</h4>
-              {subtitle && <span className="text-[11px] text-[#464555]">{subtitle}</span>}
+              <h4 className="text-sm font-bold text-neutral-dark leading-tight">{title}</h4>
+              {subtitle && <span className="text-[11px] text-neutral-gray">{subtitle}</span>}
             </div>
           </div>
           {headerRight}

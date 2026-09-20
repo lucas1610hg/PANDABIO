@@ -48,17 +48,17 @@ export const KpiMetrics = memo<KpiMetricsProps>(
         {/* Card 1: Visitas à página */}
         <div
           id="kpi-card-visits"
-          className="flex flex-col justify-between bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] border border-[#eaedff]/60 hover:shadow-md transition-all group"
+          className="flex flex-col justify-between bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] border border-neutral-lighter/60 hover:shadow-md transition-all group"
         >
           <div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#FFF3E6] flex items-center justify-center text-[#FF7A00]">
+                <div className="w-9 h-9 rounded-xl bg-primary-orange-light flex items-center justify-center text-primary-orange">
                   <Eye className="w-5 h-5" />
                 </div>
-                <span className="text-xs font-medium text-[#464555]">Visitas à página</span>
+                <span className="text-xs font-medium text-neutral-gray">Visitas à página</span>
               </div>
-              <span className="text-[#FF7A00]">
+              <span className="text-primary-orange">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -72,14 +72,14 @@ export const KpiMetrics = memo<KpiMetricsProps>(
 
             <div className="flex items-baseline justify-between mt-4">
               <div className="flex flex-col">
-                <span className="text-3xl sm:text-[32px] font-bold text-[#131b2e] leading-none tracking-tight">
+                <span className="text-3xl sm:text-[32px] font-bold text-neutral-dark leading-none tracking-tight">
                   {data.visits.toLocaleString('pt-BR')}
                 </span>
-                <span className="flex items-center gap-1 text-[11px] text-[#464555] mt-1.5 font-medium">
+                <span className="flex items-center gap-1 text-[11px] text-neutral-gray mt-1.5 font-medium">
                   {data.visitsGrowth > 0 ? (
                     <>
-                      <ArrowUp className="w-3.5 h-3.5 text-[#006e4b]" />
-                      <span className="text-[#006e4b] font-semibold">
+                      <ArrowUp className="w-3.5 h-3.5 text-secondary-green-dark" />
+                      <span className="text-secondary-green-dark font-semibold">
                         +{data.visitsGrowth}%
                       </span>{' '}
                       nos últimos 7 dias
@@ -108,9 +108,9 @@ export const KpiMetrics = memo<KpiMetricsProps>(
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2 mt-4 bg-[#f2f3ff]/70 -mx-4 -mb-4 px-4 py-2 rounded-b-2xl">
-            <span className="text-[11px] text-[#464555]">CTR (clique geral)</span>
-            <span className="text-[11px] font-bold text-[#131b2e]">
+          <div className="flex items-center justify-between pt-2 mt-4 bg-neutral-light/70 -mx-4 -mb-4 px-4 py-2 rounded-b-2xl">
+            <span className="text-[11px] text-neutral-gray">CTR (clique geral)</span>
+            <span className="text-[11px] font-bold text-neutral-dark">
               {data.ctrGeneral.toFixed(1).replace('.', ',')}%
             </span>
           </div>
@@ -119,17 +119,17 @@ export const KpiMetrics = memo<KpiMetricsProps>(
         {/* Card 2: Cliques nos links */}
         <div
           id="kpi-card-clicks"
-          className="flex flex-col justify-between bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] border border-[#eaedff]/60 hover:shadow-md transition-all group"
+          className="flex flex-col justify-between bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] border border-neutral-lighter/60 hover:shadow-md transition-all group"
         >
           <div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#E6F8F3] flex items-center justify-center text-[#10B981]">
+                <div className="w-9 h-9 rounded-xl bg-secondary-green-light flex items-center justify-center text-secondary-green">
                   <LinkIcon className="w-5 h-5" />
                 </div>
-                <span className="text-xs font-medium text-[#464555]">Cliques nos links</span>
+                <span className="text-xs font-medium text-neutral-gray">Cliques nos links</span>
               </div>
-              <span className="text-[#10B981]">
+              <span className="text-secondary-green">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -143,14 +143,14 @@ export const KpiMetrics = memo<KpiMetricsProps>(
 
             <div className="flex items-baseline justify-between mt-4">
               <div className="flex flex-col">
-                <span className="text-3xl sm:text-[32px] font-bold text-[#131b2e] leading-none tracking-tight">
+                <span className="text-3xl sm:text-[32px] font-bold text-neutral-dark leading-none tracking-tight">
                   {data.clicks.toLocaleString('pt-BR')}
                 </span>
-                <span className="flex items-center gap-1 text-[11px] text-[#464555] mt-1.5 font-medium">
+                <span className="flex items-center gap-1 text-[11px] text-neutral-gray mt-1.5 font-medium">
                   {data.clicksGrowth > 0 ? (
                     <>
-                      <ArrowUp className="w-3.5 h-3.5 text-[#006e4b]" />
-                      <span className="text-[#006e4b] font-semibold">
+                      <ArrowUp className="w-3.5 h-3.5 text-secondary-green-dark" />
+                      <span className="text-secondary-green-dark font-semibold">
                         +{data.clicksGrowth}%
                       </span>{' '}
                       nos últimos 7 dias
@@ -179,9 +179,9 @@ export const KpiMetrics = memo<KpiMetricsProps>(
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2 mt-4 bg-[#f2f3ff]/70 -mx-4 -mb-4 px-4 py-2 rounded-b-2xl">
-            <span className="text-[11px] text-[#464555]">Taxa de clique</span>
-            <span className="text-[11px] font-bold text-[#131b2e]">
+          <div className="flex items-center justify-between pt-2 mt-4 bg-neutral-light/70 -mx-4 -mb-4 px-4 py-2 rounded-b-2xl">
+            <span className="text-[11px] text-neutral-gray">Taxa de clique</span>
+            <span className="text-[11px] font-bold text-neutral-dark">
               {data.clickRate.toFixed(1).replace('.', ',')}%
             </span>
           </div>
@@ -190,17 +190,17 @@ export const KpiMetrics = memo<KpiMetricsProps>(
         {/* Card 3: Leads capturados */}
         <div
           id="kpi-card-leads"
-          className="flex flex-col justify-between bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] border border-[#eaedff]/60 hover:shadow-md transition-all group"
+          className="flex flex-col justify-between bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] border border-neutral-lighter/60 hover:shadow-md transition-all group"
         >
           <div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#E0F2FE] flex items-center justify-center text-[#0284C7]">
+                <div className="w-9 h-9 rounded-xl bg-secondary-teal-light flex items-center justify-center text-secondary-teal">
                   <Users className="w-5 h-5" />
                 </div>
-                <span className="text-xs font-medium text-[#464555]">Leads capturados</span>
+                <span className="text-xs font-medium text-neutral-gray">Leads capturados</span>
               </div>
-              <span className="text-[#0284C7]">
+              <span className="text-secondary-teal">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -214,15 +214,17 @@ export const KpiMetrics = memo<KpiMetricsProps>(
 
             <div className="flex items-baseline justify-between mt-4">
               <div className="flex flex-col">
-                <span className="text-3xl sm:text-[32px] font-bold text-[#131b2e] leading-none tracking-tight">
+                <span className="text-3xl sm:text-[32px] font-bold text-neutral-dark leading-none tracking-tight">
                   {data.leads.toLocaleString('pt-BR')}
                 </span>
-                <span className="flex items-center gap-1 text-[11px] text-[#464555] mt-1.5 font-medium">
+                <span className="flex items-center gap-1 text-[11px] text-neutral-gray mt-1.5 font-medium">
                   {data.leadsGrowth > 0 ? (
                     <>
-                      <ArrowUp className="w-3.5 h-3.5 text-[#006e4b]" />
-                      <span className="text-[#006e4b] font-semibold">+{data.leadsGrowth}%</span> nos
-                      últimos 7 dias
+                      <ArrowUp className="w-3.5 h-3.5 text-secondary-green-dark" />
+                      <span className="text-secondary-green-dark font-semibold">
+                        +{data.leadsGrowth}%
+                      </span>{' '}
+                      nos últimos 7 dias
                     </>
                   ) : (
                     <span>Últimos 7 dias</span>
@@ -248,9 +250,9 @@ export const KpiMetrics = memo<KpiMetricsProps>(
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2 mt-4 bg-[#f2f3ff]/70 -mx-4 -mb-4 px-4 py-2 rounded-b-2xl">
-            <span className="text-[11px] text-[#464555]">Conversão (visita → lead)</span>
-            <span className="text-[11px] font-bold text-[#131b2e]">
+          <div className="flex items-center justify-between pt-2 mt-4 bg-neutral-light/70 -mx-4 -mb-4 px-4 py-2 rounded-b-2xl">
+            <span className="text-[11px] text-neutral-gray">Conversão (visita → lead)</span>
+            <span className="text-[11px] font-bold text-neutral-dark">
               {data.leadConversionRate.toFixed(1).replace('.', ',')}%
             </span>
           </div>
@@ -259,17 +261,17 @@ export const KpiMetrics = memo<KpiMetricsProps>(
         {/* Card 4: Conversões */}
         <div
           id="kpi-card-conversions"
-          className="flex flex-col justify-between bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] border border-[#eaedff]/60 hover:shadow-md transition-all group"
+          className="flex flex-col justify-between bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] border border-neutral-lighter/60 hover:shadow-md transition-all group"
         >
           <div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#FFF3E6] flex items-center justify-center text-[#FF7A00]">
+                <div className="w-9 h-9 rounded-xl bg-primary-orange-light flex items-center justify-center text-primary-orange">
                   <Target className="w-5 h-5" />
                 </div>
-                <span className="text-xs font-medium text-[#464555]">Conversões</span>
+                <span className="text-xs font-medium text-neutral-gray">Conversões</span>
               </div>
-              <span className="text-[#FF7A00]">
+              <span className="text-primary-orange">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -283,14 +285,14 @@ export const KpiMetrics = memo<KpiMetricsProps>(
 
             <div className="flex items-baseline justify-between mt-4">
               <div className="flex flex-col">
-                <span className="text-3xl sm:text-[32px] font-bold text-[#131b2e] leading-none tracking-tight">
+                <span className="text-3xl sm:text-[32px] font-bold text-neutral-dark leading-none tracking-tight">
                   {data.conversions.toLocaleString('pt-BR')}
                 </span>
-                <span className="flex items-center gap-1 text-[11px] text-[#464555] mt-1.5 font-medium">
+                <span className="flex items-center gap-1 text-[11px] text-neutral-gray mt-1.5 font-medium">
                   {data.conversionsGrowth > 0 ? (
                     <>
-                      <ArrowUp className="w-3.5 h-3.5 text-[#006e4b]" />
-                      <span className="text-[#006e4b] font-semibold">
+                      <ArrowUp className="w-3.5 h-3.5 text-secondary-green-dark" />
+                      <span className="text-secondary-green-dark font-semibold">
                         +{data.conversionsGrowth}%
                       </span>{' '}
                       nos últimos 7 dias
@@ -319,9 +321,9 @@ export const KpiMetrics = memo<KpiMetricsProps>(
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2 mt-4 bg-[#f2f3ff]/70 -mx-4 -mb-4 px-4 py-2 rounded-b-2xl">
-            <span className="text-[11px] text-[#464555]">Conversão final (venda)</span>
-            <span className="text-[11px] font-bold text-[#131b2e]">
+          <div className="flex items-center justify-between pt-2 mt-4 bg-neutral-light/70 -mx-4 -mb-4 px-4 py-2 rounded-b-2xl">
+            <span className="text-[11px] text-neutral-gray">Conversão final (venda)</span>
+            <span className="text-[11px] font-bold text-neutral-dark">
               {data.finalConversionRate.toFixed(1).replace('.', ',')}%
             </span>
           </div>
