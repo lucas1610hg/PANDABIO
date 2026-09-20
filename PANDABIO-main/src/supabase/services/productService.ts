@@ -18,7 +18,7 @@ export class ProductService {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('profile_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -51,7 +51,7 @@ export class ProductService {
       const { data, error } = await supabase
         .from('products')
         .insert({
-          user_id: user.id,
+          profile_id: user.id,
           name: product.name,
           price: product.price,
           sales_count: product.salesCount || 0,

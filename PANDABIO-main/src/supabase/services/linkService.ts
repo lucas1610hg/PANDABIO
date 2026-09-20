@@ -18,7 +18,7 @@ export class LinkService {
       const { data, error } = await supabase
         .from('links')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('profile_id', user.id)
         .order('link_order', { ascending: true });
 
       if (error) throw error;
@@ -54,7 +54,7 @@ export class LinkService {
       const { data: existingLinks } = await supabase
         .from('links')
         .select('link_order')
-        .eq('user_id', user.id)
+        .eq('profile_id', user.id)
         .order('link_order', { ascending: false })
         .limit(1);
 
@@ -63,7 +63,7 @@ export class LinkService {
       const { data, error } = await supabase
         .from('links')
         .insert({
-          user_id: user.id,
+          profile_id: user.id,
           title: link.title,
           url: link.url,
           clicks: link.clicks,
@@ -218,7 +218,7 @@ export class LinkService {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await supabase.from('analytics').insert({
-          user_id: user.id,
+          profile_id: user.id,
           link_id: linkId,
           event_type: 'click',
           device_type: this.getDeviceType(),

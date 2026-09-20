@@ -18,7 +18,7 @@ export class LeadService {
       const { data, error } = await supabase
         .from('leads')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('profile_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -51,7 +51,7 @@ export class LeadService {
       const { data, error } = await supabase
         .from('leads')
         .insert({
-          user_id: user.id,
+          profile_id: user.id,
           name: lead.name,
           email: lead.email,
           phone: lead.phone,
@@ -90,7 +90,7 @@ export class LeadService {
       const { data, error } = await supabase
         .from('leads')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('profile_id', user.id)
         .eq('link_id', linkId)
         .order('created_at', { ascending: false });
 

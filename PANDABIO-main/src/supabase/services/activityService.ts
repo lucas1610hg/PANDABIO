@@ -18,7 +18,7 @@ export class ActivityService {
       const { data, error } = await supabase
         .from('activities')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('profile_id', user.id)
         .order('created_at', { ascending: false })
         .limit(limit);
 
@@ -52,7 +52,7 @@ export class ActivityService {
       const { error } = await supabase
         .from('activities')
         .insert({
-          user_id: user.id,
+          profile_id: user.id,
           title: activity.title,
           subtitle: activity.subtitle,
           time_ago: activity.timeAgo,
@@ -123,7 +123,7 @@ export class ActivityService {
       const { error } = await supabase
         .from('activities')
         .delete()
-        .eq('user_id', user.id)
+        .eq('profile_id', user.id)
         .lt('created_at', cutoffDate.toISOString());
 
       if (error) throw error;
