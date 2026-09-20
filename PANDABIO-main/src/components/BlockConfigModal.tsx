@@ -292,17 +292,6 @@ const SOCIAL_PLATFORMS: { platform: SocialPlatform; label: string; icon: React.C
   { platform: 'threads', label: 'Threads', icon: AtSign },
 ];
 
-const PLATFORM_LABEL: Record<SocialPlatform, string> = {
-  instagram: 'Instagram',
-  facebook: 'Facebook',
-  tiktok: 'TikTok',
-  linkedin: 'LinkedIn',
-  pinterest: 'Pinterest',
-  youtube: 'YouTube',
-  kwai: 'Kwai',
-  threads: 'Threads',
-};
-
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div role="group" aria-label={label}>

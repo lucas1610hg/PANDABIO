@@ -196,17 +196,17 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
                 Categoria / Ícone
               </label>
               <div className="grid grid-cols-4 gap-2">
-                {[
+                {([
                   { id: 'whatsapp', label: 'WhatsApp' },
                   { id: 'social', label: 'Redes' },
                   { id: 'store', label: 'Loja' },
                   { id: 'portfolio', label: 'Portfólio' },
-                ].map((cat) => (
+                ] as const).map((cat) => (
                   <button
                     key={cat.id}
                     type="button"
                     aria-pressed={linkType === cat.id}
-                    onClick={() => setLinkType(cat.id as any)}
+                    onClick={() => setLinkType(cat.id)}
                     className={`py-2 px-2 text-center rounded-xl text-xs font-medium border transition-colors cursor-pointer ${
                       linkType === cat.id
                         ? 'border-[#FF7A00] bg-[#FFF3E6] text-[#FF7A00] font-bold'

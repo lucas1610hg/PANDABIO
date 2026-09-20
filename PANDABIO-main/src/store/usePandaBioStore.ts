@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { UserProfile, BioLink, ProductItem, LeadItem, ActivityItem, UserAccountData } from '../types';
+import { UserProfile, BioLink, ProductItem, UserAccountData } from '../types';
 import { initialProfile, initialLinks, initialProducts, initialLeads, initialActivities } from '../data/mockData';
 import { safeStorage } from '../utils/storage';
 

@@ -28,7 +28,7 @@ export class AuthService {
         success: true, 
         user: profile || undefined
       };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error signing in:', error);
       return { success: false, error: error.message || 'Erro ao fazer login' };
     }
@@ -96,7 +96,7 @@ export class AuthService {
       }
 
       return { success: false, error: 'Erro ao criar usuário' };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error signing up:', error);
       return { success: false, error: error.message || 'Erro ao fazer cadastro' };
     }
@@ -114,7 +114,7 @@ export class AuthService {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error signing out:', error);
       return { success: false, error: error.message || 'Erro ao fazer logout' };
     }
@@ -135,7 +135,7 @@ export class AuthService {
 
       const profile = await this.getUserProfile(user.id);
       return { user: profile || undefined };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error getting current user:', error);
       return { error: error.message || 'Erro ao obter usuário' };
     }
@@ -232,7 +232,7 @@ export class AuthService {
       const { error } = await supabase.auth.resetPasswordForEmail(email);
       if (error) throw error;
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error resetting password:', error);
       return { success: false, error: error.message || 'Erro ao redefinir senha' };
     }
@@ -252,7 +252,7 @@ export class AuthService {
       });
       if (error) throw error;
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error updating password:', error);
       return { success: false, error: error.message || 'Erro ao atualizar senha' };
     }
@@ -267,7 +267,7 @@ export class AuthService {
     }
 
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: window.location.href,
@@ -279,7 +279,7 @@ export class AuthService {
       // OAuth redireciona o usuário, então retornamos sucesso
       // O perfil será criado pelo trigger
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error signing in with Google:', error);
       return { success: false, error: error.message || 'Erro ao fazer login com Google' };
     }
@@ -294,7 +294,7 @@ export class AuthService {
     }
 
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'facebook',
         options: {
           redirectTo: window.location.href,
@@ -306,7 +306,7 @@ export class AuthService {
       // OAuth redireciona o usuário, então retornamos sucesso
       // O perfil será criado pelo trigger
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error signing in with Facebook:', error);
       return { success: false, error: error.message || 'Erro ao fazer login com Facebook' };
     }

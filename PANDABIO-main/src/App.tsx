@@ -1,10 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ScreenView, NavSection, BioLink, ProductItem, UserProfile } from './types';
 import { AuthScreen } from './components/AuthScreen';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
-import { KpiMetrics, KpiData } from './components/KpiMetrics';
+import { KpiMetrics } from './components/KpiMetrics';
 import { ConversionFunnel } from './components/ConversionFunnel';
 import { VisitsChart } from './components/VisitsChart';
 import { ClicksByLinkChart } from './components/ClicksByLinkChart';
@@ -142,7 +142,6 @@ export default function App() {
             user={user}
             linksCount={links.length}
             productsCount={products.length}
-            leadsCount={leads.length}
             allUsers={allUsersList}
             onSwitchUser={handleSwitchUser}
             onCreateNew={() => {

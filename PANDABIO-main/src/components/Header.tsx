@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { PANDABIO_ASSETS } from '../constants/assets';
 import {
   Menu,
   Search,

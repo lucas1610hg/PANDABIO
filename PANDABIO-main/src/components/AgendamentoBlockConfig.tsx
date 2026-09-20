@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Clock, CreditCard, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
+import { Calendar, Clock, CreditCard, Trash2 } from 'lucide-react';
 import { PageBlock } from '../types';
 
 interface AgendamentoBlockConfigProps {

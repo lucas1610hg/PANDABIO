@@ -1,7 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 
 // Credenciais fornecidas
 const supabaseUrl = "https://irtrqccahpaxknidrxwy.supabase.co";
@@ -28,7 +25,7 @@ async function testConnection() {
     console.log('Dados retornados:', data);
     
     // Testar se a tabela users existe
-    const { data: tableData, error: tableError } = await supabase
+    const { error: tableError } = await supabase
       .from('users')
       .select('*')
       .limit(1);

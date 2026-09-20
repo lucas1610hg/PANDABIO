@@ -45,7 +45,6 @@ interface SidebarProps {
   user: UserProfile;
   linksCount: number;
   productsCount?: number;
-  leadsCount?: number;
   onCreateNew: () => void;
   onOpenUpgrade: () => void;
   onLogout: () => void;
@@ -63,7 +62,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   user,
   linksCount,
   productsCount = 0,
-  leadsCount = 0,
   onCreateNew,
   onOpenUpgrade,
   onLogout,

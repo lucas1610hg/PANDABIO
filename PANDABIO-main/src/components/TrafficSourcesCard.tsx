@@ -46,12 +46,12 @@ export const TrafficSourcesCard: React.FC<TrafficSourcesCardProps> = ({ links = 
   // Segmentos do donut via stroke-dasharray
   const segments = useMemo(() => {
     const C = 2 * Math.PI * 38;
-    let acc = 0;
-    return sources.map((s) => {
+    return sources.map((s, i) => {
+      const prevLen = sources
+        .slice(0, i)
+        .reduce((acc, p) => acc + (p.pctRaw / 100) * C, 0);
       const len = (s.pctRaw / 100) * C;
-      const seg = { ...s, dash: `${len} ${C - len}`, offset: -acc };
-      acc += len;
-      return seg;
+      return { ...s, dash: `${len} ${C - len}`, offset: -prevLen };
     });
   }, [sources]);
 

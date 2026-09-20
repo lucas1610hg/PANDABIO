@@ -44,7 +44,6 @@ export const VisitsChart: React.FC<VisitsChartProps> = ({ totalVisits = 0 }) => 
 
   const { linePath, areaPath, lastPoint } = useMemo(() => {
     const W = 540;
-    const H = 220;
     const top = 30;
     const bottom = 165;
     const padX = 60;

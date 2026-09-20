@@ -119,7 +119,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
       if (!supabase) {
         const stored = safeStorage.get<typeof pageData | null>(LOCAL_PAGE_STORAGE_KEY, null);
         if (stored) {
-          setPageData(prev => ({
+          setPageData(() => ({
             ...stored,
             theme: { ...defaultPageTheme(), ...(stored.theme || {}) },
             profile: { ...user, ...(stored.profile || {}) },
@@ -143,7 +143,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
             // Mescla o perfil do banco com o do contexto: campos salvos (cover,
             // categoria, localização, customLink...) têm prioridade sobre o mock.
             const savedProfile = (loadedPageData.profile || {}) as Partial<UserProfile>;
-            setPageData(prev => ({
+            setPageData(() => ({
               ...loadedPageData,
               theme: { ...defaultPageTheme(), ...(loadedPageData.theme || {}) },
               profile: {
@@ -315,7 +315,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
     setPageData(prev => {
       const source = prev.blocks.find(b => b.id === blockId);
       if (!source) return prev;
-      const { id, order, ...rest } = source;
+      const rest = { ...source };
       const copy: PageBlock = {
         ...rest,
         id: crypto.randomUUID(),

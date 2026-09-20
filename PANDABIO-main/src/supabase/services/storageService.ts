@@ -75,7 +75,7 @@ export class StorageService {
 
       const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
       return { success: true, url: data.publicUrl, path };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error uploading image:', error);
       return { success: false, error: error.message || 'Erro ao enviar imagem', url: dataUrl };
     }

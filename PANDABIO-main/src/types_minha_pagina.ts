@@ -96,7 +96,7 @@ export interface PageTheme {
   theme_id: string;
   background_type: BackgroundType;
   background_color: string;
-  background_gradient: any;
+  background_gradient: unknown;
   background_image_url: string | null;
   background_video_url: string | null;
   text_color: string;
@@ -109,7 +109,7 @@ export interface PageTheme {
   font_family: string;
   font_weight: number;
   page_width: number;
-  custom_theme: any;
+  custom_theme: unknown;
   created_at: string;
   updated_at: string;
 }
@@ -192,7 +192,7 @@ export interface BlockData {
   };
   
   // Dados customizados
-  custom_data?: any;
+  custom_data?: unknown;
 }
 
 export interface BlockStyle {

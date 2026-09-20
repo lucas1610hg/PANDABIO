@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from '../client';
-import { PageData, PageBlock, PageTheme } from '../../types';
+import { PageData, UserProfile } from '../../types';
 
 export class PageService {
   /**
@@ -16,7 +16,7 @@ export class PageService {
 
     try {
       // Persistir as colunas do perfil (evita dados duplicados entre perfil e page_data JSONB)
-      const profile = pageData.profile as any;
+      const profile = pageData.profile;
       const profileUpdates: Record<string, unknown> = {
         page_data: pageData,
         updated_at: new Date().toISOString(),
@@ -54,7 +54,7 @@ export class PageService {
       }
 
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving page data:', error);
       return { success: false, error: error.message || 'Erro ao salvar página' };
     }
@@ -87,7 +87,7 @@ export class PageService {
       if (!data || !data.page_data) {
         // Retornar dados padrão se não existirem
         const defaultPageData: PageData = {
-          profile: {} as any,
+          profile: {} as UserProfile,
           blocks: [],
           theme: {
             theme: 'light',
@@ -104,7 +104,7 @@ export class PageService {
       }
 
       return { success: true, pageData: data.page_data };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error loading page data:', error);
       return { success: false, error: error.message || 'Erro ao carregar página' };
     }
@@ -134,7 +134,7 @@ export class PageService {
       }
 
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error publishing page:', error);
       return { success: false, error: error.message || 'Erro ao publicar página' };
     }
@@ -161,7 +161,7 @@ export class PageService {
       if (error) throw error;
 
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error unpublishing page:', error);
       return { success: false, error: error.message || 'Erro ao despublicar página' };
     }

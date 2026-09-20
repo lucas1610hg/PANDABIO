@@ -83,7 +83,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           });
         }
       }
-    } catch (error) {
+    } catch {
       setErrorMessage('Erro inesperado. Tente novamente.');
     } finally {
       setIsLoading(false);
@@ -119,7 +119,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           email: `user.${provider.toLowerCase()}@email.com`,
         });
       }
-    } catch (error) {
+    } catch {
       setErrorMessage('Erro ao fazer login social');
     } finally {
       setIsLoading(false);

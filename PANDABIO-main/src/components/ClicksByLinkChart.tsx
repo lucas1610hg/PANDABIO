@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BarChart3 } from 'lucide-react';
 import { BioLink } from '../types';
 
@@ -7,8 +7,6 @@ interface ClicksByLinkChartProps {
 }
 
 export const ClicksByLinkChart: React.FC<ClicksByLinkChartProps> = ({ links = [] }) => {
-  const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
-
   const activeLinks = links.slice(0, 4);
   const maxClicks = Math.max(...activeLinks.map((l) => l.clicks), 10);
 
@@ -69,8 +67,6 @@ export const ClicksByLinkChart: React.FC<ClicksByLinkChartProps> = ({ links = []
                   key={item.id}
                   transform={`translate(${posX}, 0)`}
                   className="cursor-pointer group"
-                  onMouseEnter={() => setHoveredGroup(item.title)}
-                  onMouseLeave={() => setHoveredGroup(null)}
                 >
                   <text
                     className="text-[11px] font-bold"
