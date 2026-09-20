@@ -313,7 +313,7 @@ Fechamento pendências: TR-4.2 (idempotência toggleLink — coberto em usePanda
 ---
 
 ## Task 12: Remover dependência Express + @types/express
-- **Status**: `pending`
+- **Status**: `completed`
 - **Priority**: low
 - **Depends On**: T11
 - **Branch**: `hotfix/T12-remove-express`
