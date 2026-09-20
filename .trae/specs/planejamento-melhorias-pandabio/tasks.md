@@ -266,7 +266,7 @@ Fechamento pendências: TR-4.2 (idempotência toggleLink — coberto em usePanda
 ---
 
 ## Task 10: Aplicar Tokens de Cor Sistematicamente — Tailwind extend + migrar components core
-- **Status**: `pending`
+- **Status**: `done`
 - **Priority**: medium
 - **Depends On**: T9
 - **Branch**: `feature/T10-tokens`
@@ -281,6 +281,7 @@ Fechamento pendências: TR-4.2 (idempotência toggleLink — coberto em usePanda
   - `rule` TR-10.2: Antes/depois contagem `rg -c 'bg-\[#[0-9a-fA-F]+\]' src/components/Header.tsx src/components/Sidebar.tsx src/components/Card.tsx src/components/KpiMetrics.tsx` → depois = 0.
   - `rubric` TR-10.3 (AC-11): Redução geral de cores arbitrárias ≥ 40% em 4 components acima; escala 1-5, threshold ≥ 4.
   - `rule` TR-10.4: Build + smoke test UI visual não apresenta cores quebradas.
+- **Evidence (9c61e84)**: `tailwind.config.ts` criado importando `colors` de `tokens.ts` e achatando em `theme.extend.colors` (kebab-case); wiring via `@config "../tailwind.config.ts"` + `@theme` no index.css (vars `--color-*`; body usa `var(--color-neutral-surface)`/`var(--color-neutral-dark)`; scrollbar usa vars); tokens.ts estendido (primary.orangeStrong/Deep/Burn/Highlight/HighlightSoft, neutral.surface/border/muted/mutedDark/mutedLight/mutedSoft, functional.errorDark, sidebar.card/cardHover/deep/elevated/cardBorder/borderLight/borderElevated/borderHover/gradientTop/icon/chevron). TR-10.1 PASS: config existe e mapeia todos os tokens. TR-10.2 PASS: `bg-[#hex]` 42 → **0** nos 4 componentes. TR-10.3 PASS: total arbitrary/hex 400 → **63** (−84%, threshold ≥40%). TR-10.4 PASS: build ok; CSS gerado contém `.bg-primary-orange`, `.bg-sidebar-dark`, opacity modifiers (`/10`,`/85`), `--color-*` no :root; `vite preview` HTTP 200. POST-FLIGHT: lint 0 errors/6 warnings cadentes, 33 testes ok. Merge squash `9c61e84` em main, branch deletada. Infra: `.prettierrc endOfLine: crlf` alinha prettier ao checkout Windows (autocrlf) — elimina churn recorrente de CRLF.
 - **Rollback**: R1 + R2.
 
 ---
