@@ -241,7 +241,7 @@ Cada tarefa traz Rollback de 3 níveis. Executar em ordem:
 ---
 
 ## Task 9: Instalar Vitest + Testing Library + primeiro lote de testes core
-- **Status**: `pending`
+- **Status**: `done`
 - **Priority**: high
 - **Depends On**: T8
 - **Branch**: `feature/T9-vitest-core`
@@ -259,6 +259,8 @@ Cada tarefa traz Rollback de 3 níveis. Executar em ordem:
   - `rule` TR-9.1: `npm run test:run` → Total testes ≥ 15, 0 falhas, 0 skips.
   - `rule` TR-9.2: `npm run test:coverage` → cobertura nas camadas core (store, utils, schemas) ≥ 70%.
   - `rule` TR-9.3: Arquivo `vitest.config.ts` existe e é carregado.
+- **Evidence (d998b92)**: `vitest.config.ts` criado (jsdom + globals + setup `src/test/setup.ts` + coverage v8 include restrito a store/utils/schemas). TR-9.1 PASS: `npm run test:run` → 4 files, **33 tests, 0 falhas, 0 skips** (storage 5, normalizeIp 6, linkSchema 12, store 10). TR-9.2 PASS: `npm run test:coverage` → All files **82.6% stmts / 75.38% branch / 91.89% funcs / 82.92% lines** ≥ 70% (linkSchema 100%; store test reorderLinks/switchUser/logout adicionados). TR-9.3 PASS: config carregado (testes rodam). POST-FLIGHT: lint 0 errors/6 cadentes warnings, format ok, build ok. Merge squash `d998b92` em main, branch deletada.
+Fechamento pendências: TR-4.2 (idempotência toggleLink — coberto em usePandaBioStore.test.ts), TR-6.1/TR-6.2 (normalizeIp ipv4/ipv6 — 6 testes em normalizeIp.test.ts).
 - **Rollback**: R1 + R2.
 
 ---
