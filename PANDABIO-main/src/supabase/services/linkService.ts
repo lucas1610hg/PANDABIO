@@ -128,9 +128,30 @@ export class LinkService {
     if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
+      // Tenta RPC atômica primeiro (se a migration T4 foi aplicada no banco)
+      try {
+        const { data, error: rpcError } = await supabase.rpc('toggle_link_status', { link_id: id });
+        if (!rpcError) return Boolean(data);
+      } catch {
+        // Fallthrough: RPC não existe, segue read-then-write manual
+      }
+
+      // Fallback: lê o estado atual e INVERTE (nunca hardcode true)
+      const { data: current, error: readErr } = await supabase
+        .from('links')
+        .select('active')
+        .eq('id', id)
+        .single();
+
+      if (readErr) throw readErr;
+      if (!current) return false;
+
       const { error } = await supabase
         .from('links')
-        .update({ active: true }) // Será invertido no frontend
+        .update({
+          active: !current.active,
+          updated_at: new Date().toISOString(),
+        })
         .eq('id', id);
 
       if (error) throw error;
