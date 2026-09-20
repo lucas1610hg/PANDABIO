@@ -218,12 +218,12 @@ Cada tarefa traz Rollback de 3 níveis. Executar em ordem:
 - **Status**: `pending`
 - **Priority**: medium
 - **Depends On**: T7
-- **Branch**: `feature/T8-prettier`
+- **Branch**: `feature/T8-prettier` (squashada em main `95c143c`, apagada)
 - **Description**:
   - Instalar devDeps: `prettier`, `eslint-config-prettier`, `eslint-plugin-prettier`.
   - Criar `.prettierrc.json` (printWidth 100, singleQuote, trailingComma all, semi true).
-  - Criar `.prettierignore` listando `dist`, `node_modules`, `.vite`, `supabase/config.toml`.
-  - Em `eslint.config.js` adicionar `plugin:prettier/recommended` no final.
+  - Criar `.prettierignore` listando `dist`, `node_modules`, `.vite`, `supabase/config.toml` (+ `package-lock.json` para evitar churn).
+  - Em `eslint.config.js` adicionar `prettierRecommended` no final do flat config.
   - Scripts em package.json: `format`, `format:check`.
   - Rodar `npm run format` UMA vez para formatar tudo (único commit grande de formatação).
 - **Acceptance Criteria Addressed**: AC-9
@@ -232,6 +232,11 @@ Cada tarefa traz Rollback de 3 níveis. Executar em ordem:
   - `rule` TR-8.2: `.prettierrc.json` + `.prettierignore` existem.
   - `rule` TR-8.3: `npm run lint` passa sem conflitos prettier/eslint.
 - **Rollback**: R1 + R2.
+- **Completion Evidence**:
+  - TR-8.1 PASS: `npm run format:check` → `All matched files use Prettier code style!` exit=0.
+  - TR-8.2 PASS: `.prettierrc.json` (printWidth 100 / singleQuote / trailingComma all / semi) + `.prettierignore` (dist, node_modules, .vite, supabase/config.toml, package-lock.json) existem.
+  - TR-8.3 PASS: `npm run lint` → `0 errors, 6 warnings` exit=0 (sem conflitos prettier/eslint). `npm run build` exit=0 (813ms).
+  - POST-FLIGHT PASS: format único commit (71 arquivos, 3046++/2058--). Squash merge `95c143c` em main. Branch apagada.
 
 ---
 
