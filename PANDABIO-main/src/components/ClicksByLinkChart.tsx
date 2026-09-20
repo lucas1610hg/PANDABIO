@@ -21,9 +21,7 @@ export const ClicksByLinkChart: React.FC<ClicksByLinkChartProps> = ({ links = []
             <BarChart3 className="w-4 h-4" />
           </div>
           <div className="flex flex-col">
-            <h3 className="text-base font-bold text-[#131b2e]">
-              Cliques por link
-            </h3>
+            <h3 className="text-base font-bold text-[#131b2e]">Cliques por link</h3>
             <span className="text-xs text-[#464555]">Últimos 7 dias</span>
           </div>
         </div>
@@ -46,20 +44,51 @@ export const ClicksByLinkChart: React.FC<ClicksByLinkChartProps> = ({ links = []
         {activeLinks.length > 0 ? (
           <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 540 220">
             {/* Background Grid Lines */}
-            <line stroke="#eaedff" strokeDasharray="3 3" strokeWidth="1" x1="45" x2="520" y1="30" y2="30" />
-            <line stroke="#eaedff" strokeDasharray="3 3" strokeWidth="1" x1="45" x2="520" y1="75" y2="75" />
-            <line stroke="#eaedff" strokeDasharray="3 3" strokeWidth="1" x1="45" x2="520" y1="120" y2="120" />
+            <line
+              stroke="#eaedff"
+              strokeDasharray="3 3"
+              strokeWidth="1"
+              x1="45"
+              x2="520"
+              y1="30"
+              y2="30"
+            />
+            <line
+              stroke="#eaedff"
+              strokeDasharray="3 3"
+              strokeWidth="1"
+              x1="45"
+              x2="520"
+              y1="75"
+              y2="75"
+            />
+            <line
+              stroke="#eaedff"
+              strokeDasharray="3 3"
+              strokeWidth="1"
+              x1="45"
+              x2="520"
+              y1="120"
+              y2="120"
+            />
             <line stroke="#eaedff" strokeWidth="1" x1="45" x2="520" y1="165" y2="165" />
 
             {/* Y-Axis Values */}
-            <text className="text-[11px]" fill="#777587" textAnchor="end" x="35" y="34">{maxClicks}</text>
-            <text className="text-[11px]" fill="#777587" textAnchor="end" x="35" y="100">{Math.round(maxClicks / 2)}</text>
-            <text className="text-[11px]" fill="#777587" textAnchor="end" x="35" y="169">0</text>
+            <text className="text-[11px]" fill="#777587" textAnchor="end" x="35" y="34">
+              {maxClicks}
+            </text>
+            <text className="text-[11px]" fill="#777587" textAnchor="end" x="35" y="100">
+              {Math.round(maxClicks / 2)}
+            </text>
+            <text className="text-[11px]" fill="#777587" textAnchor="end" x="35" y="169">
+              0
+            </text>
 
             {/* Dynamic Groups */}
             {activeLinks.map((item, idx) => {
               const posX = 75 + idx * 115;
-              const clickBarHeight = maxClicks > 0 ? Math.max((item.clicks / maxClicks) * 120, 6) : 6;
+              const clickBarHeight =
+                maxClicks > 0 ? Math.max((item.clicks / maxClicks) * 120, 6) : 6;
               const leadBarHeight = maxClicks > 0 ? Math.max((item.leads / maxClicks) * 120, 4) : 4;
 
               return (

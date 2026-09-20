@@ -10,9 +10,7 @@ interface AuthScreenProps {
   onLoginSuccess: (user: Partial<UserProfile>) => void;
 }
 
-export const AuthScreen: React.FC<AuthScreenProps> = ({
-  onLoginSuccess,
-}) => {
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [identifier, setIdentifier] = useState('');
@@ -37,15 +35,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       if (isRegisterMode) {
         // Register mode
         if (isSupabaseConfigured()) {
-          const result = await AuthService.signUp(
-            regEmail,
-            regPassword,
-            {
-              name: regName,
-              username: regUsername,
-              email: regEmail,
-            }
-          );
+          const result = await AuthService.signUp(regEmail, regPassword, {
+            name: regName,
+            username: regUsername,
+            email: regEmail,
+          });
 
           if (result.success && result.user) {
             onLoginSuccess(result.user);
@@ -138,8 +132,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         `,
       }}
     >
-
-
       {/* Main Login Card */}
       <motion.main
         id="auth-container"
@@ -338,7 +330,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                         onClick={() => handleSocialLogin('Facebook')}
                         className="flex items-center justify-center gap-2.5 py-2.5 px-4 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-full transition duration-150 text-xs sm:text-sm font-semibold text-gray-700 shadow-xs cursor-pointer"
                       >
-                        <svg className="w-4 h-4 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24">
+                        <svg
+                          className="w-4 h-4 text-[#1877F2]"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
                           <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                         </svg>
                         <span>Continuar com Facebook</span>
@@ -433,16 +429,22 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                               setErrorMessage('Por favor, insira um e-mail válido');
                               return;
                             }
-                            
+
                             if (isSupabaseConfigured()) {
                               const result = await AuthService.resetPassword(email);
                               if (result.success) {
-                                alert('Link de redefinição de senha enviado para o e-mail informado!');
+                                alert(
+                                  'Link de redefinição de senha enviado para o e-mail informado!',
+                                );
                               } else {
-                                setErrorMessage(result.error || 'Erro ao enviar link de redefinição');
+                                setErrorMessage(
+                                  result.error || 'Erro ao enviar link de redefinição',
+                                );
                               }
                             } else {
-                              alert('Link de redefinição de senha enviado para o e-mail informado!');
+                              alert(
+                                'Link de redefinição de senha enviado para o e-mail informado!',
+                              );
                             }
                           }}
                           className="text-xs sm:text-sm font-semibold text-[#FF5E00] hover:underline transition duration-150 cursor-pointer"
@@ -533,7 +535,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                         onClick={() => handleSocialLogin('Facebook')}
                         className="flex items-center justify-center gap-2.5 py-2.5 px-4 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-full transition duration-150 text-xs sm:text-sm font-semibold text-gray-700 shadow-xs cursor-pointer"
                       >
-                        <svg className="w-4 h-4 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24">
+                        <svg
+                          className="w-4 h-4 text-[#1877F2]"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
                           <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                         </svg>
                         <span>Cadastrar com Facebook</span>
@@ -711,4 +717,3 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     </div>
   );
 };
-

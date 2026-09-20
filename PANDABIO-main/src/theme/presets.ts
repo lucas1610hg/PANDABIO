@@ -52,7 +52,7 @@ export const FONT_OPTIONS: FontOption[] = [
 ];
 
 export const FONT_CSS: Record<string, string> = Object.fromEntries(
-  FONT_OPTIONS.map((f) => [f.name, f.css])
+  FONT_OPTIONS.map((f) => [f.name, f.css]),
 );
 
 // ============================================
@@ -82,10 +82,7 @@ export const GRADIENT_PRESET_LIST: GradientPreset[] = [
 ];
 
 export const GRADIENT_PRESETS: Record<string, string> = Object.fromEntries(
-  GRADIENT_PRESET_LIST.map((g) => [
-    g.key,
-    `linear-gradient(${g.from} 0%, ${g.to} 100%)`,
-  ])
+  GRADIENT_PRESET_LIST.map((g) => [g.key, `linear-gradient(${g.from} 0%, ${g.to} 100%)`]),
 );
 
 // ============================================
@@ -231,12 +228,19 @@ export const CARD_ANIMATION_PROPS: Record<CardAnimation, CardMotionProps> = {
   zoom: { initial: { opacity: 0, scale: 0.85 }, animate: { opacity: 1, scale: 1 } },
   slideLeft: { initial: { opacity: 0, x: 48 }, animate: { opacity: 1, x: 0 } },
   slideRight: { initial: { opacity: 0, x: -48 }, animate: { opacity: 1, x: 0 } },
-  bounce: { initial: { opacity: 0, y: 40, scale: 0.95 }, animate: { opacity: 1, y: 0, scale: 1 }, spring: true },
+  bounce: {
+    initial: { opacity: 0, y: 40, scale: 0.95 },
+    animate: { opacity: 1, y: 0, scale: 1 },
+    spring: true,
+  },
   flip: {
     initial: { opacity: 0, rotateX: -90, transformPerspective: 800 },
     animate: { opacity: 1, rotateX: 0, transformPerspective: 800 },
   },
-  rotate: { initial: { opacity: 0, rotate: -10, scale: 0.92 }, animate: { opacity: 1, rotate: 0, scale: 1 } },
+  rotate: {
+    initial: { opacity: 0, rotate: -10, scale: 0.92 },
+    animate: { opacity: 1, rotate: 0, scale: 1 },
+  },
 };
 
 export const ANIMATION_SPEEDS: { id: AnimationSpeed; label: string; duration: number }[] = [
@@ -536,10 +540,7 @@ const RESIDUAL_FIELDS: Partial<PageTheme> = {
   backgroundColorGradientDark: undefined,
 };
 
-export function applyCategoryPreset(
-  current: PageTheme,
-  presetId: CategoryPresetId
-): PageTheme {
+export function applyCategoryPreset(current: PageTheme, presetId: CategoryPresetId): PageTheme {
   const preset = CATEGORY_PRESETS.find((p) => p.id === presetId);
   if (!preset) return current;
   return {

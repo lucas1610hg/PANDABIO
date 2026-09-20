@@ -5,7 +5,10 @@ export class PageService {
   /**
    * Salvar dados da página do usuário
    */
-  static async savePageData(userId: string, pageData: PageData): Promise<{ success: boolean; error?: string }> {
+  static async savePageData(
+    userId: string,
+    pageData: PageData,
+  ): Promise<{ success: boolean; error?: string }> {
     if (!isSupabaseConfigured() || !supabase) {
       return { success: false, error: 'Supabase não configurado' };
     }
@@ -26,10 +29,12 @@ export class PageService {
         if (profile.username) profileUpdates.username = profile.username;
         if (profile.avatarUrl) profileUpdates.avatar_url = profile.avatarUrl;
         if (profile.coverUrl !== undefined) profileUpdates.cover_url = profile.coverUrl || null;
-        if (profile.bioDescription !== undefined) profileUpdates.bio_description = profile.bioDescription;
+        if (profile.bioDescription !== undefined)
+          profileUpdates.bio_description = profile.bioDescription;
         if (profile.category !== undefined) profileUpdates.category = profile.category || null;
         if (profile.location !== undefined) profileUpdates.location = profile.location || null;
-        if (profile.customLink !== undefined) profileUpdates.custom_link = profile.customLink || null;
+        if (profile.customLink !== undefined)
+          profileUpdates.custom_link = profile.customLink || null;
         if (profile.pageTitle) profileUpdates.page_title = profile.pageTitle;
         // Mantém o bio_url consistente com o username atual quando usa o formato
         // default (pandabio.com/<slug>); bioUrls personalizados são preservados.
@@ -63,7 +68,9 @@ export class PageService {
   /**
    * Carregar dados da página do usuário
    */
-  static async loadPageData(userId: string): Promise<{ success: boolean; pageData?: PageData; error?: string }> {
+  static async loadPageData(
+    userId: string,
+  ): Promise<{ success: boolean; pageData?: PageData; error?: string }> {
     if (!isSupabaseConfigured() || !supabase) {
       return { success: false, error: 'Supabase não configurado' };
     }

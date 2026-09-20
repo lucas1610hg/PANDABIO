@@ -194,9 +194,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         id="sidebar"
         className={`fixed left-0 top-0 h-full max-h-screen z-50 flex flex-col py-4 select-none shadow-[6px_0_30px_rgba(0,0,0,0.45)] border-r border-[#1c1e28] transition-all duration-300 ease-in-out overflow-y-auto overflow-x-hidden sidebar-scrollbar touch-pan-y overscroll-contain ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        } ${
-          collapsed ? 'lg:w-20 lg:px-2.5' : 'lg:w-64 lg:px-3.5'
-        } w-72 max-w-[85vw] px-3.5`}
+        } ${collapsed ? 'lg:w-20 lg:px-2.5' : 'lg:w-64 lg:px-3.5'} w-72 max-w-[85vw] px-3.5`}
         style={{
           backgroundColor: '#0c0e14',
           backgroundImage:
@@ -284,9 +282,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <div className="flex items-center gap-2 truncate">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20 shrink-0" />
-                <span className="truncate text-zinc-300 font-mono text-[11px]">
-                  {user.bioUrl}
-                </span>
+                <span className="truncate text-zinc-300 font-mono text-[11px]">{user.bioUrl}</span>
               </div>
               <ExternalLink className="w-3.5 h-3.5 text-[#676c7d] group-hover:text-[#FF7A00] shrink-0 transition-colors" />
             </a>
@@ -357,13 +353,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <div className="flex items-center gap-3 min-w-0">
                       <Icon
                         className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                          isActive
-                            ? 'text-white'
-                            : 'text-[#7d8396] group-hover:text-zinc-200'
+                          isActive ? 'text-white' : 'text-[#7d8396] group-hover:text-zinc-200'
                         }`}
                         strokeWidth={isActive ? 2.2 : 1.9}
                       />
-                      <span className={`whitespace-nowrap truncate ${collapsed ? 'lg:hidden' : ''}`}>
+                      <span
+                        className={`whitespace-nowrap truncate ${collapsed ? 'lg:hidden' : ''}`}
+                      >
                         {item.label}
                       </span>
                     </div>
@@ -435,13 +431,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <div className="flex items-center gap-3 min-w-0">
                       <Icon
                         className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                          isActive
-                            ? 'text-white'
-                            : 'text-[#7d8396] group-hover:text-zinc-200'
+                          isActive ? 'text-white' : 'text-[#7d8396] group-hover:text-zinc-200'
                         }`}
                         strokeWidth={isActive ? 2.2 : 1.9}
                       />
-                      <span className={`whitespace-nowrap truncate ${collapsed ? 'lg:hidden' : ''}`}>
+                      <span
+                        className={`whitespace-nowrap truncate ${collapsed ? 'lg:hidden' : ''}`}
+                      >
                         {item.label}
                       </span>
                     </div>
@@ -512,13 +508,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <div className="flex items-center gap-3 min-w-0">
                       <Icon
                         className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                          isActive
-                            ? 'text-white'
-                            : 'text-[#7d8396] group-hover:text-zinc-200'
+                          isActive ? 'text-white' : 'text-[#7d8396] group-hover:text-zinc-200'
                         }`}
                         strokeWidth={isActive ? 2.2 : 1.9}
                       />
-                      <span className={`whitespace-nowrap truncate ${collapsed ? 'lg:hidden' : ''}`}>
+                      <span
+                        className={`whitespace-nowrap truncate ${collapsed ? 'lg:hidden' : ''}`}
+                      >
                         {item.label}
                       </span>
                     </div>
@@ -586,13 +582,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <div className="flex items-center gap-3 min-w-0">
                       <Icon
                         className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                          isActive
-                            ? 'text-white'
-                            : 'text-[#7d8396] group-hover:text-zinc-200'
+                          isActive ? 'text-white' : 'text-[#7d8396] group-hover:text-zinc-200'
                         }`}
                         strokeWidth={isActive ? 2.2 : 1.9}
                       />
-                      <span className={`whitespace-nowrap truncate ${collapsed ? 'lg:hidden' : ''}`}>
+                      <span
+                        className={`whitespace-nowrap truncate ${collapsed ? 'lg:hidden' : ''}`}
+                      >
                         {item.label}
                       </span>
                     </div>
@@ -669,15 +665,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className={`w-full flex items-center justify-between ${
               collapsed ? 'lg:justify-center lg:px-0 px-3 py-2' : 'px-3 py-2'
             } rounded-xl text-[#969cb0] hover:text-white hover:bg-white/[0.05] transition-all text-[13.5px] font-medium group cursor-pointer ${
-              activeSection === 'perfil'
-                ? 'bg-white/[0.08] text-white font-semibold'
-                : ''
+              activeSection === 'perfil' ? 'bg-white/[0.08] text-white font-semibold' : ''
             }`}
             title="Perfil"
           >
             <div className="flex items-center gap-3">
               <User className="w-[18px] h-[18px] text-[#7d8396] group-hover:text-white shrink-0 transition-colors" />
-              <span className={`whitespace-nowrap group-hover:text-white ${collapsed ? 'lg:hidden' : ''}`}>
+              <span
+                className={`whitespace-nowrap group-hover:text-white ${collapsed ? 'lg:hidden' : ''}`}
+              >
                 Perfil
               </span>
             </div>

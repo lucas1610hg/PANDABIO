@@ -23,7 +23,9 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
   // Link form state
   const [linkTitle, setLinkTitle] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
-  const [linkType, setLinkType] = useState<'social' | 'whatsapp' | 'portfolio' | 'store' | 'custom'>('custom');
+  const [linkType, setLinkType] = useState<
+    'social' | 'whatsapp' | 'portfolio' | 'store' | 'custom'
+  >('custom');
 
   // Product form state
   const [prodName, setProdName] = useState('');
@@ -36,17 +38,19 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
 
   const handleLinkSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const formData: LinkFormData = {
         title: linkTitle,
         url: linkUrl,
         type: linkType,
       };
-      
+
       const validatedData = linkSchema.parse(formData);
-      
-      const formattedUrl = validatedData.url.startsWith('http') ? validatedData.url : `https://${validatedData.url}`;
+
+      const formattedUrl = validatedData.url.startsWith('http')
+        ? validatedData.url
+        : `https://${validatedData.url}`;
       const newLink: BioLink = {
         id: `link-${Date.now()}`,
         title: validatedData.title,
@@ -74,15 +78,15 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
 
   const handleProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const formData: ProductFormData = {
         name: prodName,
         price: parseFloat(prodPrice) || 0,
       };
-      
+
       const validatedData = productSchema.parse(formData);
-      
+
       const newProd: ProductItem = {
         id: `prod-${Date.now()}`,
         name: validatedData.name,
@@ -106,7 +110,13 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} label="Criar novo item" size="sm" initialFocusRef={activeTab === 'link' ? linkTitleRef : prodNameRef}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      label="Criar novo item"
+      size="sm"
+      initialFocusRef={activeTab === 'link' ? linkTitleRef : prodNameRef}
+    >
       <div className="flex flex-col overflow-y-auto p-5 sm:p-6">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-gray-100">
@@ -130,7 +140,11 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
         </div>
 
         {/* Tab switch */}
-        <div role="tablist" aria-label="Tipo de item" className="flex bg-[#f2f3ff] p-1 rounded-xl my-4 text-xs font-semibold">
+        <div
+          role="tablist"
+          aria-label="Tipo de item"
+          className="flex bg-[#f2f3ff] p-1 rounded-xl my-4 text-xs font-semibold"
+        >
           <button
             type="button"
             role="tab"
@@ -196,12 +210,14 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
                 Categoria / Ícone
               </label>
               <div className="grid grid-cols-4 gap-2">
-                {([
-                  { id: 'whatsapp', label: 'WhatsApp' },
-                  { id: 'social', label: 'Redes' },
-                  { id: 'store', label: 'Loja' },
-                  { id: 'portfolio', label: 'Portfólio' },
-                ] as const).map((cat) => (
+                {(
+                  [
+                    { id: 'whatsapp', label: 'WhatsApp' },
+                    { id: 'social', label: 'Redes' },
+                    { id: 'store', label: 'Loja' },
+                    { id: 'portfolio', label: 'Portfólio' },
+                  ] as const
+                ).map((cat) => (
                   <button
                     key={cat.id}
                     type="button"
@@ -245,9 +261,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Preço (R$)
-              </label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Preço (R$)</label>
               <input
                 type="number"
                 step="0.01"

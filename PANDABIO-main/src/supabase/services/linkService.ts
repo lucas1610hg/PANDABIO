@@ -12,7 +12,9 @@ export class LinkService {
     if (!isSupabaseConfigured() || !supabase) return [];
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return [];
 
       const { data, error } = await supabase
@@ -24,7 +26,7 @@ export class LinkService {
       if (error) throw error;
       if (!data) return [];
 
-      return data.map(link => ({
+      return data.map((link) => ({
         id: link.id,
         title: link.title,
         url: link.url,
@@ -47,7 +49,9 @@ export class LinkService {
     if (!isSupabaseConfigured() || !supabase) return null;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return null;
 
       // Obter o maior link_order atual
@@ -58,7 +62,8 @@ export class LinkService {
         .order('link_order', { ascending: false })
         .limit(1);
 
-      const nextOrder = existingLinks && existingLinks.length > 0 ? existingLinks[0].link_order + 1 : 0;
+      const nextOrder =
+        existingLinks && existingLinks.length > 0 ? existingLinks[0].link_order + 1 : 0;
 
       const { data, error } = await supabase
         .from('links')
@@ -174,9 +179,7 @@ export class LinkService {
         link_order: index,
       }));
 
-      const { error } = await supabase
-        .from('links')
-        .upsert(updates);
+      const { error } = await supabase.from('links').upsert(updates);
 
       if (error) throw error;
       return true;
@@ -193,10 +196,7 @@ export class LinkService {
     if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
-      const { error } = await supabase
-        .from('links')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('links').delete().eq('id', id);
 
       if (error) throw error;
       return true;
@@ -225,7 +225,7 @@ export class LinkService {
           .select('clicks')
           .eq('id', linkId)
           .single();
-        
+
         if (currentLink) {
           const { error } = await supabase
             .from('links')
@@ -236,15 +236,21 @@ export class LinkService {
       }
 
       // Registrar evento de analytics
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         await supabase.from('analytics').insert({
           profile_id: user.id,
           link_id: linkId,
           event_type: 'click',
           device_type: this.getDeviceType(),
-          referrer: typeof document !== 'undefined' && document.referrer ? document.referrer : undefined,
-          user_agent: typeof navigator !== 'undefined' && navigator.userAgent ? navigator.userAgent : undefined,
+          referrer:
+            typeof document !== 'undefined' && document.referrer ? document.referrer : undefined,
+          user_agent:
+            typeof navigator !== 'undefined' && navigator.userAgent
+              ? navigator.userAgent
+              : undefined,
         });
       }
 

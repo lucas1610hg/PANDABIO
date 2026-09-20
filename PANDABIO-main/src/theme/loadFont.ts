@@ -11,7 +11,7 @@ export function loadGoogleFont(family: string): void {
   link.id = `google-font-${slug}`;
   link.rel = 'stylesheet';
   link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(
-    family
+    family,
   )}:wght@300;400;500;600;700;800&display=swap`;
   document.head.appendChild(link);
   loadedFonts.add(family);

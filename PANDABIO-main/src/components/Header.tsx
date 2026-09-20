@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Menu,
-  Search,
-  Bell,
-  ExternalLink,
-  Lock,
-  CheckCircle,
-  X,
-} from 'lucide-react';
+import { Menu, Search, Bell, ExternalLink, Lock, CheckCircle, X } from 'lucide-react';
 import { UserProfile } from '../types';
 
 interface HeaderProps {
@@ -168,16 +160,10 @@ export const Header: React.FC<HeaderProps> = ({
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <span className="font-semibold text-xs text-[#131b2e]">
-                          {item.title}
-                        </span>
-                        <span className="text-[10px] text-gray-400 shrink-0">
-                          {item.time}
-                        </span>
+                        <span className="font-semibold text-xs text-[#131b2e]">{item.title}</span>
+                        <span className="text-[10px] text-gray-400 shrink-0">{item.time}</span>
                       </div>
-                      <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
-                        {item.desc}
-                      </p>
+                      <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">{item.desc}</p>
                     </div>
                   ))
                 ) : (

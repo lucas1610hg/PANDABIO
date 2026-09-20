@@ -1,20 +1,29 @@
 # Quick Start - Refatoração Prioritária PandaBio
 
-##  Melhorias Imediatas (Quick Wins)
+## Melhorias Imediatas (Quick Wins)
 
 ### 1. Adicionar React.memo nos Componentes Principais
+
 **Arquivo**: `src/components/KpiMetrics.tsx`
+
 ```typescript
-export const KpiMetrics = React.memo<KpiMetricsProps>(({ data }) => {
-  // componente existente
-}, (prevProps, nextProps) => {
-  return prevProps.data.visits === nextProps.data.visits &&
-         prevProps.data.clicks === nextProps.data.clicks;
-});
+export const KpiMetrics = React.memo<KpiMetricsProps>(
+  ({ data }) => {
+    // componente existente
+  },
+  (prevProps, nextProps) => {
+    return (
+      prevProps.data.visits === nextProps.data.visits &&
+      prevProps.data.clicks === nextProps.data.clicks
+    );
+  },
+);
 ```
 
 ### 2. Criar Utilitário de Ícones Centralizado
+
 **Arquivo**: `src/utils/iconMapper.ts` (NOVO)
+
 ```typescript
 import { Camera, MessageCircle, Layers, ShoppingBag, ExternalLink } from 'lucide-react';
 
@@ -42,8 +51,10 @@ export const getLinkIconBg = (type: string) => {
 ```
 
 ### 3. Implementar Validação Básica com Zod
+
 **Instalar**: `npm install zod`
 **Arquivo**: `src/schemas/linkSchema.ts` (NOVO)
+
 ```typescript
 import { z } from 'zod';
 
@@ -55,7 +66,9 @@ export const linkSchema = z.object({
 ```
 
 ### 4. Substituir alert() por Toast Básico
+
 **Arquivo**: `src/components/Toast.tsx` (NOVO)
+
 ```typescript
 import React, { useState, useEffect } from 'react';
 
@@ -82,7 +95,9 @@ export const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
 ```
 
 ### 5. Criar Wrapper Seguro para localStorage
+
 **Arquivo**: `src/utils/storage.ts` (NOVO)
+
 ```typescript
 export const safeStorage = {
   get: <T>(key: string, defaultValue: T): T => {
@@ -106,36 +121,40 @@ export const safeStorage = {
 };
 ```
 
-##  Instalação de Dependências Necessárias
+## Instalação de Dependências Necessárias
 
 ```bash
 npm install zustand zod dompurify react-hot-toast
 npm install -D @types/dompurify
 ```
 
-##  Implementação em 3 Fases
+## Implementação em 3 Fases
 
 ### Fase 1: Setup (1 dia)
+
 1. Instalar dependências
 2. Criar estrutura de pastas: `src/utils/`, `src/schemas/`, `src/hooks/`
 3. Criar utilitários básicos (iconMapper, storage)
 4. Configurar ESLint se necessário
 
 ### Fase 2: Componentes (2-3 dias)
+
 1. Adicionar React.memo nos componentes principais
 2. Implementar validação de formulários
 3. Substituir alert() por toasts
 4. Adicionar loading states básicos
 
 ### Fase 3: Estado (3-4 dias)
+
 1. Implementar Zustand para gerenciamento de estado
 2. Extrair lógica para custom hooks
 3. Refatorar App.tsx em componentes menores
 4. Testar todas as funcionalidades
 
-##  Como Validar as Melhorias
+## Como Validar as Melhorias
 
 ### Performance
+
 ```bash
 # Antes e depois das mudanças
 npm run build
@@ -143,34 +162,37 @@ npm run build
 ```
 
 ### Funcionalidade
+
 1. Testar criação de links com validação
 2. Verificar toasts funcionando corretamente
 3. Testar persistência de dados
 4. Verificar performance do dashboard
 
 ### Código
+
 ```bash
 npm run lint
 npm run type-check
 ```
 
-##  Métricas Esperadas
+## Métricas Esperadas
 
 - **Bundle Size**: -15% após React.memo
 - **Código Duplicado**: -30% após utilitários
 - **UX**: +20% satisfação com toasts
 - **Segurança**: +40% com validação
 
-##  Notas Importantes
+## Notas Importantes
 
 1. **Backup**: Sempre faça backup antes de refatorações grandes
 2. **Testes**: Teste cada mudança individualmente
 3. **Commits**: Faça commits pequenos e frequentes
 4. **Documentação**: Atualize conforme avança
 
-##  Suporte
+## Suporte
 
 Para dúvidas durante a implementação:
+
 - Consulte o arquivo completo `ANALISE_E_MELHORIAS.md`
 - Verifique documentação das bibliotecas (Zustand, Zod)
 - Teste incrementalmente cada mudança

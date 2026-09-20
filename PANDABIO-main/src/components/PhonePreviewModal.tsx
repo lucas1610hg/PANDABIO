@@ -23,45 +23,40 @@ interface PhonePreviewModalProps {
   links: BioLink[];
 }
 
-export const PhonePreviewModal = memo<PhonePreviewModalProps>(({
-  isOpen,
-  onClose,
-  user,
-  links,
-}) => {
-  const [copied, setCopied] = useState(false);
-  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+export const PhonePreviewModal = memo<PhonePreviewModalProps>(
+  ({ isOpen, onClose, user, links }) => {
+    const [copied, setCopied] = useState(false);
+    const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    return () => {
-      if (copyTimer.current) clearTimeout(copyTimer.current);
-    };
-  }, []);
-
-  if (!isOpen) return null;
-
-  const handleCopyLink = () => {
-    const url = getPageUrl(user.bioUrl, user.username);
-    navigator.clipboard?.writeText(url)
-      .then(() => {
-        setCopied(true);
+    useEffect(() => {
+      return () => {
         if (copyTimer.current) clearTimeout(copyTimer.current);
-        copyTimer.current = setTimeout(() => setCopied(false), 2000);
-      })
-      .catch(() => setCopied(false));
-  };
+      };
+    }, []);
 
-  const activeLinks = links.filter((l) => l.active);
+    if (!isOpen) return null;
 
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} label={`Prévia da página: ${user.bioUrl}`} size="sm">
+    const handleCopyLink = () => {
+      const url = getPageUrl(user.bioUrl, user.username);
+      navigator.clipboard
+        ?.writeText(url)
+        .then(() => {
+          setCopied(true);
+          if (copyTimer.current) clearTimeout(copyTimer.current);
+          copyTimer.current = setTimeout(() => setCopied(false), 2000);
+        })
+        .catch(() => setCopied(false));
+    };
+
+    const activeLinks = links.filter((l) => l.active);
+
+    return (
+      <Modal isOpen={isOpen} onClose={onClose} label={`Prévia da página: ${user.bioUrl}`} size="sm">
         {/* Header bar */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 bg-[#faf8ff]">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse" />
-            <span className="text-xs font-bold text-[#131b2e]">
-              Prévia: {user.bioUrl}
-            </span>
+            <span className="text-xs font-bold text-[#131b2e]">Prévia: {user.bioUrl}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <button
@@ -97,7 +92,10 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(({
                   <img src={user.coverUrl} alt="Capa" className="w-full h-full object-cover" />
                   <div
                     className="absolute inset-0"
-                    style={{ background: 'linear-gradient(to bottom, rgba(10,12,18,0.24) 0%, rgba(10,12,18,0.55) 100%)' }}
+                    style={{
+                      background:
+                        'linear-gradient(to bottom, rgba(10,12,18,0.24) 0%, rgba(10,12,18,0.55) 100%)',
+                    }}
                   />
                   <div
                     className="pointer-events-none absolute inset-0"
@@ -155,9 +153,7 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(({
                 <h3 className="font-bold text-base text-[#131b2e] tracking-tight text-center">
                   {user.pageTitle || user.name}
                 </h3>
-                <span className="text-xs text-[#FF7A00] font-semibold">
-                  @{user.username}
-                </span>
+                <span className="text-xs text-[#FF7A00] font-semibold">@{user.username}</span>
                 {/* Bio Description */}
                 {user.bioDescription && (
                   <p className="text-[11px] text-gray-600 text-center mt-1.5 px-2 leading-relaxed">
@@ -212,7 +208,9 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(({
                 <div className="p-4 text-center rounded-2xl bg-gray-50 border border-dashed border-gray-200 w-full my-2">
                   <Link2 className="w-5 h-5 mx-auto text-gray-400 mb-1" />
                   <p className="text-xs font-semibold text-gray-600">Nenhum link ativo</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">Adicione links no painel para exibi-los aqui.</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">
+                    Adicione links no painel para exibi-los aqui.
+                  </p>
                 </div>
               )}
             </div>
@@ -227,18 +225,29 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(({
             </div>
           </div>
         </div>
-    </Modal>
-  );
-}, (prevProps, nextProps) => {
-  const linkKey = (links: BioLink[]) => links.map((l) => `${l.id}|${l.active}|${l.title}|${l.url}|${l.type}`).join('~');
-  const userKey = (u: UserProfile) =>
-    [
-      u.bioUrl, u.username, u.name, u.pageTitle, u.bioDescription, u.avatarUrl, u.coverUrl,
-      u.category, u.location, u.customLink,
-    ].join('|');
-  return (
-    prevProps.isOpen === nextProps.isOpen &&
-    userKey(prevProps.user) === userKey(nextProps.user) &&
-    linkKey(prevProps.links) === linkKey(nextProps.links)
-  );
-});
+      </Modal>
+    );
+  },
+  (prevProps, nextProps) => {
+    const linkKey = (links: BioLink[]) =>
+      links.map((l) => `${l.id}|${l.active}|${l.title}|${l.url}|${l.type}`).join('~');
+    const userKey = (u: UserProfile) =>
+      [
+        u.bioUrl,
+        u.username,
+        u.name,
+        u.pageTitle,
+        u.bioDescription,
+        u.avatarUrl,
+        u.coverUrl,
+        u.category,
+        u.location,
+        u.customLink,
+      ].join('|');
+    return (
+      prevProps.isOpen === nextProps.isOpen &&
+      userKey(prevProps.user) === userKey(nextProps.user) &&
+      linkKey(prevProps.links) === linkKey(nextProps.links)
+    );
+  },
+);

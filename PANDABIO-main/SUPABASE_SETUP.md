@@ -1,6 +1,6 @@
 # Guia de Configuração do Supabase - PandaBio
 
-##  Passo 1: Criar Projeto no Supabase
+## Passo 1: Criar Projeto no Supabase
 
 1. Acesse [https://supabase.com](https://supabase.com)
 2. Clique em "New Project"
@@ -9,7 +9,7 @@
 5. Região: Escolha a região mais próxima (ex: South America)
 6. Clique em "Create new project"
 
-##  Passo 2: Configurar o Banco de Dados
+## Passo 2: Configurar o Banco de Dados
 
 ### 2.1 Executar o Schema SQL
 
@@ -22,14 +22,15 @@
 ### 2.2 Verificar Tabelas Criadas
 
 As seguintes tabelas devem ser criadas:
--  `profiles` - Perfis de usuário
--  `links` - Links da bio
--  `products` - Produtos
--  `leads` - Leads capturados
--  `activities` - Atividades do usuário
--  `analytics` - Analytics de eventos
 
-##  Passo 3: Configurar Autenticação
+- `profiles` - Perfis de usuário
+- `links` - Links da bio
+- `products` - Produtos
+- `leads` - Leads capturados
+- `activities` - Atividades do usuário
+- `analytics` - Analytics de eventos
+
+## Passo 3: Configurar Autenticação
 
 ### 3.1 Habilitar Email Auth
 
@@ -48,7 +49,7 @@ As seguintes tabelas devem ser criadas:
    - Reset password
    - Email change
 
-##  Passo 4: Obter Credenciais
+## Passo 4: Obter Credenciais
 
 ### 4.1 API Keys
 
@@ -66,7 +67,7 @@ VITE_SUPABASE_URL="sua-project-url"
 VITE_SUPABASE_ANON_KEY="sua-anon-key"
 ```
 
-##  Passo 5: Testar a Conexão
+## Passo 5: Testar a Conexão
 
 ### 5.1 Testar com TypeScript
 
@@ -83,11 +84,12 @@ npm run dev
 ```
 
 A aplicação deve:
--  Carregar sem erros
--  Detectar se Supabase está configurado
--  Usar localStorage como fallback se não configurado
 
-##  Passo 6: Integrar com Autenticação
+- Carregar sem erros
+- Detectar se Supabase está configurado
+- Usar localStorage como fallback se não configurado
+
+## Passo 6: Integrar com Autenticação
 
 ### 6.1 Atualizar AuthScreen
 
@@ -105,18 +107,18 @@ import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
 
 export const AuthScreen = () => {
   const { signIn, signUp, isSupabaseConfigured } = useSupabaseAuth();
-  
+
   if (!isSupabaseConfigured) {
     // Usar autenticação local (fallback)
     return <LocalAuthScreen />;
   }
-  
+
   // Usar autenticação Supabase
   return <SupabaseAuthScreen />;
 };
 ```
 
-##  Passo 7: Migrar Dados Existentes
+## Passo 7: Migrar Dados Existentes
 
 ### 7.1 Script de Migração
 
@@ -135,7 +137,7 @@ migrateLocalStorageToSupabase();
 npm run migrate:supabase
 ```
 
-##  Passo 8: Configurar Row Level Security (RLS)
+## Passo 8: Configurar Row Level Security (RLS)
 
 O schema SQL já inclui políticas RLS básicas. Para produção:
 
@@ -144,7 +146,7 @@ O schema SQL já inclui políticas RLS básicas. Para produção:
 3. Adicione políticas específicas para seu caso de uso
 4. Teste as políticas com diferentes usuários
 
-##  Passo 9: Configurar Realtime (Opcional)
+## Passo 9: Configurar Realtime (Opcional)
 
 Para atualizações em tempo real:
 
@@ -156,7 +158,7 @@ Para atualizações em tempo real:
    - `leads`
    - `activities`
 
-##  Passo 10: Monitoramento
+## Passo 10: Monitoramento
 
 ### 10.1 Logs
 
@@ -170,7 +172,7 @@ Para atualizações em tempo real:
 2. Monitore consultas lentas
 3. Otimize índices se necessário
 
-##  Passo 11: Testes
+## Passo 11: Testes
 
 ### 11.1 Testar Serviços
 
@@ -192,18 +194,18 @@ const profile = await ProfileService.upsertProfile({
 import { AuthService } from '../supabase/services/authService';
 
 // Testar signup
-const result = await AuthService.signUp(
-  'test@example.com',
-  'password123',
-  { name: 'Test User', username: 'testuser' }
-);
+const result = await AuthService.signUp('test@example.com', 'password123', {
+  name: 'Test User',
+  username: 'testuser',
+});
 ```
 
-##  Passo 12: Documentação
+## Passo 12: Documentação
 
 ### 12.1 API Reference
 
 Documente os serviços criados:
+
 - `ProfileService` - Gerenciamento de perfis
 - `LinkService` - Gerenciamento de links
 - `ProductService` - Gerenciamento de produtos
@@ -216,22 +218,24 @@ Documente os serviços criados:
 Mantenha o arquivo `src/database/schema.sql` atualizado
 como documentação do schema do banco.
 
-##  Passo 13: Deploy
+## Passo 13: Deploy
 
 ### 13.1 Variáveis de Ambiente de Produção
 
 Configure as variáveis de ambiente no seu serviço de hosting:
+
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 
 ### 13.2 Webhooks (Opcional)
 
 Configure webhooks para:
+
 - Novos usuários
 - Atualizações de perfil
 - Novos leads
 
-##  Checklist Final
+## Checklist Final
 
 - [ ] Projeto Supabase criado
 - [ ] Schema SQL executado
@@ -244,14 +248,14 @@ Configure webhooks para:
 - [ ] Integração com app validada
 - [ ] Documentação atualizada
 
-##  Recursos Úteis
+## Recursos Úteis
 
 - [Supabase Docs](https://supabase.com/docs)
 - [Supabase Auth](https://supabase.com/docs/guides/auth)
 - [RLS Policies](https://supabase.com/docs/guides/auth/row-level-security)
 - [Realtime](https://supabase.com/docs/guides/realtime)
 
-##  Notas Importantes
+## Notas Importantes
 
 1. **Segurança**: Nunca commite credenciais reais
 2. **Ambientes**: Use projetos diferentes para dev/prod
@@ -259,9 +263,10 @@ Configure webhooks para:
 4. **RLS**: Teste políticas rigorosamente em produção
 5. **Rate Limits**: Configure rate limits para APIs públicas
 
-##  Suporte
+## Suporte
 
 Se encontrar problemas:
+
 1. Verifique as credenciais no `.env`
 2. Confirme que o schema foi executado
 3. Verifique os logs no dashboard Supabase

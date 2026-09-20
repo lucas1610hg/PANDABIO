@@ -1,6 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { PageBlock, BlockType, BlockProduct, SocialPlatform, GalleryLayout, BlockImage } from '../types';
-import { Plus, Trash2, Image as ImageIcon, Link as LinkIcon, Wand2, Upload, Loader2, X } from 'lucide-react';
+import {
+  PageBlock,
+  BlockType,
+  BlockProduct,
+  SocialPlatform,
+  GalleryLayout,
+  BlockImage,
+} from '../types';
+import {
+  Plus,
+  Trash2,
+  Image as ImageIcon,
+  Link as LinkIcon,
+  Wand2,
+  Upload,
+  Loader2,
+  X,
+} from 'lucide-react';
 import { Instagram, Facebook, Music2, Linkedin, Pin, Youtube, Play, AtSign } from 'lucide-react';
 import { Modal } from './Modal';
 import { StorageService } from '../supabase/services/storageService';
@@ -35,7 +51,7 @@ function fetchWithTimeout(url: string, ms = 15000): Promise<Response> {
       (err) => {
         clearTimeout(timer);
         reject(err);
-      }
+      },
     );
   });
 }
@@ -50,15 +66,19 @@ function resolveImageUrl(maybe: string, base: string): string | null {
 
 // Detecta a plataforma do vídeo a partir da URL e devolve a capa (thumbnail)
 // quando possível. Retorna null para MP4s diretos (sem capa automática).
-function getVideoInfo(url: string): { platform: 'youtube' | 'vimeo' | 'mp4' | 'outro'; thumbnail: string | null } {
+function getVideoInfo(url: string): {
+  platform: 'youtube' | 'vimeo' | 'mp4' | 'outro';
+  thumbnail: string | null;
+} {
   if (!url) return { platform: 'outro', thumbnail: null };
   const lower = url.toLowerCase();
   let videoId: string | null = null;
 
   // YouTube: youtube.com/watch?v=..., youtu.be/..., shorts, embed
   const ytMatch =
-    lower.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{6,})/) ||
-    lower.match(/youtube\.com\/watch\?.*[?&]v=([a-zA-Z0-9_-]{6,})/);
+    lower.match(
+      /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{6,})/,
+    ) || lower.match(/youtube\.com\/watch\?.*[?&]v=([a-zA-Z0-9_-]{6,})/);
   if (ytMatch) {
     videoId = ytMatch[1];
     return { platform: 'youtube', thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` };
@@ -86,7 +106,9 @@ function isPlatformImage(url: string): boolean {
   // GIF 1x1 transparente (placeholder comum em og:image de Hotmart/afiiliados)
   if (/data:image\/gif;base64,r0lgodlhaqaba/.test(lower)) return true;
   return (
-    /(logo|favicon|icon|avatar|banner|sprite|pixel|track|spacer|placeholder|error\/logo|faviconv2)/.test(lower) ||
+    /(logo|favicon|icon|avatar|banner|sprite|pixel|track|spacer|placeholder|error\/logo|faviconv2)/.test(
+      lower,
+    ) ||
     /\.gif(\?|$)/.test(lower) ||
     lower.includes('1x1')
   );
@@ -115,9 +137,14 @@ function collectJsonLdImages(htmlDoc: Document, out: Set<string>): void {
         else if (Array.isArray(img)) {
           img.forEach((i) => {
             if (typeof i === 'string') out.add(i);
-            else if (i && typeof i === 'object' && typeof (i as { url?: unknown }).url === 'string') out.add((i as { url: string }).url);
+            else if (i && typeof i === 'object' && typeof (i as { url?: unknown }).url === 'string')
+              out.add((i as { url: string }).url);
           });
-        } else if (img && typeof img === 'object' && typeof (img as { url?: unknown }).url === 'string') {
+        } else if (
+          img &&
+          typeof img === 'object' &&
+          typeof (img as { url?: unknown }).url === 'string'
+        ) {
           out.add((img as { url: string }).url);
         }
       }
@@ -143,13 +170,17 @@ function extractImagesFromHtml(html: string, baseUrl: string): string[] {
 
   // 2) og:image / twitter:image
   doc
-    .querySelectorAll('meta[property="og:image"], meta[property="og:image:url"], meta[name="twitter:image"], meta[name="twitter:image:src"]')
+    .querySelectorAll(
+      'meta[property="og:image"], meta[property="og:image:url"], meta[name="twitter:image"], meta[name="twitter:image:src"]',
+    )
     .forEach((meta) => push(meta.getAttribute('content')));
 
   // 3) <img> dentro de áreas de produto/conteúdo
-  doc.querySelectorAll('main img[src], article img[src], [class*="product" i] img[src], [class*="produto" i] img[src]').forEach((img) =>
-    push(img.getAttribute('src'))
-  );
+  doc
+    .querySelectorAll(
+      'main img[src], article img[src], [class*="product" i] img[src], [class*="produto" i] img[src]',
+    )
+    .forEach((img) => push(img.getAttribute('src')));
 
   // 4) <img> com tamanho explícito relevante (evita thumbnails/ícones minúsculos)
   doc.querySelectorAll('img[src]').forEach((img) => {
@@ -179,7 +210,7 @@ async function getPageHtml(url: string): Promise<string | null> {
           // tenta o próximo proxy
         }
         return null;
-      })
+      }),
     ).then((values) => values.find((v) => v !== null) || null),
     new Promise<null>((resolve) => setTimeout(() => resolve(null), 10000)),
   ]);
@@ -204,7 +235,10 @@ async function fetchProductImages(rawUrl: string): Promise<string[]> {
     Promise.allSettled([
       (async () => {
         try {
-          const res = await fetchWithTimeout(`https://api.microlink.io/?url=${encodeURIComponent(rawUrl)}&meta=true`, 10000);
+          const res = await fetchWithTimeout(
+            `https://api.microlink.io/?url=${encodeURIComponent(rawUrl)}&meta=true`,
+            10000,
+          );
           if (!res.ok) return null;
           const json = await res.json();
           return json?.data?.image?.url || null;
@@ -216,7 +250,7 @@ async function fetchProductImages(rawUrl: string): Promise<string[]> {
         try {
           const res = await fetchWithTimeout(
             `https://api.microlink.io/?url=${encodeURIComponent(rawUrl)}&screenshot=true&palette=false`,
-            13000
+            13000,
           );
           if (!res.ok) return null;
           const json = await res.json();
@@ -281,7 +315,11 @@ const BLOCK_NAMES: Record<BlockType, string> = {
   location: 'Localização',
 };
 
-const SOCIAL_PLATFORMS: { platform: SocialPlatform; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+const SOCIAL_PLATFORMS: {
+  platform: SocialPlatform;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
   { platform: 'instagram', label: 'Instagram', icon: Instagram },
   { platform: 'facebook', label: 'Facebook', icon: Facebook },
   { platform: 'tiktok', label: 'TikTok', icon: Music2 },
@@ -337,11 +375,17 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
     }));
   };
 
-  const handleUploadProductImage = async (e: React.ChangeEvent<HTMLInputElement>, productId: string) => {
+  const handleUploadProductImage = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    productId: string,
+  ) => {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file || !file.type.startsWith('image/')) return;
-    const result = await StorageService.uploadImage(file, 'product', { maxDim: 800, quality: 0.82 });
+    const result = await StorageService.uploadImage(file, 'product', {
+      maxDim: 800,
+      quality: 0.82,
+    });
     if (!result.success || !result.url) {
       setLinkError(result.error || 'Não foi possível processar a imagem');
       return;
@@ -380,7 +424,9 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
         const enriched = await enrichProductImages(link, []);
         setLinkCandidates((prev) => ({ ...prev, [productId]: enriched }));
         if (!enriched.length) {
-          setLinkError('Não foi possível encontrar a imagem do produto automaticamente. Use a galeria ou suba uma imagem.');
+          setLinkError(
+            'Não foi possível encontrar a imagem do produto automaticamente. Use a galeria ou suba uma imagem.',
+          );
         } else {
           updateProduct(productId, { imageUrl: enriched[0] });
         }
@@ -412,10 +458,20 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
         return (
           <>
             <Field label="Título do link">
-              <input className={inputClass} value={form.title || ''} onChange={(e) => set('title', e.target.value)} placeholder="Ex: Meu Instagram" />
+              <input
+                className={inputClass}
+                value={form.title || ''}
+                onChange={(e) => set('title', e.target.value)}
+                placeholder="Ex: Meu Instagram"
+              />
             </Field>
             <Field label="URL de destino">
-              <input className={inputClass} value={form.url || ''} onChange={(e) => set('url', e.target.value)} placeholder="https://instagram.com/..." />
+              <input
+                className={inputClass}
+                value={form.url || ''}
+                onChange={(e) => set('url', e.target.value)}
+                placeholder="https://instagram.com/..."
+              />
             </Field>
           </>
         );
@@ -423,10 +479,21 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
         return (
           <>
             <Field label="Título">
-              <input className={inputClass} value={form.title || ''} onChange={(e) => set('title', e.target.value)} placeholder="Título do texto" />
+              <input
+                className={inputClass}
+                value={form.title || ''}
+                onChange={(e) => set('title', e.target.value)}
+                placeholder="Título do texto"
+              />
             </Field>
             <Field label="Conteúdo">
-              <textarea className={`${inputClass} resize-none`} rows={4} value={form.content || ''} onChange={(e) => set('content', e.target.value)} placeholder="Escreva seu texto..." />
+              <textarea
+                className={`${inputClass} resize-none`}
+                rows={4}
+                value={form.content || ''}
+                onChange={(e) => set('content', e.target.value)}
+                placeholder="Escreva seu texto..."
+              />
             </Field>
           </>
         );
@@ -461,8 +528,15 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
             </div>
             <div className="grid grid-cols-5 gap-2">
               {form.gallery?.images.map((img, index) => (
-                <div key={img.id} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200">
-                  <img src={img.url} alt={`Imagem ${index + 1}`} className="w-full h-full object-cover" />
+                <div
+                  key={img.id}
+                  className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200"
+                >
+                  <img
+                    src={img.url}
+                    alt={`Imagem ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
                   <button
                     type="button"
                     onClick={() => {
@@ -490,16 +564,21 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                     onChange={async (e) => {
                       const files = Array.from(e.target.files || []);
                       const remaining = 10 - (form.gallery?.images.length || 0);
-                      const toUpload = files.filter((f) => f.type.startsWith('image/')).slice(0, remaining);
+                      const toUpload = files
+                        .filter((f) => f.type.startsWith('image/'))
+                        .slice(0, remaining);
                       e.target.value = '';
                       if (toUpload.length === 0) return;
                       const results = await Promise.all(
                         toUpload.map(async (file): Promise<BlockImage | null> => {
-                          const result = await StorageService.uploadImage(file, 'gallery', { maxDim: 900, quality: 0.8 });
+                          const result = await StorageService.uploadImage(file, 'gallery', {
+                            maxDim: 900,
+                            quality: 0.8,
+                          });
                           return result.success && result.url
                             ? { id: crypto.randomUUID(), url: result.url }
                             : null;
-                        })
+                        }),
                       );
                       commitGallery(results.filter((r): r is BlockImage => r !== null));
                     }}
@@ -514,9 +593,18 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
             )}
             {!form.gallery?.images?.length && (
               <Field label="Ou use uma única imagem por URL">
-                <input className={inputClass} value={form.imageUrl || ''} onChange={(e) => set('imageUrl', e.target.value)} placeholder="https://.../imagem.jpg" />
+                <input
+                  className={inputClass}
+                  value={form.imageUrl || ''}
+                  onChange={(e) => set('imageUrl', e.target.value)}
+                  placeholder="https://.../imagem.jpg"
+                />
                 {form.imageUrl && (
-                  <img src={form.imageUrl} alt="Prévia" className="mt-2 h-24 w-full object-cover rounded-xl border border-gray-200" />
+                  <img
+                    src={form.imageUrl}
+                    alt="Prévia"
+                    className="mt-2 h-24 w-full object-cover rounded-xl border border-gray-200"
+                  />
                 )}
               </Field>
             )}
@@ -562,13 +650,28 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
         return (
           <>
             <Field label="Título">
-              <input className={inputClass} value={form.appointmentTitle || ''} onChange={(e) => set('appointmentTitle', e.target.value)} placeholder="Agende seu horário" />
+              <input
+                className={inputClass}
+                value={form.appointmentTitle || ''}
+                onChange={(e) => set('appointmentTitle', e.target.value)}
+                placeholder="Agende seu horário"
+              />
             </Field>
             <Field label="Descrição">
-              <textarea className={`${inputClass} resize-none`} rows={3} value={form.appointmentDescription || ''} onChange={(e) => set('appointmentDescription', e.target.value)} placeholder="Escolha o melhor horário para você" />
+              <textarea
+                className={`${inputClass} resize-none`}
+                rows={3}
+                value={form.appointmentDescription || ''}
+                onChange={(e) => set('appointmentDescription', e.target.value)}
+                placeholder="Escolha o melhor horário para você"
+              />
             </Field>
             <Field label="Serviço">
-              <select className={inputClass} value={form.service || ''} onChange={(e) => set('service', e.target.value)}>
+              <select
+                className={inputClass}
+                value={form.service || ''}
+                onChange={(e) => set('service', e.target.value)}
+              >
                 <option value="">Selecione um serviço</option>
                 <option>Corte de cabelo</option>
                 <option>Barbearia</option>
@@ -586,7 +689,16 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                   step="0.01"
                   className={`${inputClass} w-32`}
                   value={form.price ?? ''}
-                  onChange={(e) => set('price', e.target.value === '' ? undefined : Number.isFinite(parseFloat(e.target.value)) ? parseFloat(e.target.value) : undefined)}
+                  onChange={(e) =>
+                    set(
+                      'price',
+                      e.target.value === ''
+                        ? undefined
+                        : Number.isFinite(parseFloat(e.target.value))
+                          ? parseFloat(e.target.value)
+                          : undefined,
+                    )
+                  }
                   placeholder="R$ 80,00"
                 />
               </Field>
@@ -597,21 +709,45 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                   step="5"
                   className={`${inputClass} w-32`}
                   value={form.duration ?? ''}
-                  onChange={(e) => set('duration', e.target.value === '' ? undefined : Number.isFinite(parseInt(e.target.value, 10)) ? parseInt(e.target.value, 10) : undefined)}
+                  onChange={(e) =>
+                    set(
+                      'duration',
+                      e.target.value === ''
+                        ? undefined
+                        : Number.isFinite(parseInt(e.target.value, 10))
+                          ? parseInt(e.target.value, 10)
+                          : undefined,
+                    )
+                  }
                   placeholder="30"
                 />
               </Field>
             </div>
             <Field label="Texto do botão">
-              <input className={inputClass} value={form.content || ''} onChange={(e) => set('content', e.target.value)} placeholder="Agendar agora" />
+              <input
+                className={inputClass}
+                value={form.content || ''}
+                onChange={(e) => set('content', e.target.value)}
+                placeholder="Agendar agora"
+              />
             </Field>
             <div className="flex gap-4">
               <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
-                <input type="checkbox" checked={!!form.showPrice} onChange={(e) => set('showPrice', e.target.checked)} className="w-4 h-4 rounded text-[#FF7A00] focus:ring-[#FF7A00]" />
+                <input
+                  type="checkbox"
+                  checked={!!form.showPrice}
+                  onChange={(e) => set('showPrice', e.target.checked)}
+                  className="w-4 h-4 rounded text-[#FF7A00] focus:ring-[#FF7A00]"
+                />
                 Mostrar preço
               </label>
               <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
-                <input type="checkbox" checked={!!form.showDuration} onChange={(e) => set('showDuration', e.target.checked)} className="w-4 h-4 rounded text-[#FF7A00] focus:ring-[#FF7A00]" />
+                <input
+                  type="checkbox"
+                  checked={!!form.showDuration}
+                  onChange={(e) => set('showDuration', e.target.checked)}
+                  className="w-4 h-4 rounded text-[#FF7A00] focus:ring-[#FF7A00]"
+                />
                 Mostrar duração
               </label>
             </div>
@@ -621,7 +757,12 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
         return (
           <>
             <Field label="Título do catálogo">
-              <input className={inputClass} value={form.title || ''} onChange={(e) => set('title', e.target.value)} placeholder="Meus produtos" />
+              <input
+                className={inputClass}
+                value={form.title || ''}
+                onChange={(e) => set('title', e.target.value)}
+                placeholder="Meus produtos"
+              />
             </Field>
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -633,7 +774,13 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                   onClick={() =>
                     set('products', [
                       ...(form.products || []),
-                      { id: crypto.randomUUID(), name: '', price: undefined, imageUrl: '', link: '' },
+                      {
+                        id: crypto.randomUUID(),
+                        name: '',
+                        price: undefined,
+                        imageUrl: '',
+                        link: '',
+                      },
                     ])
                   }
                   className="flex items-center gap-1 text-xs font-bold text-[#FF7A00] hover:bg-[#FF7A00]/10 rounded-lg px-2.5 py-1.5 transition-colors cursor-pointer"
@@ -648,14 +795,22 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
               )}
               <div className="space-y-3">
                 {(form.products || []).map((product, index) => (
-                  <div key={product.id} className="border border-gray-200 rounded-xl p-3 space-y-2.5">
+                  <div
+                    key={product.id}
+                    className="border border-gray-200 rounded-xl p-3 space-y-2.5"
+                  >
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold uppercase tracking-wide text-gray-400">Produto {index + 1}</span>
+                      <span className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
+                        Produto {index + 1}
+                      </span>
                       <button
                         type="button"
                         onClick={() => {
                           StorageService.deleteByUrl(product.imageUrl);
-                          set('products', (form.products || []).filter((p) => p.id !== product.id));
+                          set(
+                            'products',
+                            (form.products || []).filter((p) => p.id !== product.id),
+                          );
                         }}
                         aria-label={`Remover produto ${index + 1}`}
                         className="flex items-center gap-1 text-[11px] font-semibold text-red-500 hover:bg-red-50 rounded-lg px-2 py-1 transition-colors cursor-pointer"
@@ -666,7 +821,11 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                     <div className="flex gap-2.5">
                       <div className="w-[68px] h-[68px] shrink-0 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
                         {product.imageUrl ? (
-                          <img src={product.imageUrl} alt={product.name || `Produto ${index + 1}`} className="w-full h-full object-cover" />
+                          <img
+                            src={product.imageUrl}
+                            alt={product.name || `Produto ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
                           <ImageIcon className="w-5 h-5 text-gray-300" />
                         )}
@@ -684,13 +843,24 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                             step="0.01"
                             className={`${inputClass} w-24`}
                             value={product.price ?? ''}
-                            onChange={(e) => updateProduct(product.id, { price: e.target.value === '' ? undefined : Number.isFinite(parseFloat(e.target.value)) ? parseFloat(e.target.value) : undefined })}
+                            onChange={(e) =>
+                              updateProduct(product.id, {
+                                price:
+                                  e.target.value === ''
+                                    ? undefined
+                                    : Number.isFinite(parseFloat(e.target.value))
+                                      ? parseFloat(e.target.value)
+                                      : undefined,
+                              })
+                            }
                             placeholder="Preço"
                           />
                           <input
                             className={`${inputClass} flex-1`}
                             value={product.imageUrl || ''}
-                            onChange={(e) => updateProduct(product.id, { imageUrl: e.target.value })}
+                            onChange={(e) =>
+                              updateProduct(product.id, { imageUrl: e.target.value })
+                            }
                             placeholder="URL da imagem"
                           />
                         </div>
@@ -733,7 +903,9 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                       </label>
                       <button
                         type="button"
-                        onClick={() => setGalleryOpenFor((prev) => (prev === product.id ? null : product.id))}
+                        onClick={() =>
+                          setGalleryOpenFor((prev) => (prev === product.id ? null : product.id))
+                        }
                         className="flex items-center gap-1.5 text-[11px] font-bold text-gray-600 hover:bg-gray-100 rounded-lg px-2.5 py-1.5 transition-colors cursor-pointer"
                       >
                         <ImageIcon className="w-3.5 h-3.5" /> Galeria
@@ -765,11 +937,17 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                               type="button"
                               onClick={() => updateProduct(product.id, { imageUrl: img })}
                               className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-colors cursor-pointer ${
-                                product.imageUrl === img ? 'border-[#FF7A00]' : 'border-transparent hover:border-gray-300'
+                                product.imageUrl === img
+                                  ? 'border-[#FF7A00]'
+                                  : 'border-transparent hover:border-gray-300'
                               }`}
                               title="Usar esta imagem"
                             >
-                              <img src={img} alt="Imagem do produto" className="w-full h-full object-cover" />
+                              <img
+                                src={img}
+                                alt="Imagem do produto"
+                                className="w-full h-full object-cover"
+                              />
                             </button>
                           ))}
                         </div>
@@ -794,11 +972,21 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                                 type="button"
                                 onClick={() => updateProduct(product.id, { imageUrl: img })}
                                 className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-colors cursor-pointer ${
-                                  product.imageUrl === img ? 'border-[#FF7A00]' : 'border-transparent hover:border-gray-300'
+                                  product.imageUrl === img
+                                    ? 'border-[#FF7A00]'
+                                    : 'border-transparent hover:border-gray-300'
                                 }`}
-                                title={product.imageUrl === img ? 'Imagem selecionada' : 'Usar esta imagem'}
+                                title={
+                                  product.imageUrl === img
+                                    ? 'Imagem selecionada'
+                                    : 'Usar esta imagem'
+                                }
                               >
-                                <img src={img} alt="Opção da galeria" className="w-full h-full object-cover" />
+                                <img
+                                  src={img}
+                                  alt="Opção da galeria"
+                                  className="w-full h-full object-cover"
+                                />
                               </button>
                             ))}
                           </div>
@@ -817,7 +1005,8 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
             <Field label="Redes sociais — cole o link de cada uma">
               <div className="space-y-2">
                 {SOCIAL_PLATFORMS.map(({ platform, label, icon: PlatformIcon }) => {
-                  const link = (form.socialLinks || []).find((l) => l.platform === platform)?.url || '';
+                  const link =
+                    (form.socialLinks || []).find((l) => l.platform === platform)?.url || '';
                   return (
                     <div key={platform} className="flex items-center gap-2">
                       <span className="w-9 h-9 shrink-0 rounded-xl bg-[#f2f3ff] flex items-center justify-center text-gray-600">
@@ -861,14 +1050,17 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                 type="email"
                 className={inputClass}
                 value={form.contact?.email || ''}
-                onChange={(e) =>
-                  set('contact', { ...(form.contact || {}), email: e.target.value })
-                }
+                onChange={(e) => set('contact', { ...(form.contact || {}), email: e.target.value })}
                 placeholder="contato@seunegocio.com.br"
               />
             </Field>
             <Field label="Texto do botão">
-              <input className={inputClass} value={form.content || ''} onChange={(e) => set('content', e.target.value)} placeholder="Fale comigo" />
+              <input
+                className={inputClass}
+                value={form.content || ''}
+                onChange={(e) => set('content', e.target.value)}
+                placeholder="Fale comigo"
+              />
             </Field>
           </>
         );
@@ -877,11 +1069,13 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
           <>
             <Field label="Provedor">
               <div className="flex gap-2">
-                {([
-                  { value: 'spotify', label: 'Spotify' },
-                  { value: 'youtube', label: 'YouTube' },
-                  { value: 'outro', label: 'Outro' },
-                ] as const).map(({ value, label }) => (
+                {(
+                  [
+                    { value: 'spotify', label: 'Spotify' },
+                    { value: 'youtube', label: 'YouTube' },
+                    { value: 'outro', label: 'Outro' },
+                  ] as const
+                ).map(({ value, label }) => (
                   <button
                     key={value}
                     type="button"
@@ -910,10 +1104,20 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
               />
             </Field>
             <Field label="Título">
-              <input className={inputClass} value={form.title || ''} onChange={(e) => set('title', e.target.value)} placeholder="Minha playlist" />
+              <input
+                className={inputClass}
+                value={form.title || ''}
+                onChange={(e) => set('title', e.target.value)}
+                placeholder="Minha playlist"
+              />
             </Field>
             <Field label="Descrição">
-              <input className={inputClass} value={form.content || ''} onChange={(e) => set('content', e.target.value)} placeholder="Ouça agora" />
+              <input
+                className={inputClass}
+                value={form.content || ''}
+                onChange={(e) => set('content', e.target.value)}
+                placeholder="Ouça agora"
+              />
             </Field>
           </>
         );
@@ -921,10 +1125,20 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
         return (
           <>
             <Field label="Endereço">
-              <input className={inputClass} value={form.address || ''} onChange={(e) => set('address', e.target.value)} placeholder="Av. Paulista, 1000" />
+              <input
+                className={inputClass}
+                value={form.address || ''}
+                onChange={(e) => set('address', e.target.value)}
+                placeholder="Av. Paulista, 1000"
+              />
             </Field>
             <Field label="URL do mapa (Google Maps)">
-              <input className={inputClass} value={form.mapUrl || ''} onChange={(e) => set('mapUrl', e.target.value)} placeholder="https://maps.google.com/..." />
+              <input
+                className={inputClass}
+                value={form.mapUrl || ''}
+                onChange={(e) => set('mapUrl', e.target.value)}
+                placeholder="https://maps.google.com/..."
+              />
             </Field>
           </>
         );
@@ -941,9 +1155,7 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
       size={block.type === 'produto' ? 'lg' : 'md'}
     >
       <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-gray-100">
-        <h3 className="font-bold text-base text-[#131b2e]">
-          Configurar {BLOCK_NAMES[block.type]}
-        </h3>
+        <h3 className="font-bold text-base text-[#131b2e]">Configurar {BLOCK_NAMES[block.type]}</h3>
         <button
           onClick={() => {
             onDelete(block.id);

@@ -12,7 +12,9 @@ export class ProfileService {
     if (!isSupabaseConfigured() || !supabase) return null;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return null;
 
       const { data, error } = await supabase
@@ -51,7 +53,9 @@ export class ProfileService {
     if (!isSupabaseConfigured() || !supabase) return null;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return null;
 
       const row = {
@@ -130,7 +134,9 @@ export class ProfileService {
     if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return false;
 
       const { error } = await supabase
@@ -153,14 +159,12 @@ export class ProfileService {
     if (!isSupabaseConfigured() || !supabase) return [];
 
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*');
+      const { data, error } = await supabase.from('profiles').select('*');
 
       if (error) throw error;
       if (!data) return [];
 
-      return data.map(profile => ({
+      return data.map((profile) => ({
         name: profile.name,
         username: profile.username,
         email: profile.email,

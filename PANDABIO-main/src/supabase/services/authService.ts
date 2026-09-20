@@ -8,7 +8,10 @@ export class AuthService {
   /**
    * Faz login com email e senha
    */
-  static async signIn(email: string, password: string): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
+  static async signIn(
+    email: string,
+    password: string,
+  ): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
     if (!isSupabaseConfigured() || !supabase) {
       return { success: false, error: 'Supabase não configurado' };
     }
@@ -23,10 +26,10 @@ export class AuthService {
 
       // Buscar perfil do usuário
       const profile = await this.getUserProfile(data.user.id);
-      
-      return { 
-        success: true, 
-        user: profile || undefined
+
+      return {
+        success: true,
+        user: profile || undefined,
       };
     } catch (error) {
       console.error('Error signing in:', error);
@@ -37,7 +40,11 @@ export class AuthService {
   /**
    * Faz cadastro de novo usuário
    */
-  static async signUp(email: string, password: string, metadata: Partial<UserProfile>): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
+  static async signUp(
+    email: string,
+    password: string,
+    metadata: Partial<UserProfile>,
+  ): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
     if (!isSupabaseConfigured() || !supabase) {
       return { success: false, error: 'Supabase não configurado' };
     }
@@ -61,8 +68,8 @@ export class AuthService {
       // Criar perfil no banco (se o usuário foi criado imediatamente)
       if (data.user && !data.session) {
         // Usuário criado mas precisa confirmar email
-        return { 
-          success: true, 
+        return {
+          success: true,
           user: {
             name: metadata.name || '',
             username: metadata.username || '',
@@ -72,16 +79,16 @@ export class AuthService {
             pageTitle: `${metadata.name || 'Minha Página'} • Bio Oficial`,
             bioDescription: metadata.bioDescription || '',
             avatarUrl: metadata.avatarUrl || '',
-          }
+          },
         };
       }
 
       // Criar perfil no banco (se sessão foi criada imediatamente)
       if (data.user && data.session) {
         const profile = await this.createProfile(data.user.id, metadata);
-        
-        return { 
-          success: true, 
+
+        return {
+          success: true,
           user: profile || {
             name: metadata.name || '',
             username: metadata.username || '',
@@ -91,7 +98,7 @@ export class AuthService {
             pageTitle: `${metadata.name || 'Minha Página'} • Bio Oficial`,
             bioDescription: metadata.bioDescription || '',
             avatarUrl: metadata.avatarUrl || '',
-          }
+          },
         };
       }
 
@@ -129,7 +136,10 @@ export class AuthService {
     }
 
     try {
-      const { data: { user }, error } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
       if (error) throw error;
       if (!user) return {};
 
@@ -146,7 +156,7 @@ export class AuthService {
    */
   private static async getUserProfile(userId: string): Promise<UserProfile | null> {
     if (!supabase) return null;
-    
+
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -177,12 +187,15 @@ export class AuthService {
   /**
    * Cria o perfil do usuário
    */
-  private static async createProfile(userId: string, metadata: Partial<UserProfile>): Promise<UserProfile | null> {
+  private static async createProfile(
+    userId: string,
+    metadata: Partial<UserProfile>,
+  ): Promise<UserProfile | null> {
     if (!supabase) return null;
-    
+
     try {
       const username = metadata.username || metadata.email?.split('@')[0] || 'usuario';
-      
+
       const { data, error } = await supabase
         .from('profiles')
         .insert({
@@ -261,7 +274,11 @@ export class AuthService {
   /**
    * Login com Google OAuth
    */
-  static async signInWithGoogle(): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
+  static async signInWithGoogle(): Promise<{
+    success: boolean;
+    user?: UserProfile;
+    error?: string;
+  }> {
     if (!isSupabaseConfigured() || !supabase) {
       return { success: false, error: 'Supabase não configurado' };
     }
@@ -288,7 +305,11 @@ export class AuthService {
   /**
    * Login com Facebook OAuth
    */
-  static async signInWithFacebook(): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
+  static async signInWithFacebook(): Promise<{
+    success: boolean;
+    user?: UserProfile;
+    error?: string;
+  }> {
     if (!isSupabaseConfigured() || !supabase) {
       return { success: false, error: 'Supabase não configurado' };
     }

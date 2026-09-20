@@ -1,27 +1,30 @@
 # Análise Completa e Plano de Refatoração - PandaBio
 
-##  Resumo Executivo
+## Resumo Executivo
 
 O projeto PandaBio é uma aplicação React bem estruturada para gerenciamento de páginas de bio (link-in-bio) com painel de controle e analytics. Embora o código esteja funcional e com boa UX, existem várias oportunidades de melhoria em arquitetura, performance, segurança e manutenibilidade.
 
 ---
 
-##  1. Análise de Arquitetura
+## 1. Análise de Arquitetura
 
 ### Pontos Fortes
--  Estrutura de componentes modular e bem organizada
--  Separação clara entre UI, tipos e serviços
--  Uso de TypeScript para type safety
--  Configuração otimizada de Vite com code splitting
+
+- Estrutura de componentes modular e bem organizada
+- Separação clara entre UI, tipos e serviços
+- Uso de TypeScript para type safety
+- Configuração otimizada de Vite com code splitting
 
 ### Problemas Identificados
 
 #### 1.1 Falta de Gerenciamento de Estado Centralizado
+
 **Problema**: Todo o estado é gerenciado via `useState` no componente principal `App.tsx`, criando prop drilling excessivo.
 
 **Impacto**: Dificuldade de manutenção, performance degradada com re-renders desnecessários, código duplicado.
 
 **Solução**: Implementar Zustand ou Redux Toolkit
+
 ```typescript
 // src/store/usePandaBioStore.ts
 import { create } from 'zustand';
@@ -41,15 +44,17 @@ export const usePandaBioStore = create<PandaBioStore>((set) => ({
 ```
 
 #### 1.2 Componentes Monolíticos
+
 **Problema**: `App.tsx` tem 389 linhas e gerencia múltiplas responsabilidades.
 
 **Solução**: Extrair lógica para custom hooks
+
 ```typescript
 // src/hooks/usePandaBioData.ts
 export const usePandaBioData = () => {
-  const currentAccount = usePandaBioStore(state => state.currentAccount);
-  const updateAccount = usePandaBioStore(state => state.updateAccount);
-  
+  const currentAccount = usePandaBioStore((state) => state.currentAccount);
+  const updateAccount = usePandaBioStore((state) => state.updateAccount);
+
   const realKpiData = useMemo(() => {
     // lógica de cálculo de KPIs
   }, [currentAccount]);
@@ -59,16 +64,18 @@ export const usePandaBioData = () => {
 ```
 
 #### 1.3 Falta de Camada de Serviços
+
 **Problema**: Lógica de negócio misturada com componentes de UI.
 
 **Solução**: Criar camada de serviços
+
 ```typescript
 // src/services/analyticsService.ts
 export class AnalyticsService {
   static calculateKPIs(data: UserAccountData): KpiData {
     // lógica de cálculo
   }
-  
+
   static calculateFunnel(data: UserAccountData): FunnelData {
     // lógica de funil
   }
@@ -77,14 +84,16 @@ export class AnalyticsService {
 
 ---
 
-##  2. Problemas de Código e Padrões
+## 2. Problemas de Código e Padrões
 
 ### 2.1 Duplicação de Código
 
 #### Ícones por Tipo (LinksManagerCard, PhonePreviewModal, RecentActivityCard)
+
 **Problema**: Lógica de mapeamento de ícones duplicada em 3 componentes.
 
 **Solução**: Criar utilitário centralizado
+
 ```typescript
 // src/utils/iconMapper.ts
 export const getLinkIcon = (type: string) => {
@@ -111,9 +120,11 @@ export const getLinkIconBg = (type: string) => {
 ```
 
 ### 2.2 Validação de Formulários Ausente
+
 **Problema**: Formulários em `CreateItemModal.tsx` e `AuthScreen.tsx` não têm validação robusta.
 
 **Solução**: Implementar Zod para validação
+
 ```typescript
 // src/schemas/linkSchema.ts
 import { z } from 'zod';
@@ -131,9 +142,11 @@ export const productSchema = z.object({
 ```
 
 ### 2.3 Tratamento de Erros Inexistente
+
 **Problema**: Chamadas a `localStorage` sem try-catch em vários lugares.
 
 **Solução**: Criar wrapper seguro
+
 ```typescript
 // src/utils/storage.ts
 export const safeStorage = {
@@ -159,9 +172,11 @@ export const safeStorage = {
 ```
 
 ### 2.4 Strings Mágicas e Constantes
+
 **Problema**: Cores hexadecimais e valores duplicados por todo o código.
 
 **Solução**: Criar sistema de design tokens
+
 ```typescript
 // src/theme/tokens.ts
 export const colors = {
@@ -194,26 +209,35 @@ export const spacing = {
 
 ---
 
-##  3. Performance e Otimizações
+## 3. Performance e Otimizações
 
 ### 3.1 Re-renders Desnecessários
+
 **Problema**: Componentes renderizam sem necessidade devido à falta de memoização.
 
 **Solução**: Implementar React.memo e useMemo estrategicamente
+
 ```typescript
 // src/components/KpiMetrics.tsx
-export const KpiMetrics = React.memo<KpiMetricsProps>(({ data }) => {
-  // componente memoizado
-}, (prevProps, nextProps) => {
-  return prevProps.data.visits === nextProps.data.visits &&
-         prevProps.data.clicks === nextProps.data.clicks;
-});
+export const KpiMetrics = React.memo<KpiMetricsProps>(
+  ({ data }) => {
+    // componente memoizado
+  },
+  (prevProps, nextProps) => {
+    return (
+      prevProps.data.visits === nextProps.data.visits &&
+      prevProps.data.clicks === nextProps.data.clicks
+    );
+  },
+);
 ```
 
 ### 3.2 Carregamento de Imagens
+
 **Problema**: Imagens externas do Google sem lazy loading ou fallback.
 
 **Solução**: Implementar componente de imagem otimizado
+
 ```typescript
 // src/components/OptimizedImage.tsx
 export const OptimizedImage: React.FC<ImageProps> = ({
@@ -240,9 +264,11 @@ export const OptimizedImage: React.FC<ImageProps> = ({
 ```
 
 ### 3.3 Bundle Size
+
 **Problema**: Bibliotecas podem estar sendo importadas integralmente.
 
 **Solução**: Tree-shaking e imports dinâmicos
+
 ```typescript
 // Em vez de:
 import { motion, AnimatePresence } from 'motion/react';
@@ -252,9 +278,11 @@ const { motion } = await import('motion/react');
 ```
 
 ### 3.4 Métricas Calculadas em Cada Render
+
 **Problema**: Cálculos de KPIs e funil executados em cada renderização.
 
 **Solução**: Memoização agressiva
+
 ```typescript
 const realKpiData = useMemo(() => {
   // cálculos pesados
@@ -267,12 +295,14 @@ const funnelData = useMemo(() => {
 
 ---
 
-##  4. Segurança e Boas Práticas
+## 4. Segurança e Boas Práticas
 
 ### 4.1 Vulnerabilidades de XSS
+
 **Problema**: Renderização de HTML sem sanitização em alguns componentes.
 
 **Solução**: Implementar sanitização
+
 ```typescript
 import DOMPurify from 'dompurify';
 
@@ -281,14 +311,16 @@ const safeHtml = DOMPurify.sanitize(userInput);
 ```
 
 ### 4.2 URLs Externas sem Rel
+
 **Problema**: Links externos sem `rel="noopener noreferrer"`.
 
 **Solução**: Criar componente de link seguro
+
 ```typescript
 // src/components/SecureLink.tsx
 export const SecureLink: React.FC<LinkProps> = ({ href, children, ...props }) => {
   const isExternal = href.startsWith('http');
-  
+
   return (
     <a
       href={href}
@@ -303,9 +335,11 @@ export const SecureLink: React.FC<LinkProps> = ({ href, children, ...props }) =>
 ```
 
 ### 4.3 Dados Sensíveis em localStorage
+
 **Problema**: Dados de usuário armazenados sem criptografia.
 
 **Solução**: Implementar criptografia para dados sensíveis
+
 ```typescript
 // src/utils/crypto.ts
 import CryptoJS from 'crypto-js';
@@ -323,25 +357,27 @@ export const decrypt = (encrypted: string): string => {
 ```
 
 ### 4.4 Falta de Rate Limiting
+
 **Problema**: Sem proteção contra abuso de API.
 
 **Solução**: Implementar rate limiting no cliente
+
 ```typescript
 // src/utils/rateLimiter.ts
 class RateLimiter {
   private requests: Map<string, number[]> = new Map();
-  
+
   canMakeRequest(key: string, limit: number, window: number): boolean {
     const now = Date.now();
     const timestamps = this.requests.get(key) || [];
-    
+
     // Remove timestamps antigos
-    const validTimestamps = timestamps.filter(t => now - t < window);
-    
+    const validTimestamps = timestamps.filter((t) => now - t < window);
+
     if (validTimestamps.length >= limit) {
       return false;
     }
-    
+
     validTimestamps.push(now);
     this.requests.set(key, validTimestamps);
     return true;
@@ -351,12 +387,14 @@ class RateLimiter {
 
 ---
 
-##  5. Melhorias de UX/UI
+## 5. Melhorias de UX/UI
 
 ### 5.1 Acessibilidade
+
 **Problema**: Falta de ARIA labels, focus management e suporte a teclado.
 
 **Solução**: Implementar práticas de acessibilidade
+
 ```typescript
 // Exemplo de melhoria no Sidebar
 <button
@@ -368,9 +406,11 @@ class RateLimiter {
 ```
 
 ### 5.2 Estados de Loading
+
 **Problema**: Não há feedback visual durante operações assíncronas.
 
 **Solução**: Implementar skeleton screens
+
 ```typescript
 // src/components/Skeleton.tsx
 export const Skeleton: React.FC<{ className?: string }> = ({ className }) => (
@@ -386,20 +426,22 @@ export const Skeleton: React.FC<{ className?: string }> = ({ className }) => (
 ```
 
 ### 5.3 Toast Notifications
+
 **Problema**: Feedback de ações usando `alert()` nativo.
 
 **Solução**: Implementar sistema de toast
+
 ```typescript
 // src/components/ToastProvider.tsx
 export const ToastProvider: React.FC = () => {
   const [toasts, setToasts] = useState<Toast[]>([]);
-  
+
   const addToast = (message: string, type: 'success' | 'error' | 'info') => {
     const id = Date.now();
     setToasts(prev => [...prev, { id, message, type }]);
     setTimeout(() => removeToast(id), 3000);
   };
-  
+
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {toasts.map(toast => (
@@ -411,36 +453,40 @@ export const ToastProvider: React.FC = () => {
 ```
 
 ### 5.4 Tema Dark Mode
+
 **Problema**: Não há suporte para tema escuro.
 
 **Solução**: Implementar tema com Tailwind
+
 ```typescript
 // src/hooks/useTheme.ts
 export const useTheme = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  
+
   useEffect(() => {
     const saved = localStorage.getItem('theme') as 'light' | 'dark';
     if (saved) setTheme(saved);
   }, []);
-  
+
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
     localStorage.setItem('theme', theme);
   }, [theme]);
-  
-  return { theme, toggleTheme: () => setTheme(prev => prev === 'light' ? 'dark' : 'light') };
+
+  return { theme, toggleTheme: () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light')) };
 };
 ```
 
 ---
 
-##  6. Manutenibilidade
+## 6. Manutenibilidade
 
 ### 6.1 Testes Automatizados
+
 **Problema**: Não há testes unitários ou de integração.
 
 **Solução**: Implementar suite de testes
+
 ```typescript
 // src/components/__tests__/KpiMetrics.test.tsx
 import { render, screen } from '@testing-library/react';
@@ -455,9 +501,9 @@ describe('KpiMetrics', () => {
       conversions: 10,
       // ... outras propriedades
     };
-    
+
     render(<KpiMetrics data={mockData} />);
-    
+
     expect(screen.getByText('1.000')).toBeInTheDocument();
     expect(screen.getByText('500')).toBeInTheDocument();
   });
@@ -465,10 +511,12 @@ describe('KpiMetrics', () => {
 ```
 
 ### 6.2 Documentação
+
 **Problema**: Falta de documentação de componentes e funções.
 
 **Solução**: Adicionar JSDoc e Storybook
-```typescript
+
+````typescript
 /**
  * Componente de métricas KPI para o dashboard
  * @param data - Dados das métricas a serem exibidas
@@ -485,12 +533,14 @@ describe('KpiMetrics', () => {
 export const KpiMetrics: React.FC<KpiMetricsProps> = ({ data }) => {
   // ...
 };
-```
+````
 
 ### 6.3 Linting e Code Style
+
 **Problema**: Configuração de ESLint e Prettier pode ser melhorada.
 
 **Solução**: Configurar ferramentas de qualidade
+
 ```json
 // .eslintrc.json
 {
@@ -509,9 +559,11 @@ export const KpiMetrics: React.FC<KpiMetricsProps> = ({ data }) => {
 ```
 
 ### 6.4 CI/CD
+
 **Problema**: Não há pipeline de CI/CD configurado.
 
 **Solução**: Configurar GitHub Actions
+
 ```yaml
 # .github/workflows/ci.yml
 name: CI
@@ -534,12 +586,14 @@ jobs:
 
 ---
 
-##  7. Escalabilidade
+## 7. Escalabilidade
 
 ### 7.1 Separação Cliente/Servidor
+
 **Problema**: Tudo é client-side, não escala para múltiplos usuários.
 
 **Solução**: Arquitetura com backend
+
 ```typescript
 // Estrutura sugerida:
 /backend
@@ -552,9 +606,11 @@ jobs:
 ```
 
 ### 7.2 API REST
+
 **Problema**: Não há endpoints de API.
 
 **Solução**: Implementar API com Express
+
 ```typescript
 // backend/src/routes/analytics.ts
 import express from 'express';
@@ -571,9 +627,11 @@ router.get('/kpi/:userId', async (req, res) => {
 ```
 
 ### 7.3 Cache de Dados
+
 **Problema**: Dados recalculados em cada requisição.
 
 **Solução**: Implementar Redis para cache
+
 ```typescript
 // backend/src/services/cacheService.ts
 import Redis from 'ioredis';
@@ -585,7 +643,7 @@ export const cacheService = {
     const cached = await redis.get(key);
     return cached ? JSON.parse(cached) : null;
   },
-  
+
   async set(key: string, value: any, ttl: number = 3600): Promise<void> {
     await redis.setex(key, ttl, JSON.stringify(value));
   },
@@ -593,9 +651,11 @@ export const cacheService = {
 ```
 
 ### 7.4 Microfrontends
+
 **Problema**: Monolito que pode dificultar manutenção futura.
 
 **Solução**: Considerar arquitetura de microfrontends
+
 ```typescript
 // Dividir em módulos independentes:
 // - @pandabio/auth
@@ -606,10 +666,12 @@ export const cacheService = {
 
 ---
 
-##  8. Plano de Implementação de Melhorias
+## 8. Plano de Implementação de Melhorias
 
 ### Fase 1: Fundação (Semanas 1-2)
+
 **Prioridade: Alta**
+
 - [ ] Implementar Zustand para gerenciamento de estado
 - [ ] Criar sistema de design tokens
 - [ ] Extrair lógica para custom hooks
@@ -617,7 +679,9 @@ export const cacheService = {
 - [ ] Criar utilitários centralizados (iconMapper, storage)
 
 ### Fase 2: Performance (Semanas 3-4)
+
 **Prioridade: Alta**
+
 - [ ] Implementar React.memo nos componentes principais
 - [ ] Adicionar lazy loading para componentes pesados
 - [ ] Otimizar cálculos com useMemo
@@ -625,7 +689,9 @@ export const cacheService = {
 - [ ] Configurar code splitting adicional
 
 ### Fase 3: Segurança (Semana 5)
+
 **Prioridade: Alta**
+
 - [ ] Implementar sanitização de HTML
 - [ ] Criar componente de link seguro
 - [ ] Adicionar criptografia para dados sensíveis
@@ -633,7 +699,9 @@ export const cacheService = {
 - [ ] Auditoria de dependências
 
 ### Fase 4: UX/UI (Semanas 6-7)
+
 **Prioridade: Média**
+
 - [ ] Implementar sistema de toast notifications
 - [ ] Adicionar skeleton screens
 - [ ] Melhorar acessibilidade (ARIA, focus management)
@@ -641,7 +709,9 @@ export const cacheService = {
 - [ ] Adicionar animações e transições
 
 ### Fase 5: Manutenibilidade (Semanas 8-9)
+
 **Prioridade: Média**
+
 - [ ] Implementar suite de testes (Jest + React Testing Library)
 - [ ] Adicionar Storybook para documentação de componentes
 - [ ] Configurar ESLint e Prettier
@@ -649,7 +719,9 @@ export const cacheService = {
 - [ ] Configurar CI/CD com GitHub Actions
 
 ### Fase 6: Escalabilidade (Semanas 10-12)
+
 **Prioridade: Baixa**
+
 - [ ] Planejar arquitetura de backend
 - [ ] Implementar API REST básica
 - [ ] Configurar banco de dados
@@ -658,28 +730,32 @@ export const cacheService = {
 
 ---
 
-##  9. Métricas de Sucesso
+## 9. Métricas de Sucesso
 
 ### Qualidade de Código
+
 - Redução de 40% na duplicação de código
 - Aumento de 60% na cobertura de testes
 - Redução de 50% no tempo de build
 
 ### Performance
+
 - Redução de 30% no bundle size
 - Melhoria de 40% no Time to Interactive
 - Redução de 50% no First Contentful Paint
 
 ### UX
+
 - Aumento de 25% no tempo de sessão
 - Redução de 30% na taxa de rejeição
 - Aumento de 20% na conversão
 
 ---
 
-##  10. Recomendações Imediatas
+## 10. Recomendações Imediatas
 
 ### Quick Wins (Implementar em 1-2 dias)
+
 1. **Adicionar React.memo** nos componentes principais (KpiMetrics, LinksManagerCard)
 2. **Criar utilitário de ícones** para eliminar duplicação
 3. **Implementar validar de formulários** básica com Zod
@@ -687,6 +763,7 @@ export const cacheService = {
 5. **Remover alert()** e implementar toast básico
 
 ### Impacto Médio (Implementar em 1 semana)
+
 1. **Implementar Zustand** para gerenciamento de estado
 2. **Criar sistema de design tokens** para cores e espaçamentos
 3. **Adicionar testes básicos** para componentes críticos
@@ -694,6 +771,7 @@ export const cacheService = {
 5. **Melhorar acessibilidade** com ARIA labels
 
 ### Impacto Alto (Implementar em 2-4 semanas)
+
 1. **Refatorar App.tsx** em componentes menores
 2. **Implementar backend básico** com API REST
 3. **Adicionar camada de serviços** para lógica de negócio
@@ -702,19 +780,22 @@ export const cacheService = {
 
 ---
 
-##  11. Análise de Riscos
+## 11. Análise de Riscos
 
 ### Riscos Técnicos
+
 - **Complexidade**: Refatoração pode introduzir bugs se não testada adequadamente
 - **Performance**: Mudanças no gerenciamento de estado podem impactar performance
 - **Compatibilidade**: Novas dependências podem ter conflitos
 
 ### Riscos de Negócio
+
 - **Tempo**: Implementação completa pode levar 12 semanas
 - **Recursos**: Necessita de desenvolvedor sênior para arquitetura
 - **Usuários**: Mudanças drásticas podem impactar experiência do usuário
 
 ### Mitigação
+
 - Implementar mudanças incrementalmente
 - Manter testes abrangentes
 - Comunicação clara com stakeholders
@@ -722,7 +803,7 @@ export const cacheService = {
 
 ---
 
-##  12. Conclusão
+## 12. Conclusão
 
 O projeto PandaBio tem uma base sólida com boa UX e design moderno. As melhorias propostas focam em:
 

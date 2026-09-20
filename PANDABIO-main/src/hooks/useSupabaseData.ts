@@ -54,40 +54,41 @@ export const useSupabaseData = () => {
   }, [loadData]);
 
   // Adicionar link
-  const addLink = useCallback(async (link: Omit<BioLink, 'id'>) => {
-    try {
-      setError(null);
-      const newLink = await LinkService.createLink(link);
-      
-      if (newLink) {
-        setLinks(prev => [newLink, ...prev]);
-        await ActivityService.logNewLink(link.title);
-        await loadData(); // Recarregar atividades
-        return { success: true };
+  const addLink = useCallback(
+    async (link: Omit<BioLink, 'id'>) => {
+      try {
+        setError(null);
+        const newLink = await LinkService.createLink(link);
+
+        if (newLink) {
+          setLinks((prev) => [newLink, ...prev]);
+          await ActivityService.logNewLink(link.title);
+          await loadData(); // Recarregar atividades
+          return { success: true };
+        }
+
+        setError('Erro ao criar link');
+        return { success: false, error: 'Erro ao criar link' };
+      } catch (err) {
+        console.error('Error adding link:', err);
+        setError('Erro ao criar link');
+        return { success: false, error: 'Erro ao criar link' };
       }
-      
-      setError('Erro ao criar link');
-      return { success: false, error: 'Erro ao criar link' };
-    } catch (err) {
-      console.error('Error adding link:', err);
-      setError('Erro ao criar link');
-      return { success: false, error: 'Erro ao criar link' };
-    }
-  }, [loadData]);
+    },
+    [loadData],
+  );
 
   // Toggle link
   const toggleLink = useCallback(async (id: string) => {
     try {
       setError(null);
       const success = await LinkService.toggleLink(id);
-      
+
       if (success) {
-        setLinks(prev => prev.map(l => 
-          l.id === id ? { ...l, active: !l.active } : l
-        ));
+        setLinks((prev) => prev.map((l) => (l.id === id ? { ...l, active: !l.active } : l)));
         return { success: true };
       }
-      
+
       setError('Erro ao atualizar link');
       return { success: false, error: 'Erro ao atualizar link' };
     } catch (err) {
@@ -98,48 +99,54 @@ export const useSupabaseData = () => {
   }, []);
 
   // Adicionar produto
-  const addProduct = useCallback(async (product: Omit<ProductItem, 'id'>) => {
-    try {
-      setError(null);
-      const newProduct = await ProductService.createProduct(product);
-      
-      if (newProduct) {
-        setProducts(prev => [newProduct, ...prev]);
-        await ActivityService.logNewProduct(product.name, product.price);
-        await loadData(); // Recarregar atividades
-        return { success: true };
+  const addProduct = useCallback(
+    async (product: Omit<ProductItem, 'id'>) => {
+      try {
+        setError(null);
+        const newProduct = await ProductService.createProduct(product);
+
+        if (newProduct) {
+          setProducts((prev) => [newProduct, ...prev]);
+          await ActivityService.logNewProduct(product.name, product.price);
+          await loadData(); // Recarregar atividades
+          return { success: true };
+        }
+
+        setError('Erro ao criar produto');
+        return { success: false, error: 'Erro ao criar produto' };
+      } catch (err) {
+        console.error('Error adding product:', err);
+        setError('Erro ao criar produto');
+        return { success: false, error: 'Erro ao criar produto' };
       }
-      
-      setError('Erro ao criar produto');
-      return { success: false, error: 'Erro ao criar produto' };
-    } catch (err) {
-      console.error('Error adding product:', err);
-      setError('Erro ao criar produto');
-      return { success: false, error: 'Erro ao criar produto' };
-    }
-  }, [loadData]);
+    },
+    [loadData],
+  );
 
   // Adicionar lead
-  const addLead = useCallback(async (lead: Omit<LeadItem, 'id' | 'createdAt'>) => {
-    try {
-      setError(null);
-      const newLead = await LeadService.createLead(lead);
-      
-      if (newLead) {
-        setLeads(prev => [newLead, ...prev]);
-        await ActivityService.logNewLead(lead.name);
-        await loadData(); // Recarregar atividades
-        return { success: true };
+  const addLead = useCallback(
+    async (lead: Omit<LeadItem, 'id' | 'createdAt'>) => {
+      try {
+        setError(null);
+        const newLead = await LeadService.createLead(lead);
+
+        if (newLead) {
+          setLeads((prev) => [newLead, ...prev]);
+          await ActivityService.logNewLead(lead.name);
+          await loadData(); // Recarregar atividades
+          return { success: true };
+        }
+
+        setError('Erro ao criar lead');
+        return { success: false, error: 'Erro ao criar lead' };
+      } catch (err) {
+        console.error('Error adding lead:', err);
+        setError('Erro ao criar lead');
+        return { success: false, error: 'Erro ao criar lead' };
       }
-      
-      setError('Erro ao criar lead');
-      return { success: false, error: 'Erro ao criar lead' };
-    } catch (err) {
-      console.error('Error adding lead:', err);
-      setError('Erro ao criar lead');
-      return { success: false, error: 'Erro ao criar lead' };
-    }
-  }, [loadData]);
+    },
+    [loadData],
+  );
 
   // Cálculo de KPIs
   const realKpiData: KpiData = (() => {

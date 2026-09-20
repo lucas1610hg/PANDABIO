@@ -12,7 +12,9 @@ export class ProductService {
     if (!isSupabaseConfigured() || !supabase) return [];
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return [];
 
       const { data, error } = await supabase
@@ -24,7 +26,7 @@ export class ProductService {
       if (error) throw error;
       if (!data) return [];
 
-      return data.map(product => ({
+      return data.map((product) => ({
         id: product.id,
         name: product.name,
         price: product.price,
@@ -45,7 +47,9 @@ export class ProductService {
     if (!isSupabaseConfigured() || !supabase) return null;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return null;
 
       const { data, error } = await supabase
@@ -110,10 +114,7 @@ export class ProductService {
     if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('products').delete().eq('id', id);
 
       if (error) throw error;
       return true;
@@ -136,7 +137,7 @@ export class ProductService {
         .select('sales_count')
         .eq('id', productId)
         .single();
-      
+
       if (currentProduct) {
         const { error } = await supabase
           .from('products')

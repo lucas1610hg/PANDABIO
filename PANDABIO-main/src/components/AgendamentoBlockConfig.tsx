@@ -8,7 +8,11 @@ interface AgendamentoBlockConfigProps {
   onDelete: () => void;
 }
 
-export const AgendamentoBlockConfig: React.FC<AgendamentoBlockConfigProps> = ({ block, onUpdate, onDelete }) => {
+export const AgendamentoBlockConfig: React.FC<AgendamentoBlockConfigProps> = ({
+  block,
+  onUpdate,
+  onDelete,
+}) => {
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
       <div className="flex items-center justify-between mb-4">
@@ -125,7 +129,9 @@ export const AgendamentoBlockConfig: React.FC<AgendamentoBlockConfigProps> = ({ 
           <div className="bg-white rounded-lg p-4 border border-gray-200">
             <div className="flex items-center gap-2 mb-2">
               <Calendar className="w-5 h-5 text-[#FF5E00]" />
-              <span className="font-semibold text-[#131b2e]">{block.appointmentTitle || 'Agende seu horário'}</span>
+              <span className="font-semibold text-[#131b2e]">
+                {block.appointmentTitle || 'Agende seu horário'}
+              </span>
             </div>
             {block.appointmentDescription && (
               <p className="text-sm text-gray-600 mb-3">{block.appointmentDescription}</p>

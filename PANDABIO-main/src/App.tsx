@@ -37,7 +37,18 @@ export default function App() {
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   // Store hooks
-  const { authenticate, logout, switchUser, toggleLink, addLink, reorderLinks, addProduct, updateUserProfile, upgradeToPro, getAllAccountsList } = usePandaBioStore();
+  const {
+    authenticate,
+    logout,
+    switchUser,
+    toggleLink,
+    addLink,
+    reorderLinks,
+    addProduct,
+    updateUserProfile,
+    upgradeToPro,
+    getAllAccountsList,
+  } = usePandaBioStore();
   const { user, links, products, leads, activities, realKpiData, funnelData } = usePandaBioData();
   const allUsersList = getAllAccountsList();
 
@@ -87,9 +98,10 @@ export default function App() {
   };
 
   // Filter links by search query
-  const filteredLinks = links.filter((l: BioLink) =>
-    l.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    l.url.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredLinks = links.filter(
+    (l: BioLink) =>
+      l.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      l.url.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   // Handler functions using store methods
@@ -116,10 +128,7 @@ export default function App() {
   return (
     <AnimatePresence mode="wait">
       {currentScreen === 'auth' ? (
-        <AuthScreen
-          key="auth-view"
-          onLoginSuccess={handleLoginSuccess}
-        />
+        <AuthScreen key="auth-view" onLoginSuccess={handleLoginSuccess} />
       ) : (
         <motion.div
           key="dashboard-view"

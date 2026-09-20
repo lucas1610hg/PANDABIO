@@ -25,7 +25,7 @@ export const linkSchema = z.object({
           return false;
         }
       },
-      { message: 'URL inválida' }
+      { message: 'URL inválida' },
     ),
   type: linkTypeEnum,
 });
@@ -35,10 +35,7 @@ export const productSchema = z.object({
     .string()
     .min(3, 'Nome deve ter no mínimo 3 caracteres')
     .max(100, 'Nome deve ter no máximo 100 caracteres'),
-  price: z
-    .number()
-    .positive('Preço deve ser positivo')
-    .max(999999, 'Preço muito alto'),
+  price: z.number().positive('Preço deve ser positivo').max(999999, 'Preço muito alto'),
 });
 
 export const userSchema = z.object({
@@ -52,10 +49,7 @@ export const userSchema = z.object({
     .max(20, 'Username deve ter no máximo 20 caracteres')
     .regex(/^[a-zA-Z0-9_]+$/, 'Username deve conter apenas letras, números e underscore'),
   email: z.string().email('E-mail inválido'),
-  bioDescription: z
-    .string()
-    .max(200, 'Descrição deve ter no máximo 200 caracteres')
-    .optional(),
+  bioDescription: z.string().max(200, 'Descrição deve ter no máximo 200 caracteres').optional(),
 });
 
 export type LinkFormData = z.infer<typeof linkSchema>;

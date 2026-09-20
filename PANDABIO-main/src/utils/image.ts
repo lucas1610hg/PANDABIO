@@ -2,11 +2,7 @@
  * Redimensiona e comprime uma imagem para dataURL, evitando base64 gigantes
  * no estado e no localStorage/Supabase.
  */
-export const compressImage = (
-  file: File,
-  maxDim = 1000,
-  quality = 0.82,
-): Promise<string> =>
+export const compressImage = (file: File, maxDim = 1000, quality = 0.82): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => reject(new Error('Falha ao ler a imagem'));

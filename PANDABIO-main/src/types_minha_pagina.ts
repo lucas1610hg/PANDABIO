@@ -10,7 +10,7 @@
 
 export type PageStatus = 'draft' | 'published' | 'archived';
 
-export type BlockType = 
+export type BlockType =
   | 'link'
   | 'text'
   | 'image'
@@ -141,48 +141,48 @@ export interface BlockData {
   url?: string;
   icon?: string;
   open_new_tab?: boolean;
-  
+
   // Dados para texto
   content?: string;
   alignment?: 'left' | 'center' | 'right';
-  
+
   // Dados para imagem
   image_url?: string;
   alt_text?: string;
   aspect_ratio?: string;
-  
+
   // Dados para vídeo
   video_url?: string;
   thumbnail_url?: string;
   autoplay?: boolean;
   video_platform?: 'youtube' | 'vimeo' | 'direct';
-  
+
   // Dados para social
   platform?: string;
   handle?: string;
-  
+
   // Dados para booking (aponta para sistema de agendamento)
   booking_service_id?: string;
   show_price?: boolean;
   show_duration?: boolean;
-  
+
   // Dados para produto
   product_id?: string;
   name?: string;
   price?: number;
   image?: string;
-  
+
   // Dados para música
   track_url?: string;
   album_art?: string;
   artist?: string;
   title?: string;
-  
+
   // Dados para contato
   email?: string;
   phone?: string;
   whatsapp?: string;
-  
+
   // Dados para localização
   address?: string;
   map_url?: string;
@@ -190,7 +190,7 @@ export interface BlockData {
     lat: number;
     lng: number;
   };
-  
+
   // Dados customizados
   custom_data?: unknown;
 }

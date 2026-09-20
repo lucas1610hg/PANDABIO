@@ -12,7 +12,9 @@ export class LeadService {
     if (!isSupabaseConfigured() || !supabase) return [];
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return [];
 
       const { data, error } = await supabase
@@ -24,7 +26,7 @@ export class LeadService {
       if (error) throw error;
       if (!data) return [];
 
-      return data.map(lead => ({
+      return data.map((lead) => ({
         id: lead.id,
         name: lead.name,
         email: lead.email,
@@ -45,7 +47,9 @@ export class LeadService {
     if (!isSupabaseConfigured() || !supabase) return null;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return null;
 
       const { data, error } = await supabase
@@ -84,7 +88,9 @@ export class LeadService {
     if (!isSupabaseConfigured() || !supabase) return [];
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return [];
 
       const { data, error } = await supabase
@@ -97,7 +103,7 @@ export class LeadService {
       if (error) throw error;
       if (!data) return [];
 
-      return data.map(lead => ({
+      return data.map((lead) => ({
         id: lead.id,
         name: lead.name,
         email: lead.email,
@@ -119,9 +125,9 @@ export class LeadService {
 
     try {
       const leads = await this.getLeads();
-      
+
       const headers = ['Nome', 'Email', 'Telefone', 'Canal', 'Data'];
-      const rows = leads.map(lead => [
+      const rows = leads.map((lead) => [
         lead.name,
         lead.email,
         lead.phone,
@@ -129,10 +135,7 @@ export class LeadService {
         new Date(lead.createdAt).toLocaleDateString('pt-BR'),
       ]);
 
-      const csvContent = [
-        headers.join(','),
-        ...rows.map(row => row.join(',')),
-      ].join('\n');
+      const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
 
       return csvContent;
     } catch (error) {

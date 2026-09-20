@@ -1,5 +1,31 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Eye, Copy, Smartphone, Monitor, Check, Loader2, Plus, User, Settings, Link2, Type, Image, Video, Calendar, ShoppingBag, Mail, Music, MapPin, Package, ArrowUp, ArrowDown, Trash2, CopyPlus, Power, ImagePlus } from 'lucide-react';
+import {
+  Eye,
+  Copy,
+  Smartphone,
+  Monitor,
+  Check,
+  Loader2,
+  Plus,
+  User,
+  Settings,
+  Link2,
+  Type,
+  Image,
+  Video,
+  Calendar,
+  ShoppingBag,
+  Mail,
+  Music,
+  MapPin,
+  Package,
+  ArrowUp,
+  ArrowDown,
+  Trash2,
+  CopyPlus,
+  Power,
+  ImagePlus,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion } from 'motion/react';
 import { UserProfile, PageBlock, PageTheme, BlockType } from '../types';
@@ -44,7 +70,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
   const getOrCreateProfileId = async (): Promise<string | null> => {
     if (!supabase) return null;
 
-    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
     if (!authUser) return null;
 
     const selectResult = await supabase
@@ -65,9 +93,13 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
       .insert({
         user_id: authUser.id,
         email: authUser.email || '',
-        name: (pageData.profile.name || (authUser.user_metadata?.name as string) || '').slice(0, 100),
+        name: (pageData.profile.name || (authUser.user_metadata?.name as string) || '').slice(
+          0,
+          100,
+        ),
         username: pageData.profile.username || authUser.email?.split('@')[0] || 'usuario',
-        bio_url: pageData.profile.bioUrl || `pandabio.com/${pageData.profile.username || 'usuario'}`,
+        bio_url:
+          pageData.profile.bioUrl || `pandabio.com/${pageData.profile.username || 'usuario'}`,
         page_title: pageData.profile.pageTitle || 'Minha Página • Bio Oficial',
       })
       .select('id')
@@ -129,7 +161,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
         return;
       }
 
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
       if (authUser) {
         const { data: profile } = await supabase
           .from('profiles')
@@ -149,7 +183,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
               profile: {
                 ...user,
                 ...Object.fromEntries(
-                  Object.entries(savedProfile).filter(([, v]) => v !== null && v !== undefined)
+                  Object.entries(savedProfile).filter(([, v]) => v !== null && v !== undefined),
                 ),
               } as UserProfile,
             }));
@@ -167,9 +201,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
   // O usuário (fonte de edição) tem prioridade; campos do banco ainda ausentes
   // no contexto (undefined/null) são mantidos de prev.profile.
   useEffect(() => {
-    setPageData(prev => {
+    setPageData((prev) => {
       const editedFields = Object.fromEntries(
-        Object.entries(user).filter(([, value]) => value !== undefined && value !== null)
+        Object.entries(user).filter(([, value]) => value !== undefined && value !== null),
       );
       return {
         ...prev,
@@ -184,7 +218,8 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
 
   const handleCopyLink = () => {
     const url = getPageUrl(user.bioUrl, user.username);
-    navigator.clipboard?.writeText(url)
+    navigator.clipboard
+      ?.writeText(url)
       .then(() => {
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 2000);
@@ -241,7 +276,11 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
     setIsPublishing(true);
     try {
       if (!supabase) {
-        const publishedData = { ...pageData, published: true, lastUpdated: new Date().toISOString() };
+        const publishedData = {
+          ...pageData,
+          published: true,
+          lastUpdated: new Date().toISOString(),
+        };
         setPageData(publishedData);
         safeStorage.set(LOCAL_PAGE_STORAGE_KEY, publishedData);
         toast.success('Página publicada (modo local)');
@@ -262,7 +301,11 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
       }
       const result = await PageService.publishPage(profileId);
       if (result.success) {
-        setPageData(prev => ({ ...prev, published: true, lastUpdated: new Date().toISOString() }));
+        setPageData((prev) => ({
+          ...prev,
+          published: true,
+          lastUpdated: new Date().toISOString(),
+        }));
         toast.success('Página publicada!');
       } else {
         toast.error(result.error || 'Erro ao publicar página');
@@ -276,7 +319,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
   };
 
   const handleAddBlock = (type: BlockType) => {
-    setPageData(prev => {
+    setPageData((prev) => {
       const newBlock: PageBlock = {
         id: crypto.randomUUID(),
         type,
@@ -292,28 +335,26 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
   };
 
   const handleUpdateBlock = (blockId: string, updates: Partial<PageBlock>) => {
-    setPageData(prev => ({
+    setPageData((prev) => ({
       ...prev,
-      blocks: prev.blocks.map(block => 
-        block.id === blockId ? { ...block, ...updates } : block
-      ),
+      blocks: prev.blocks.map((block) => (block.id === blockId ? { ...block, ...updates } : block)),
       lastUpdated: new Date().toISOString(),
     }));
   };
 
   const handleDeleteBlock = (blockId: string) => {
-    setPageData(prev => ({
+    setPageData((prev) => ({
       ...prev,
       blocks: prev.blocks
-        .filter(block => block.id !== blockId)
+        .filter((block) => block.id !== blockId)
         .map((block, i) => ({ ...block, order: i })),
       lastUpdated: new Date().toISOString(),
     }));
   };
 
   const handleDuplicateBlock = (blockId: string) => {
-    setPageData(prev => {
-      const source = prev.blocks.find(b => b.id === blockId);
+    setPageData((prev) => {
+      const source = prev.blocks.find((b) => b.id === blockId);
       if (!source) return prev;
       const rest = { ...source };
       const copy: PageBlock = {
@@ -331,19 +372,19 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
   };
 
   const handleToggleBlockActive = (blockId: string) => {
-    setPageData(prev => ({
+    setPageData((prev) => ({
       ...prev,
-      blocks: prev.blocks.map(block =>
-        block.id === blockId ? { ...block, active: !(block.active ?? true) } : block
+      blocks: prev.blocks.map((block) =>
+        block.id === blockId ? { ...block, active: !(block.active ?? true) } : block,
       ),
       lastUpdated: new Date().toISOString(),
     }));
   };
 
   const handleMoveBlock = (blockId: string, direction: 'up' | 'down') => {
-    setPageData(prev => {
+    setPageData((prev) => {
       const blocks = [...prev.blocks];
-      const index = blocks.findIndex(b => b.id === blockId);
+      const index = blocks.findIndex((b) => b.id === blockId);
 
       if (direction === 'up' && index > 0) {
         [blocks[index], blocks[index - 1]] = [blocks[index - 1], blocks[index]];
@@ -360,7 +401,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
   };
 
   const handleThemeUpdate = (updates: Partial<PageTheme>) => {
-    setPageData(prev => ({
+    setPageData((prev) => ({
       ...prev,
       theme: { ...prev.theme, ...updates },
       lastUpdated: new Date().toISOString(),
@@ -425,13 +466,17 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
               {/* 1. Informações do Perfil */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h2 className="text-lg font-bold text-[#131b2e] mb-4">Perfil</h2>
-                
+
                 <div className="space-y-4">
                   {/* Foto de Perfil */}
                   <div className="flex items-center gap-4">
                     <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
                       {user.avatarUrl ? (
-                        <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                        <img
+                          src={user.avatarUrl}
+                          alt="Avatar"
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <User className="w-9 h-9 text-gray-400" />
                       )}
@@ -456,7 +501,11 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                   <div className="flex items-center gap-4">
                     <div className="w-40 h-16 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden shrink-0">
                       {user.coverUrl ? (
-                        <img src={user.coverUrl} alt="Capa" className="w-full h-full object-cover" />
+                        <img
+                          src={user.coverUrl}
+                          alt="Capa"
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <ImagePlus className="w-6 h-6 text-gray-400" />
                       )}
@@ -488,7 +537,8 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                     />
                   </div>
                   <p className="text-[11px] text-gray-400 -mt-2">
-                    Opcional. A capa aparecerá no topo da sua página com um degradê suave para o fundo.
+                    Opcional. A capa aparecerá no topo da sua página com um degradê suave para o
+                    fundo.
                   </p>
 
                   {/* Nome */}
@@ -507,17 +557,24 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Usuário</label>
                     <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-[#FF5E00]">
-                      <span className="bg-gray-50 px-3 py-2 text-sm text-gray-500 border-r border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600">@</span>
+                      <span className="bg-gray-50 px-3 py-2 text-sm text-gray-500 border-r border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600">
+                        @
+                      </span>
                       <input
                         type="text"
                         value={user.username}
                         maxLength={20}
-                        onChange={(e) => onUpdateUser({ username: e.target.value.replace(/\s+/g, '').toLowerCase() })}
+                        onChange={(e) =>
+                          onUpdateUser({
+                            username: e.target.value.replace(/\s+/g, '').toLowerCase(),
+                          })
+                        }
                         className="flex-1 px-4 py-2 outline-none"
                       />
                     </div>
                     <p className="text-[11px] text-gray-400 mt-1">
-                      Sua página: <span className="font-mono text-[#FF5E00]">pandabio.com/{user.username}</span>
+                      Sua página:{' '}
+                      <span className="font-mono text-[#FF5E00]">pandabio.com/{user.username}</span>
                     </p>
                   </div>
 
@@ -525,7 +582,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-sm font-medium text-gray-700">Bio</label>
-                      <span className="text-[10px] text-gray-400 font-medium">{(user.bioDescription || '').length}/200</span>
+                      <span className="text-[10px] text-gray-400 font-medium">
+                        {(user.bioDescription || '').length}/200
+                      </span>
                     </div>
                     <textarea
                       value={user.bioDescription}
@@ -539,25 +598,29 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
 
                   {/* Categoria */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Categoria
+                    </label>
                     <select
-                        value={user.category || ''}
-                        onChange={(e) => onUpdateUser({ category: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent"
-                      >
-                        <option value="">Selecione...</option>
-                        <option>Criador de conteúdo</option>
-                        <option>Empreendedor</option>
-                        <option>Artista</option>
-                        <option>Músico</option>
-                        <option>Desenvolvedor</option>
-                        <option>Outro</option>
-                      </select>
+                      value={user.category || ''}
+                      onChange={(e) => onUpdateUser({ category: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent"
+                    >
+                      <option value="">Selecione...</option>
+                      <option>Criador de conteúdo</option>
+                      <option>Empreendedor</option>
+                      <option>Artista</option>
+                      <option>Músico</option>
+                      <option>Desenvolvedor</option>
+                      <option>Outro</option>
+                    </select>
                   </div>
 
                   {/* Localização */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Localização</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Localização
+                    </label>
                     <input
                       type="text"
                       value={user.location || ''}
@@ -570,7 +633,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
 
                   {/* Link Personalizado */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Link personalizado</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Link personalizado
+                    </label>
                     <input
                       type="text"
                       value={user.customLink || ''}
@@ -585,8 +650,8 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
               {/* 2. Blocos da Página */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h2 className="text-lg font-bold text-[#131b2e] mb-4">Blocos</h2>
-                
-                <button 
+
+                <button
                   onClick={() => setIsAddBlockModalOpen(true)}
                   className="w-full mb-4 px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-[#FF5E00] hover:text-[#FF5E00] transition-colors font-medium flex items-center justify-center gap-2 cursor-pointer"
                 >
@@ -619,31 +684,42 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                         />
                         {block.type === 'produto' && (block.products?.length ?? 0) > 0 && (
                           <span className="shrink-0 px-2 py-1 rounded-full bg-[#FF7A00]/10 text-[#FF7A00] text-[10px] font-bold whitespace-nowrap">
-                            {(block.products?.length ?? 0)} {block.products!.length === 1 ? 'produto' : 'produtos'}
+                            {block.products?.length ?? 0}{' '}
+                            {block.products!.length === 1 ? 'produto' : 'produtos'}
                           </span>
                         )}
                         {block.type === 'image' && (block.gallery?.images.length ?? 0) > 0 && (
                           <span className="shrink-0 px-2 py-1 rounded-full bg-[#FF7A00]/10 text-[#FF7A00] text-[10px] font-bold whitespace-nowrap">
-                            {(block.gallery?.images.length ?? 0)} {block.gallery!.images.length === 1 ? 'imagem' : 'imagens'}
+                            {block.gallery?.images.length ?? 0}{' '}
+                            {block.gallery!.images.length === 1 ? 'imagem' : 'imagens'}
                           </span>
                         )}
-                        {block.type === 'social' && ((block.socialLinks?.filter((l) => l.url && l.url.trim()).length ?? 0) > 0) && (
-                          <span className="shrink-0 px-2 py-1 rounded-full bg-[#FF7A00]/10 text-[#FF7A00] text-[10px] font-bold whitespace-nowrap">
-                            {block.socialLinks!.filter((l) => l.url && l.url.trim()).length} redes
-                          </span>
-                        )}
-                        {block.type === 'contact' && ((block.contact?.whatsapp?.trim() || block.contact?.email?.trim()) ? (
-                          <span className="shrink-0 px-2 py-1 rounded-full bg-[#FF7A00]/10 text-[#FF7A00] text-[10px] font-bold whitespace-nowrap">
-                            {block.contact?.whatsapp?.trim() && block.contact?.email?.trim() ? 'WhatsApp + E-mail' : block.contact?.whatsapp?.trim() ? 'WhatsApp' : 'E-mail'}
-                          </span>
-                        ) : null)}
+                        {block.type === 'social' &&
+                          (block.socialLinks?.filter((l) => l.url && l.url.trim()).length ?? 0) >
+                            0 && (
+                            <span className="shrink-0 px-2 py-1 rounded-full bg-[#FF7A00]/10 text-[#FF7A00] text-[10px] font-bold whitespace-nowrap">
+                              {block.socialLinks!.filter((l) => l.url && l.url.trim()).length} redes
+                            </span>
+                          )}
+                        {block.type === 'contact' &&
+                          (block.contact?.whatsapp?.trim() || block.contact?.email?.trim() ? (
+                            <span className="shrink-0 px-2 py-1 rounded-full bg-[#FF7A00]/10 text-[#FF7A00] text-[10px] font-bold whitespace-nowrap">
+                              {block.contact?.whatsapp?.trim() && block.contact?.email?.trim()
+                                ? 'WhatsApp + E-mail'
+                                : block.contact?.whatsapp?.trim()
+                                  ? 'WhatsApp'
+                                  : 'E-mail'}
+                            </span>
+                          ) : null)}
                         <div className="flex items-center gap-0.5">
                           <button
                             onClick={() => handleToggleBlockActive(block.id)}
                             title={block.active === false ? 'Ativar bloco' : 'Desativar bloco'}
                             aria-label={block.active === false ? 'Ativar bloco' : 'Desativar bloco'}
                             className={`p-1.5 rounded transition-colors cursor-pointer ${
-                              block.active === false ? 'text-green-500 hover:bg-green-50' : 'text-gray-400 hover:bg-gray-200'
+                              block.active === false
+                                ? 'text-green-500 hover:bg-green-50'
+                                : 'text-gray-400 hover:bg-gray-200'
                             }`}
                           >
                             <Power className="w-4 h-4" />
@@ -700,10 +776,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
               {/* 3. Aparência */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h2 className="text-lg font-bold text-[#131b2e] mb-4">Aparência</h2>
-                <AppearancePanel
-                  theme={pageData.theme}
-                  onThemeUpdate={handleThemeUpdate}
-                />
+                <AppearancePanel theme={pageData.theme} onThemeUpdate={handleThemeUpdate} />
               </div>
             </div>
           )}
@@ -718,7 +791,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                     <button
                       onClick={() => setPreviewDevice('mobile')}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                        previewDevice === 'mobile' ? 'bg-white text-[#131b2e] shadow-xs' : 'text-gray-500 hover:text-gray-900'
+                        previewDevice === 'mobile'
+                          ? 'bg-white text-[#131b2e] shadow-xs'
+                          : 'text-gray-500 hover:text-gray-900'
                       }`}
                     >
                       <Smartphone className="w-3.5 h-3.5" /> Celular
@@ -726,7 +801,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                     <button
                       onClick={() => setPreviewDevice('desktop')}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                        previewDevice === 'desktop' ? 'bg-white text-[#131b2e] shadow-xs' : 'text-gray-500 hover:text-gray-900'
+                        previewDevice === 'desktop'
+                          ? 'bg-white text-[#131b2e] shadow-xs'
+                          : 'text-gray-500 hover:text-gray-900'
                       }`}
                     >
                       <Monitor className="w-3.5 h-3.5" /> Desktop
@@ -766,7 +843,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                 onClick={() => setPreviewDevice('mobile')}
                 title="Modo celular"
                 className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                  previewDevice === 'mobile' ? 'bg-white text-[#131b2e] shadow-xs' : 'text-gray-500 hover:text-gray-900'
+                  previewDevice === 'mobile'
+                    ? 'bg-white text-[#131b2e] shadow-xs'
+                    : 'text-gray-500 hover:text-gray-900'
                 }`}
               >
                 <Smartphone className="w-3.5 h-3.5" />
@@ -775,7 +854,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                 onClick={() => setPreviewDevice('desktop')}
                 title="Modo desktop"
                 className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                  previewDevice === 'desktop' ? 'bg-white text-[#131b2e] shadow-xs' : 'text-gray-500 hover:text-gray-900'
+                  previewDevice === 'desktop'
+                    ? 'bg-white text-[#131b2e] shadow-xs'
+                    : 'text-gray-500 hover:text-gray-900'
                 }`}
               >
                 <Monitor className="w-3.5 h-3.5" />

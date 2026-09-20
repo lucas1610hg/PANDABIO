@@ -27,11 +27,5 @@ export const SectionViews: React.FC<SectionViewsProps> = ({ section, user, onUpd
   }
 
   // Outras seções mantidas vazias por enquanto
-  return (
-    <div
-      id={`section-empty-canvas-${section}`}
-      className="w-full min-h-[500px]"
-    />
-  );
+  return <div id={`section-empty-canvas-${section}`} className="w-full min-h-[500px]" />;
 };
-

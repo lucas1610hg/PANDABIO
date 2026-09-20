@@ -27,7 +27,7 @@ export function isIpv6(ip: string): boolean {
 export function detectIpFamily(ip: string): 'v4' | 'v6' | null {
   if (!ip) return null;
   if (isIpv4(ip)) return 'v4';
-  if (ip.includes(':') && (ip.split(':').length >= 2)) {
+  if (ip.includes(':') && ip.split(':').length >= 2) {
     return 'v6';
   }
   return null;

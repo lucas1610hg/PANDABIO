@@ -51,7 +51,9 @@ export class StorageService {
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         return { success: true, url: dataUrl };
       }
@@ -60,13 +62,11 @@ export class StorageService {
       const ext = blob.type === 'image/png' ? 'png' : blob.type === 'image/webp' ? 'webp' : 'jpg';
       const path = `${user.id}/${folder}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
 
-      const { error } = await supabase.storage
-        .from(BUCKET)
-        .upload(path, blob, {
-          cacheControl: '31536000',
-          upsert: false,
-          contentType: blob.type,
-        });
+      const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
+        cacheControl: '31536000',
+        upsert: false,
+        contentType: blob.type,
+      });
 
       if (error) {
         console.error('Supabase storage upload error:', error);

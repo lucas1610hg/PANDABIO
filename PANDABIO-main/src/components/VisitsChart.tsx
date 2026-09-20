@@ -76,12 +76,8 @@ export const VisitsChart: React.FC<VisitsChartProps> = ({ totalVisits = 0 }) => 
             <TrendingUp className="w-4 h-4" />
           </div>
           <div className="flex flex-col">
-            <h3 className="text-base font-bold text-[#131b2e]">
-              Visitas à página
-            </h3>
-            <span className="text-xs text-[#464555]">
-              {TIMEFRAME_LABEL[timeframe]}
-            </span>
+            <h3 className="text-base font-bold text-[#131b2e]">Visitas à página</h3>
+            <span className="text-xs text-[#464555]">{TIMEFRAME_LABEL[timeframe]}</span>
           </div>
         </div>
 
@@ -98,7 +94,13 @@ export const VisitsChart: React.FC<VisitsChartProps> = ({ totalVisits = 0 }) => 
                     : 'text-[#464555] hover:text-[#131b2e]'
                 }`}
               >
-                {tf === '7d' ? '7 dias' : tf === '30d' ? '30 dias' : tf === '90d' ? '90 dias' : '12 meses'}
+                {tf === '7d'
+                  ? '7 dias'
+                  : tf === '30d'
+                    ? '30 dias'
+                    : tf === '90d'
+                      ? '90 dias'
+                      : '12 meses'}
               </button>
             ))}
           </div>
@@ -116,7 +118,11 @@ export const VisitsChart: React.FC<VisitsChartProps> = ({ totalVisits = 0 }) => 
       </div>
 
       {/* SVG Line / Empty state */}
-      <div className="relative w-full h-64 pt-2 flex items-center justify-center" role="img" aria-label={`Gráfico de visitas - ${TIMEFRAME_LABEL[timeframe]}`}>
+      <div
+        className="relative w-full h-64 pt-2 flex items-center justify-center"
+        role="img"
+        aria-label={`Gráfico de visitas - ${TIMEFRAME_LABEL[timeframe]}`}
+      >
         {hasData ? (
           <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 540 220">
             <defs>
@@ -127,8 +133,24 @@ export const VisitsChart: React.FC<VisitsChartProps> = ({ totalVisits = 0 }) => 
             </defs>
 
             {/* Horizontal Grid Lines */}
-            <line stroke="#eaedff" strokeDasharray="3 3" strokeWidth="1" x1="45" x2="520" y1="45" y2="45" />
-            <line stroke="#eaedff" strokeDasharray="3 3" strokeWidth="1" x1="45" x2="520" y1="105" y2="105" />
+            <line
+              stroke="#eaedff"
+              strokeDasharray="3 3"
+              strokeWidth="1"
+              x1="45"
+              x2="520"
+              y1="45"
+              y2="45"
+            />
+            <line
+              stroke="#eaedff"
+              strokeDasharray="3 3"
+              strokeWidth="1"
+              x1="45"
+              x2="520"
+              y1="105"
+              y2="105"
+            />
             <line stroke="#eaedff" strokeWidth="1" x1="45" x2="520" y1="165" y2="165" />
 
             <path d={areaPath} fill="url(#orangeGradient)" />
@@ -141,7 +163,14 @@ export const VisitsChart: React.FC<VisitsChartProps> = ({ totalVisits = 0 }) => 
               strokeLinejoin="round"
             />
             {lastPoint && (
-              <circle cx={lastPoint.x} cy={lastPoint.y} r="5" fill="#FF7A00" stroke="#ffffff" strokeWidth="2" />
+              <circle
+                cx={lastPoint.x}
+                cy={lastPoint.y}
+                r="5"
+                fill="#FF7A00"
+                stroke="#ffffff"
+                strokeWidth="2"
+              />
             )}
           </svg>
         ) : (

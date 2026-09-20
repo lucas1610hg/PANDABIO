@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, RotateCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
-import {
-  PageTheme,
-  ThemeType,
-  CategoryPresetId,
-} from '../types';
+import { PageTheme, ThemeType, CategoryPresetId } from '../types';
 import {
   FONT_OPTIONS,
   GRADIENT_PRESET_LIST,
@@ -58,7 +54,9 @@ const ColorRow: React.FC<{
   onChange: (v: string) => void;
 }> = ({ label, value, placeholder, onChange }) => (
   <div>
-    <span id={`label-${label.replace(/\W+/g, '-')}`} className={FIELD_LABEL}>{label}</span>
+    <span id={`label-${label.replace(/\W+/g, '-')}`} className={FIELD_LABEL}>
+      {label}
+    </span>
     <div className="flex items-center gap-2">
       <input
         type="color"
@@ -131,7 +129,7 @@ const Segmented: React.FC<{
 
 export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onThemeUpdate }) => {
   const [editMode, setEditMode] = useState<'claro' | 'escuro'>(
-    theme.theme === 'dark' ? 'escuro' : 'claro'
+    theme.theme === 'dark' ? 'escuro' : 'claro',
   );
 
   // Mantém a aba de edição sincronizada com o modo selecionado/preset aplicado
@@ -151,7 +149,11 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
   const gradientTo = theme.customGradientTo || theme.backgroundColorGradient?.to || '#FF2E63';
   // Fonte única para o gradiente personalizado (evita o ângulo/cores "sumirem"
   // ao editar apenas um lado).
-  const gradientBase = theme.backgroundColorGradient || { from: gradientFrom, to: gradientTo, angle: 135 };
+  const gradientBase = theme.backgroundColorGradient || {
+    from: gradientFrom,
+    to: gradientTo,
+    angle: 135,
+  };
 
   const effectFx = buttonFxColors('#ffffff', theme.customButtonColor || '#FF5E00');
   const effectFxVars = {
@@ -187,7 +189,9 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
                 aria-pressed={active}
                 title={preset.description}
                 className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl border-2 transition-all cursor-pointer ${
-                  active ? 'border-[#FF5E00] bg-[#FFF3E6] shadow-sm' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 bg-white'
+                  active
+                    ? 'border-[#FF5E00] bg-[#FFF3E6] shadow-sm'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 bg-white'
                 }`}
               >
                 <span
@@ -220,7 +224,8 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
           onSelect={(id) => onThemeUpdate({ theme: id as ThemeType })}
         />
         <p className="text-[11px] text-gray-400 mt-1.5">
-          Em cores personalizadas, o modo define qual conjunto de cores (claras ou escuras) é exibido no preview.
+          Em cores personalizadas, o modo define qual conjunto de cores (claras ou escuras) é
+          exibido no preview.
         </p>
       </div>
 
@@ -266,7 +271,9 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
         <div className="flex gap-2 mb-3">
           <select
             value={theme.backgroundType}
-            onChange={(e) => onThemeUpdate({ backgroundType: e.target.value as 'color' | 'gradient' | 'image' })}
+            onChange={(e) =>
+              onThemeUpdate({ backgroundType: e.target.value as 'color' | 'gradient' | 'image' })
+            }
             className={`${INPUT_BASE} w-auto`}
           >
             <option value="color">Cor</option>
@@ -283,7 +290,9 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
                 {GRADIENT_PRESET_LIST.map((g) => {
                   const isSelected =
                     (theme.customGradientFrom === g.from && theme.customGradientTo === g.to) ||
-                    (!theme.customGradientFrom && theme.backgroundColorGradient?.from === g.from && theme.backgroundColorGradient?.to === g.to);
+                    (!theme.customGradientFrom &&
+                      theme.backgroundColorGradient?.from === g.from &&
+                      theme.backgroundColorGradient?.to === g.to);
                   return (
                     <button
                       key={g.key}
@@ -291,7 +300,11 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
                         onThemeUpdate({
                           customGradientFrom: undefined,
                           customGradientTo: undefined,
-                          backgroundColorGradient: { from: g.from, to: g.to, angle: gradientBase.angle },
+                          backgroundColorGradient: {
+                            from: g.from,
+                            to: g.to,
+                            angle: gradientBase.angle,
+                          },
                         })
                       }
                       title={g.label}
@@ -309,35 +322,43 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
                 <ColorRow
                   label="Cor inicial"
                   value={gradientFrom}
-                  onChange={(v) => onThemeUpdate({
-                    customGradientFrom: undefined,
-                    customGradientTo: undefined,
-                    backgroundColorGradient: { ...gradientBase, from: v },
-                  })}
+                  onChange={(v) =>
+                    onThemeUpdate({
+                      customGradientFrom: undefined,
+                      customGradientTo: undefined,
+                      backgroundColorGradient: { ...gradientBase, from: v },
+                    })
+                  }
                 />
                 <ColorRow
                   label="Cor final"
                   value={gradientTo}
-                  onChange={(v) => onThemeUpdate({
-                    customGradientFrom: undefined,
-                    customGradientTo: undefined,
-                    backgroundColorGradient: { ...gradientBase, to: v },
-                  })}
+                  onChange={(v) =>
+                    onThemeUpdate({
+                      customGradientFrom: undefined,
+                      customGradientTo: undefined,
+                      backgroundColorGradient: { ...gradientBase, to: v },
+                    })
+                  }
                 />
               </div>
             </div>
             <div>
-              <span className="block text-xs text-gray-500 mb-1.5">Ângulo: {gradientBase.angle ?? 135}°</span>
+              <span className="block text-xs text-gray-500 mb-1.5">
+                Ângulo: {gradientBase.angle ?? 135}°
+              </span>
               <input
                 type="range"
                 min={0}
                 max={360}
                 value={gradientBase.angle ?? 135}
-                onChange={(e) => onThemeUpdate({
-                  customGradientFrom: undefined,
-                  customGradientTo: undefined,
-                  backgroundColorGradient: { ...gradientBase, angle: Number(e.target.value) },
-                })}
+                onChange={(e) =>
+                  onThemeUpdate({
+                    customGradientFrom: undefined,
+                    customGradientTo: undefined,
+                    backgroundColorGradient: { ...gradientBase, angle: Number(e.target.value) },
+                  })
+                }
                 className="w-full accent-[#FF5E00]"
               />
             </div>
@@ -347,9 +368,15 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
         {theme.backgroundType === 'color' && (
           <ColorRow
             label={editMode === 'claro' ? 'Cor de fundo (claro)' : 'Cor de fundo (escuro)'}
-            value={editMode === 'claro' ? theme.backgroundColor : (theme.backgroundColorDark || undefined)}
+            value={
+              editMode === 'claro' ? theme.backgroundColor : theme.backgroundColorDark || undefined
+            }
             placeholder={editMode === 'claro' ? '#ffffff' : '#0f172a'}
-            onChange={(v) => editMode === 'claro' ? onThemeUpdate({ backgroundColor: v }) : onThemeUpdate({ backgroundColorDark: v })}
+            onChange={(v) =>
+              editMode === 'claro'
+                ? onThemeUpdate({ backgroundColor: v })
+                : onThemeUpdate({ backgroundColorDark: v })
+            }
           />
         )}
 
@@ -374,7 +401,10 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
                     return;
                   }
                   const previousUrl = theme.backgroundImage;
-                  const result = await StorageService.uploadImage(file, 'background', { maxDim: 1600, quality: 0.82 });
+                  const result = await StorageService.uploadImage(file, 'background', {
+                    maxDim: 1600,
+                    quality: 0.82,
+                  });
                   e.target.value = '';
                   if (!result.success || !result.url) {
                     toast.error(result.error || 'Não foi possível processar a imagem');
@@ -408,7 +438,9 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <span className={FIELD_LABEL + ' mb-0'}>Altura da capa</span>
-              <span className="text-xs font-semibold text-gray-500">{Math.max(128, Math.min(340, theme.coverHeight ?? 200))}px</span>
+              <span className="text-xs font-semibold text-gray-500">
+                {Math.max(128, Math.min(340, theme.coverHeight ?? 200))}px
+              </span>
             </div>
             <input
               type="range"
@@ -421,12 +453,16 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
               onChange={(e) => onThemeUpdate({ coverHeight: Number(e.target.value) })}
               className="w-full accent-[#FF5E00] cursor-pointer"
             />
-            <p className={SECTION_HINT + ' mt-1'}>A capa vira o fundo do cabeçalho, com foto e informações por cima.</p>
+            <p className={SECTION_HINT + ' mt-1'}>
+              A capa vira o fundo do cabeçalho, com foto e informações por cima.
+            </p>
           </div>
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <span className={FIELD_LABEL + ' mb-0'}>Intensidade do degradê</span>
-              <span className="text-xs font-semibold text-gray-500">{Math.max(0, Math.min(100, theme.coverFadeIntensity ?? 60))}%</span>
+              <span className="text-xs font-semibold text-gray-500">
+                {Math.max(0, Math.min(100, theme.coverFadeIntensity ?? 60))}%
+              </span>
             </div>
             <input
               type="range"
@@ -439,7 +475,9 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
               onChange={(e) => onThemeUpdate({ coverFadeIntensity: Number(e.target.value) })}
               className="w-full accent-[#FF5E00] cursor-pointer"
             />
-            <p className={SECTION_HINT + ' mt-1'}>Controla o escurecimento e a fusão da capa com o fundo da página.</p>
+            <p className={SECTION_HINT + ' mt-1'}>
+              Controla o escurecimento e a fusão da capa com o fundo da página.
+            </p>
           </div>
         </div>
       </div>
@@ -583,7 +621,9 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
               <Segmented
                 value={theme.animationSpeed}
                 options={ANIMATION_SPEEDS.map((s) => ({ id: s.id, label: s.label }))}
-                onSelect={(id) => onThemeUpdate({ animationSpeed: id as PageTheme['animationSpeed'] })}
+                onSelect={(id) =>
+                  onThemeUpdate({ animationSpeed: id as PageTheme['animationSpeed'] })
+                }
               />
             </div>
           </div>

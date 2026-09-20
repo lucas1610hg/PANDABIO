@@ -12,7 +12,9 @@ export class ActivityService {
     if (!isSupabaseConfigured() || !supabase) return [];
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return [];
 
       const { data, error } = await supabase
@@ -25,7 +27,7 @@ export class ActivityService {
       if (error) throw error;
       if (!data) return [];
 
-      return data.map(activity => ({
+      return data.map((activity) => ({
         id: activity.id,
         title: activity.title,
         subtitle: activity.subtitle,
@@ -46,19 +48,19 @@ export class ActivityService {
     if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return false;
 
-      const { error } = await supabase
-        .from('activities')
-        .insert({
-          profile_id: user.id,
-          title: activity.title,
-          subtitle: activity.subtitle,
-          time_ago: activity.timeAgo,
-          type: activity.type,
-          timestamp: activity.timestamp,
-        });
+      const { error } = await supabase.from('activities').insert({
+        profile_id: user.id,
+        title: activity.title,
+        subtitle: activity.subtitle,
+        time_ago: activity.timeAgo,
+        type: activity.type,
+        timestamp: activity.timestamp,
+      });
 
       if (error) throw error;
       return true;
@@ -114,7 +116,9 @@ export class ActivityService {
     if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return false;
 
       const cutoffDate = new Date();

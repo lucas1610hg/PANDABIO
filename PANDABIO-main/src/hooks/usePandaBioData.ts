@@ -8,18 +8,21 @@ import { BioLink, ProductItem, FunnelData } from '../types';
  * Remove lógica de negócio dos componentes e centraliza cálculos
  */
 export const usePandaBioData = () => {
-  const currentAccount = usePandaBioStore(state => state.getCurrentAccount());
+  const currentAccount = usePandaBioStore((state) => state.getCurrentAccount());
   const user = currentAccount.profile;
   const links = currentAccount.links;
   const products = currentAccount.products;
   const leads = currentAccount.leads;
   const activities = currentAccount.activities;
-  
+
   // Cálculo de KPIs memoizado
   const realKpiData: KpiData = useMemo(() => {
     const totalClicks = links.reduce((sum: number, l: BioLink) => sum + (l.clicks || 0), 0);
     const totalLeads = leads.length;
-    const totalConversions = products.reduce((sum: number, p: ProductItem) => sum + (p.salesCount || 0), 0);
+    const totalConversions = products.reduce(
+      (sum: number, p: ProductItem) => sum + (p.salesCount || 0),
+      0,
+    );
     const estimatedVisits = totalClicks > 0 ? totalClicks * 2 : 0;
     const ctr = estimatedVisits > 0 ? (totalClicks / estimatedVisits) * 100 : 0;
     const leadRate = totalClicks > 0 ? (totalLeads / totalClicks) * 100 : 0;
@@ -48,7 +51,10 @@ export const usePandaBioData = () => {
   const funnelData: FunnelData = useMemo(() => {
     const totalClicks = links.reduce((sum: number, l: BioLink) => sum + (l.clicks || 0), 0);
     const totalLeads = leads.length;
-    const totalConversions = products.reduce((sum: number, p: ProductItem) => sum + (p.salesCount || 0), 0);
+    const totalConversions = products.reduce(
+      (sum: number, p: ProductItem) => sum + (p.salesCount || 0),
+      0,
+    );
     const estimatedVisits = totalClicks > 0 ? totalClicks * 2 : 0;
 
     return {

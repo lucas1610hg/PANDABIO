@@ -19,12 +19,14 @@ Para habilitar login com Google e Facebook:
 4. Configure os providers que deseja usar:
 
 ### Google OAuth:
+
 - Ative o provider "Google"
 - Adicione seu Client ID e Client Secret do Google Console
 - Configure o Redirect URL: `https://irtrqccahpaxknidrxwy.supabase.co/auth/v1/callback`
 
 ### Facebook OAuth:
-- Ative o provider "Facebook"  
+
+- Ative o provider "Facebook"
 - Adicione seu App ID e App Secret do Facebook Developers
 - Configure o Redirect URL: `https://irtrqccahpaxknidrxwy.supabase.co/auth/v1/callback`
 
@@ -59,17 +61,18 @@ npm run dev
 
 ## Funcionalidades habilitadas após configuração:
 
--  Cadastro de usuários com email e senha
--  Login com email e senha
--  Login social (Google, Facebook) - se configurado
--  Criação automática de perfil ao cadastrar
--  Recuperação de senha
--  Sessão persistente
--  Refresh automático de token
+- Cadastro de usuários com email e senha
+- Login com email e senha
+- Login social (Google, Facebook) - se configurado
+- Criação automática de perfil ao cadastrar
+- Recuperação de senha
+- Sessão persistente
+- Refresh automático de token
 
 ## Teste a autenticação:
 
 ### Cadastro com email/senha:
+
 1. Acesse http://localhost:3000
 2. Clique em "Cadastrar"
 3. Preencha com um email real e senha
@@ -78,6 +81,7 @@ npm run dev
 6. Você será redirecionado para o dashboard
 
 ### Login social (se configurado):
+
 1. Clique em "Continuar com Google" ou "Continuar com Facebook"
 2. Será redirecionado para o provider OAuth
 3. Após autorizar, será redirecionado de volta
@@ -87,19 +91,23 @@ npm run dev
 ## Solução de problemas:
 
 ### Erro "Supabase não configurado"
+
 - Verifique se o arquivo .env foi criado na raiz do projeto
 - Verifique se as variáveis de ambiente estão corretas
 - Reinicie o servidor após criar o .env
 
 ### Erro "Tabela profiles não existe"
+
 - Execute o schema SQL no painel do Supabase
 - Verifique se não houve erros na execução do SQL
 
 ### Erro "Email já cadastrado"
+
 - Use um email diferente para teste
 - Ou exclua o usuário no painel do Supabase > Authentication > Users
 
 ### Erro "OAuth não configurado"
+
 - Configure os providers no painel do Supabase > Authentication > Providers
 - Verifique se as credenciais OAuth estão corretas
 - Verifique se os Redirect URLs estão configurados corretamente

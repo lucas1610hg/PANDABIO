@@ -1,4 +1,13 @@
-import { Camera, MessageCircle, Layers, ShoppingBag, ExternalLink, UserPlus, MousePointerClick, Clock } from 'lucide-react';
+import {
+  Camera,
+  MessageCircle,
+  Layers,
+  ShoppingBag,
+  ExternalLink,
+  UserPlus,
+  MousePointerClick,
+  Clock,
+} from 'lucide-react';
 
 /**
  * Mapeamento centralizado de ícones para links e atividades

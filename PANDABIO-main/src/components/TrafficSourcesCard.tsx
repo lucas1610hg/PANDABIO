@@ -47,9 +47,7 @@ export const TrafficSourcesCard: React.FC<TrafficSourcesCardProps> = ({ links = 
   const segments = useMemo(() => {
     const C = 2 * Math.PI * 38;
     return sources.map((s, i) => {
-      const prevLen = sources
-        .slice(0, i)
-        .reduce((acc, p) => acc + (p.pctRaw / 100) * C, 0);
+      const prevLen = sources.slice(0, i).reduce((acc, p) => acc + (p.pctRaw / 100) * C, 0);
       const len = (s.pctRaw / 100) * C;
       return { ...s, dash: `${len} ${C - len}`, offset: -prevLen };
     });
@@ -85,7 +83,12 @@ export const TrafficSourcesCard: React.FC<TrafficSourcesCardProps> = ({ links = 
       <div className="flex items-center justify-center py-2 relative min-h-[140px]">
         {hasTraffic && segments.length > 0 ? (
           <>
-            <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100" role="img" aria-label="Distribuição de cliques por link">
+            <svg
+              className="w-32 h-32 transform -rotate-90"
+              viewBox="0 0 100 100"
+              role="img"
+              aria-label="Distribuição de cliques por link"
+            >
               {segments.map((s) => (
                 <circle
                   key={s.name}
@@ -115,9 +118,7 @@ export const TrafficSourcesCard: React.FC<TrafficSourcesCardProps> = ({ links = 
             <div className="w-10 h-10 rounded-full bg-[#f2f3ff] flex items-center justify-center text-[#969cb0] mb-1.5">
               <PieChart className="w-4 h-4" />
             </div>
-            <span className="text-xs font-semibold text-[#131b2e]">
-              Nenhum tráfego computado
-            </span>
+            <span className="text-xs font-semibold text-[#131b2e]">Nenhum tráfego computado</span>
             <span className="text-[10px] text-[#777587] max-w-[170px] mt-0.5">
               O tráfego aparecerá aqui assim que seus links receberem acessos.
             </span>

@@ -21,28 +21,21 @@ export async function authExample() {
   }
 
   // Sign up
-  const signUpResult = await AuthService.signUp(
-    'novo.usuario@example.com',
-    'senha123',
-    {
-      name: 'Novo Usuário',
-      username: 'novousuario',
-      bioUrl: 'panda.bio/novousuario',
-      pageTitle: 'Minha Página • Bio Oficial',
-      bioDescription: 'Descrição do meu perfil',
-      avatarUrl: 'https://api.dicebear.com/7.x/initials/svg?seed=Novo',
-    }
-  );
+  const signUpResult = await AuthService.signUp('novo.usuario@example.com', 'senha123', {
+    name: 'Novo Usuário',
+    username: 'novousuario',
+    bioUrl: 'panda.bio/novousuario',
+    pageTitle: 'Minha Página • Bio Oficial',
+    bioDescription: 'Descrição do meu perfil',
+    avatarUrl: 'https://api.dicebear.com/7.x/initials/svg?seed=Novo',
+  });
 
   if (signUpResult.success) {
     console.log('Usuário criado:', signUpResult.user);
   }
 
   // Sign in
-  const signInResult = await AuthService.signIn(
-    'novo.usuario@example.com',
-    'senha123'
-  );
+  const signInResult = await AuthService.signIn('novo.usuario@example.com', 'senha123');
 
   if (signInResult.success) {
     console.log('Login realizado:', signInResult.user);
@@ -114,10 +107,7 @@ export async function linksExample() {
 
     // Reordenar links
     if (links.length > 0) {
-      await LinkService.reorderLinks([
-        newLink.id,
-        ...links.slice(0, 3).map(l => l.id),
-      ]);
+      await LinkService.reorderLinks([newLink.id, ...links.slice(0, 3).map((l) => l.id)]);
     }
   }
 }
@@ -135,7 +125,7 @@ export async function productsExample() {
   // Criar novo produto
   const newProduct = await ProductService.createProduct({
     name: 'Consultoria VIP',
-    price: 197.00,
+    price: 197.0,
     salesCount: 0,
     status: 'active',
     image: 'https://example.com/product.jpg',
@@ -146,7 +136,7 @@ export async function productsExample() {
     // Atualizar produto
     await ProductService.updateProduct(newProduct.id, {
       name: 'Consultoria Premium',
-      price: 297.00,
+      price: 297.0,
     });
 
     // Registrar venda
@@ -196,7 +186,7 @@ export async function activitiesExample() {
 
   // Criar atividades específicas
   await ActivityService.logNewLink('Meu Novo Link');
-  await ActivityService.logNewProduct('E-book Premium', 47.00);
+  await ActivityService.logNewProduct('E-book Premium', 47.0);
   await ActivityService.logNewLead('João Silva');
 
   // Criar atividade customizada

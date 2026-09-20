@@ -1,9 +1,10 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import tseslint from 'typescript-eslint'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import jsxA11y from 'eslint-plugin-jsx-a11y'
+import js from '@eslint/js';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
+import prettierRecommended from 'eslint-plugin-prettier/recommended';
 
 export default [
   { ignores: ['dist', 'node_modules'] },
@@ -34,14 +35,12 @@ export default [
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       'jsx-a11y/alt-text': 'error',
       'jsx-a11y/role-has-required-aria-props': 'error',
       'jsx-a11y/heading-has-content': 'error',
       'react-hooks/set-state-in-effect': 'warn',
     },
   },
-]
+  prettierRecommended,
+];

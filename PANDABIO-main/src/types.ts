@@ -15,21 +15,22 @@ export type NavSection =
   | 'ajuda'
   | 'perfil';
 
-export type BlockType = 
-  | 'link' 
-  | 'text' 
-  | 'image' 
-  | 'video' 
-  | 'agendamento' 
-  | 'produto' 
-  | 'social' 
-  | 'contact' 
-  | 'music' 
+export type BlockType =
+  | 'link'
+  | 'text'
+  | 'image'
+  | 'video'
+  | 'agendamento'
+  | 'produto'
+  | 'social'
+  | 'contact'
+  | 'music'
   | 'location';
 
 export type ThemeType = 'light' | 'dark' | 'auto';
 
-export type ButtonStyle = 'sharp' | 'smooth' | 'square' | 'rounded' | 'soft' | 'pill' | 'corner' | 'chunky';
+export type ButtonStyle =
+  'sharp' | 'smooth' | 'square' | 'rounded' | 'soft' | 'pill' | 'corner' | 'chunky';
 
 export type ButtonVariant = 'filled' | 'outline' | 'soft' | 'glass';
 
@@ -61,15 +62,7 @@ export type AnimationEffect =
   | 'underline';
 
 export type CardAnimation =
-  | 'none'
-  | 'fade'
-  | 'slideUp'
-  | 'zoom'
-  | 'slideLeft'
-  | 'slideRight'
-  | 'bounce'
-  | 'flip'
-  | 'rotate';
+  'none' | 'fade' | 'slideUp' | 'zoom' | 'slideLeft' | 'slideRight' | 'bounce' | 'flip' | 'rotate';
 
 export type AnimationSpeed = 'fast' | 'normal' | 'slow';
 
@@ -123,14 +116,7 @@ export interface BlockProduct {
 }
 
 export type SocialPlatform =
-  | 'instagram'
-  | 'facebook'
-  | 'tiktok'
-  | 'linkedin'
-  | 'pinterest'
-  | 'youtube'
-  | 'kwai'
-  | 'threads';
+  'instagram' | 'facebook' | 'tiktok' | 'linkedin' | 'pinterest' | 'youtube' | 'kwai' | 'threads';
 
 export interface SocialLink {
   id: string;
