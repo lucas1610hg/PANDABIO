@@ -243,6 +243,8 @@ export class LinkService {
           link_id: linkId,
           event_type: 'click',
           device_type: this.getDeviceType(),
+          referrer: typeof document !== 'undefined' && document.referrer ? document.referrer : undefined,
+          user_agent: typeof navigator !== 'undefined' && navigator.userAgent ? navigator.userAgent : undefined,
         });
       }
 
