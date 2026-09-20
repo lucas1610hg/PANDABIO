@@ -291,7 +291,7 @@ Fechamento pendências: TR-4.2 (idempotência toggleLink — coberto em usePanda
 ---
 
 ## Task 11: Hardening Supabase Auth no config.toml
-- **Status**: `pending`
+- **Status**: `completed`
 - **Priority**: medium
 - **Depends On**: T10
 - **Branch**: `hotfix/T11-auth-hardening`
