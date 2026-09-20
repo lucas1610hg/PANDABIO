@@ -9,7 +9,7 @@ export class LeadService {
    * Obtém todos os leads do usuário atual
    */
   static async getLeads(): Promise<LeadItem[]> {
-    if (!isSupabaseConfigured()) return [];
+    if (!isSupabaseConfigured() || !supabase) return [];
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -42,7 +42,7 @@ export class LeadService {
    * Cria um novo lead
    */
   static async createLead(lead: Omit<LeadItem, 'id' | 'createdAt'>): Promise<LeadItem | null> {
-    if (!isSupabaseConfigured()) return null;
+    if (!isSupabaseConfigured() || !supabase) return null;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -81,7 +81,7 @@ export class LeadService {
    * Obtém leads por link específico
    */
   static async getLeadsByLink(linkId: string): Promise<LeadItem[]> {
-    if (!isSupabaseConfigured()) return [];
+    if (!isSupabaseConfigured() || !supabase) return [];
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -115,7 +115,7 @@ export class LeadService {
    * Exporta leads para CSV
    */
   static async exportLeadsToCSV(): Promise<string | null> {
-    if (!isSupabaseConfigured()) return null;
+    if (!isSupabaseConfigured() || !supabase) return null;
 
     try {
       const leads = await this.getLeads();

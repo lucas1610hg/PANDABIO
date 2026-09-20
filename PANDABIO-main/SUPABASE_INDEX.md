@@ -1,38 +1,38 @@
 # Índice de Documentação - Supabase Integration
 
-## 📚 Documentação Disponível
+##  Documentação Disponível
 
 ### 1. **Guia de Configuração** 
-📄 `SUPABASE_SETUP.md` - Guia completo passo-a-passo para configurar Supabase
+ `SUPABASE_SETUP.md` - Guia completo passo-a-passo para configurar Supabase
 
 ### 2. **Schema do Banco de Dados**
-📄 `src/database/schema.sql` - Schema SQL completo com todas as tabelas, índices, triggers e RLS
+ `src/database/schema.sql` - Schema SQL completo com todas as tabelas, índices, triggers e RLS
 
 ### 3. **Tipos TypeScript**
-📄 `src/supabase/types.ts` - Tipos do banco de dados para type safety
+ `src/supabase/types.ts` - Tipos do banco de dados para type safety
 
 ### 4. **Cliente Supabase**
-📄 `src/supabase/client.ts` - Configuração do cliente Supabase
+ `src/supabase/client.ts` - Configuração do cliente Supabase
 
-## 🔧 Serviços Implementados
+##  Serviços Implementados
 
 ### Serviços de Dados
-- 📄 `src/supabase/services/profileService.ts` - Gerenciamento de perfis
-- 📄 `src/supabase/services/linkService.ts` - Gerenciamento de links
-- 📄 `src/supabase/services/productService.ts` - Gerenciamento de produtos
-- 📄 `src/supabase/services/leadService.ts` - Gerenciamento de leads
-- 📄 `src/supabase/services/activityService.ts` - Gerenciamento de atividades
+-  `src/supabase/services/profileService.ts` - Gerenciamento de perfis
+-  `src/supabase/services/linkService.ts` - Gerenciamento de links
+-  `src/supabase/services/productService.ts` - Gerenciamento de produtos
+-  `src/supabase/services/leadService.ts` - Gerenciamento de leads
+-  `src/supabase/services/activityService.ts` - Gerenciamento de atividades
 
 ### Serviços de Autenticação
-- 📄 `src/supabase/services/authService.ts` - Autenticação e gerenciamento de usuários
+-  `src/supabase/services/authService.ts` - Autenticação e gerenciamento de usuários
 
-## 🎣 Hooks Customizados
+##  Hooks Customizados
 
 ### Hooks React
-- 📄 `src/hooks/useSupabaseAuth.ts` - Hook para autenticação
-- 📄 `src/hooks/useSupabaseData.ts` - Hook para dados do PandaBio
+-  `src/hooks/useSupabaseAuth.ts` - Hook para autenticação
+-  `src/hooks/useSupabaseData.ts` - Hook para dados do PandaBio
 
-## 🗄️ Estrutura do Banco de Dados
+##  Estrutura do Banco de Dados
 
 ### Tabelas Principais
 ```
@@ -83,20 +83,20 @@ analytics (eventos de analytics)
 └── created_at
 ```
 
-## 🔐 Segurança Implementada
+##  Segurança Implementada
 
 ### Row Level Security (RLS)
-- ✅ Políticas por tabela para isolamento de dados
-- ✅ Usuários só acessam seus próprios dados
-- ✅ Proteção contra acesso não autorizado
+-  Políticas por tabela para isolamento de dados
+-  Usuários só acessam seus próprios dados
+-  Proteção contra acesso não autorizado
 
 ### Autenticação
-- ✅ Integração com Supabase Auth
-- ✅ Sessão persistente
-- ✅ Auto-refresh de tokens
-- ✅ Email/Password auth
+-  Integração com Supabase Auth
+-  Sessão persistente
+-  Auto-refresh de tokens
+-  Email/Password auth
 
-## 🚀 Próximos Passos
+##  Próximos Passos
 
 ### Integração Imediata
 1. Configurar projeto Supabase
@@ -116,7 +116,7 @@ analytics (eventos de analytics)
 3. Configurar analytics avançado
 4. Implementar backup automático
 
-## 📖 Referências Rápidas
+##  Referências Rápidas
 
 ### Criar Link
 ```typescript
@@ -150,7 +150,7 @@ import { useSupabaseData } from '../hooks/useSupabaseData';
 const { links, products, leads, loading } = useSupabaseData();
 ```
 
-## ⚠️ Notas Importantes
+##  Notas Importantes
 
 1. **Fallback**: O app funciona com localStorage se Supabase não estiver configurado
 2. **Type Safety**: Todos os serviços são tipados com TypeScript
@@ -158,7 +158,7 @@ const { links, products, leads, loading } = useSupabaseData();
 4. **Performance**: Dados são carregados de forma otimizada
 5. **Segurança**: RLS garante isolamento de dados
 
-## 🆘 Solução de Problemas
+##  Solução de Problemas
 
 ### Erro de Conexão
 - Verifique variáveis de ambiente

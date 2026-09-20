@@ -217,40 +217,40 @@ export async function activitiesExample() {
  */
 export async function completeIntegrationExample() {
   if (!isSupabaseConfigured()) {
-    console.log('⚠️ Supabase não configurado - executando em modo local');
+    console.log(' Supabase não configurado - executando em modo local');
     return;
   }
 
-  console.log('🚀 Iniciando integração completa com Supabase...');
+  console.log(' Iniciando integração completa com Supabase...');
 
   try {
     // 1. Autenticação
-    console.log('📝 Passo 1: Autenticação');
+    console.log(' Passo 1: Autenticação');
     await authExample();
 
     // 2. Perfil
-    console.log('👤 Passo 2: Gerenciar Perfil');
+    console.log(' Passo 2: Gerenciar Perfil');
     await profileExample();
 
     // 3. Links
-    console.log('🔗 Passo 3: Gerenciar Links');
+    console.log(' Passo 3: Gerenciar Links');
     await linksExample();
 
     // 4. Produtos
-    console.log('🛒 Passo 4: Gerenciar Produtos');
+    console.log(' Passo 4: Gerenciar Produtos');
     await productsExample();
 
     // 5. Leads
-    console.log('📋 Passo 5: Gerenciar Leads');
+    console.log(' Passo 5: Gerenciar Leads');
     await leadsExample();
 
     // 6. Atividades
-    console.log('📊 Passo 6: Gerenciar Atividades');
+    console.log(' Passo 6: Gerenciar Atividades');
     await activitiesExample();
 
-    console.log('✅ Integração completa finalizada com sucesso!');
+    console.log(' Integração completa finalizada com sucesso!');
   } catch (error) {
-    console.error('❌ Erro na integração:', error);
+    console.error(' Erro na integração:', error);
   }
 }
 

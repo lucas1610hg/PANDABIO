@@ -9,7 +9,7 @@ export class ProfileService {
    * Obtém o perfil do usuário atual
    */
   static async getCurrentProfile(): Promise<UserProfile | null> {
-    if (!isSupabaseConfigured()) return null;
+    if (!isSupabaseConfigured() || !supabase) return null;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -33,6 +33,10 @@ export class ProfileService {
         pageTitle: data.page_title,
         bioDescription: data.bio_description || '',
         avatarUrl: data.avatar_url || '',
+        coverUrl: data.cover_url || undefined,
+        category: data.category || undefined,
+        location: data.location || undefined,
+        customLink: data.custom_link || undefined,
       };
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -44,29 +48,59 @@ export class ProfileService {
    * Cria ou atualiza o perfil do usuário
    */
   static async upsertProfile(profile: Partial<UserProfile>): Promise<UserProfile | null> {
-    if (!isSupabaseConfigured()) return null;
+    if (!isSupabaseConfigured() || !supabase) return null;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .upsert({
-          user_id: user.id,
-          name: profile.name || '',
-          username: profile.username || '',
-          email: profile.email || '',
-          plan: profile.plan || 'Gratuito',
-          bio_url: profile.bioUrl || '',
-          page_title: profile.pageTitle || '',
-          bio_description: profile.bioDescription,
-          avatar_url: profile.avatarUrl,
-        })
-        .select()
-        .single();
+      const row = {
+        user_id: user.id,
+        name: profile.name || '',
+        username: profile.username || '',
+        email: profile.email || '',
+        plan: profile.plan || 'Gratuito',
+        bio_url: profile.bioUrl || '',
+        page_title: profile.pageTitle || '',
+        bio_description: profile.bioDescription,
+        avatar_url: profile.avatarUrl,
+        cover_url: profile.coverUrl,
+        category: profile.category || null,
+        location: profile.location || null,
+        custom_link: profile.customLink || null,
+      };
 
-      if (error) throw error;
+      // Correção: `upsert` com user_id requeria uma constraint UNIQUE em user_id.
+      // Sem ela, cada chamada criava um NOVO registro duplicado. Agora atualiza
+      // pelo user_id e, caso o perfil ainda não exista, faz o insert.
+      const { data: existing, error: selectError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (selectError) throw selectError;
+
+      let data;
+      if (existing?.id) {
+        const { data: updated, error } = await supabase
+          .from('profiles')
+          .update(row)
+          .eq('user_id', user.id)
+          .select()
+          .single();
+        if (error) throw error;
+        data = updated;
+      } else {
+        const { data: inserted, error } = await supabase
+          .from('profiles')
+          .insert(row)
+          .select()
+          .single();
+        if (error) throw error;
+        data = inserted;
+      }
+
       if (!data) return null;
 
       return {
@@ -78,6 +112,10 @@ export class ProfileService {
         pageTitle: data.page_title,
         bioDescription: data.bio_description || '',
         avatarUrl: data.avatar_url || '',
+        coverUrl: data.cover_url || undefined,
+        category: data.category || undefined,
+        location: data.location || undefined,
+        customLink: data.custom_link || undefined,
       };
     } catch (error) {
       console.error('Error upserting profile:', error);
@@ -89,7 +127,7 @@ export class ProfileService {
    * Atualiza o plano do usuário para PRO
    */
   static async upgradeToPro(): Promise<boolean> {
-    if (!isSupabaseConfigured()) return false;
+    if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -112,7 +150,7 @@ export class ProfileService {
    * Obtém todos os perfis (para admins)
    */
   static async getAllProfiles(): Promise<UserProfile[]> {
-    if (!isSupabaseConfigured()) return [];
+    if (!isSupabaseConfigured() || !supabase) return [];
 
     try {
       const { data, error } = await supabase
@@ -131,6 +169,7 @@ export class ProfileService {
         pageTitle: profile.page_title,
         bioDescription: profile.bio_description || '',
         avatarUrl: profile.avatar_url || '',
+        coverUrl: profile.cover_url || undefined,
       }));
     } catch (error) {
       console.error('Error fetching all profiles:', error);

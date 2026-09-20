@@ -166,6 +166,7 @@ export class AuthService {
         pageTitle: data.page_title,
         bioDescription: data.bio_description || '',
         avatarUrl: data.avatar_url || '',
+        coverUrl: data.cover_url || undefined,
       };
     } catch (error) {
       console.error('Error getting user profile:', error);
@@ -194,6 +195,7 @@ export class AuthService {
           page_title: `${metadata.name || 'Minha Página'} • Bio Oficial`,
           bio_description: metadata.bioDescription,
           avatar_url: metadata.avatarUrl,
+          cover_url: metadata.coverUrl,
         })
         .select()
         .single();
@@ -210,6 +212,7 @@ export class AuthService {
         pageTitle: data.page_title,
         bioDescription: data.bio_description || '',
         avatarUrl: data.avatar_url || '',
+        coverUrl: data.cover_url || undefined,
       };
     } catch (error) {
       console.error('Error creating profile:', error);

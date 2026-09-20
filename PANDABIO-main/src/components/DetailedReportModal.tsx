@@ -2,6 +2,7 @@ import React from 'react';
 import { X, TrendingUp, CheckCircle2 } from 'lucide-react';
 import { PANDABIO_ASSETS } from '../constants/assets';
 import { BioLink, LeadItem } from '../types';
+import { Modal } from './Modal';
 
 interface DetailedReportModalProps {
   isOpen: boolean;
@@ -20,10 +21,10 @@ export const DetailedReportModal: React.FC<DetailedReportModalProps> = ({
 
   const totalClicks = links.reduce((sum, l) => sum + (l.clicks || 0), 0);
   const totalLeads = leads.length;
+  const activeLinks = links.filter((l) => l.active).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-black/10 flex flex-col max-h-[90vh]">
+    <Modal isOpen={isOpen} onClose={onClose} label="Relatório de Desempenho PandaBio" size="lg">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-[#faf8ff]">
           <div className="flex items-center gap-3">
@@ -78,7 +79,7 @@ export const DetailedReportModal: React.FC<DetailedReportModalProps> = ({
                 Links Ativos
               </span>
               <span className="text-xl font-bold text-[#131b2e] mt-1 block">
-                {links.filter((l) => l.active).length}
+                {activeLinks}
               </span>
               <span className="text-[10px] text-[#464555] font-semibold">
                 de {links.length} links
@@ -111,10 +112,10 @@ export const DetailedReportModal: React.FC<DetailedReportModalProps> = ({
                 Dispositivo Principal
               </span>
               <span className="text-xl font-bold text-[#131b2e] mt-1 block">
-                Mobile
+                —
               </span>
-              <span className="text-[10px] text-emerald-600 font-semibold">
-                100% responsivo
+              <span className="text-[10px] text-[#464555] font-semibold">
+                Sem dados de dispositivo
               </span>
             </div>
           </div>
@@ -150,7 +151,6 @@ export const DetailedReportModal: React.FC<DetailedReportModalProps> = ({
             Fechar Relatório
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 };

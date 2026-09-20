@@ -15,13 +15,37 @@ export class PageService {
     }
 
     try {
-      // Salvar os dados como JSON na tabela profiles usando id (profile_id)
+      // Persistir as colunas do perfil (evita dados duplicados entre perfil e page_data JSONB)
+      const profile = pageData.profile as any;
+      const profileUpdates: Record<string, unknown> = {
+        page_data: pageData,
+        updated_at: new Date().toISOString(),
+      };
+      if (profile && typeof profile === 'object') {
+        if (profile.name) profileUpdates.name = profile.name;
+        if (profile.username) profileUpdates.username = profile.username;
+        if (profile.avatarUrl) profileUpdates.avatar_url = profile.avatarUrl;
+        if (profile.coverUrl !== undefined) profileUpdates.cover_url = profile.coverUrl || null;
+        if (profile.bioDescription !== undefined) profileUpdates.bio_description = profile.bioDescription;
+        if (profile.category !== undefined) profileUpdates.category = profile.category || null;
+        if (profile.location !== undefined) profileUpdates.location = profile.location || null;
+        if (profile.customLink !== undefined) profileUpdates.custom_link = profile.customLink || null;
+        if (profile.pageTitle) profileUpdates.page_title = profile.pageTitle;
+        // Mantém o bio_url consistente com o username atual quando usa o formato
+        // default (pandabio.com/<slug>); bioUrls personalizados são preservados.
+        if (profile.username) {
+          const storedBio = profile.bioUrl || '';
+          if (storedBio.startsWith('pandabio.com/')) {
+            profileUpdates.bio_url = `pandabio.com/${profile.username}`;
+          } else if (storedBio) {
+            profileUpdates.bio_url = storedBio;
+          }
+        }
+      }
+
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({
-          page_data: pageData,
-          updated_at: new Date().toISOString(),
-        })
+        .update(profileUpdates)
         .eq('id', userId); // Mudado de user_id para id (profile_id)
 
       if (updateError) {
@@ -132,7 +156,7 @@ export class PageService {
       const { error } = await supabase
         .from('profiles')
         .update({ published: false, updated_at: new Date().toISOString() })
-        .eq('user_id', userId);
+        .eq('id', userId);
 
       if (error) throw error;
 

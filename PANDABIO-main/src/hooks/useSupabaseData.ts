@@ -3,8 +3,8 @@ import { LinkService } from '../supabase/services/linkService';
 import { ProductService } from '../supabase/services/productService';
 import { LeadService } from '../supabase/services/leadService';
 import { ActivityService } from '../supabase/services/activityService';
-import { BioLink, ProductItem, LeadItem, ActivityItem } from '../types';
-import { KpiData, FunnelData } from '../components/KpiMetrics';
+import { BioLink, ProductItem, LeadItem, ActivityItem, FunnelData } from '../types';
+import { KpiData } from '../components/KpiMetrics';
 import { isSupabaseConfigured } from '../supabase/client';
 
 /**
@@ -182,6 +182,7 @@ export const useSupabaseData = () => {
       ctr: estimatedVisits > 0 ? (totalClicks / estimatedVisits) * 100 : 0,
       leadRate: totalClicks > 0 ? (totalLeads / totalClicks) * 100 : 0,
       conversionRate: totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0,
+      leadToConversionRate: totalLeads > 0 ? (totalConversions / totalLeads) * 100 : 0,
     };
   })();
 

@@ -9,7 +9,7 @@ export class ProductService {
    * Obtém todos os produtos do usuário atual
    */
   static async getProducts(): Promise<ProductItem[]> {
-    if (!isSupabaseConfigured()) return [];
+    if (!isSupabaseConfigured() || !supabase) return [];
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -42,7 +42,7 @@ export class ProductService {
    * Cria um novo produto
    */
   static async createProduct(product: Omit<ProductItem, 'id'>): Promise<ProductItem | null> {
-    if (!isSupabaseConfigured()) return null;
+    if (!isSupabaseConfigured() || !supabase) return null;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -82,7 +82,7 @@ export class ProductService {
    * Atualiza um produto existente
    */
   static async updateProduct(id: string, updates: Partial<ProductItem>): Promise<boolean> {
-    if (!isSupabaseConfigured()) return false;
+    if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
       const { error } = await supabase
@@ -107,7 +107,7 @@ export class ProductService {
    * Deleta um produto
    */
   static async deleteProduct(id: string): Promise<boolean> {
-    if (!isSupabaseConfigured()) return false;
+    if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
       const { error } = await supabase
@@ -127,7 +127,7 @@ export class ProductService {
    * Registra uma venda de produto
    */
   static async registerSale(productId: string): Promise<boolean> {
-    if (!isSupabaseConfigured()) return false;
+    if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
       // Buscar valor atual e incrementar

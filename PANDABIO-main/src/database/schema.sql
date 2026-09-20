@@ -1,4 +1,4 @@
--- 🛡️ SCHEMA SQL SEGURO - CORREÇÃO DE VULNERABILIDADES
+--  SCHEMA SQL SEGURO - CORREÇÃO DE VULNERABILIDADES
 -- Versão: 1.0 - Segurança Fortificada
 -- Data: 19/09/2026
 
@@ -6,7 +6,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ============================================
--- 🔐 TABELAS COM RLS HABILITADO
+--  TABELAS COM RLS HABILITADO
 -- ============================================
 
 -- Tabela de perfis de usuário
@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS analytics (
 );
 
 -- ============================================
--- 📊 ÍNDICES PARA PERFORMANCE
+--  ÍNDICES PARA PERFORMANCE
 -- ============================================
 
 -- Índices para perfis
@@ -139,7 +139,7 @@ CREATE INDEX IF NOT EXISTS idx_analytics_event_type ON analytics(event_type);
 CREATE INDEX IF NOT EXISTS idx_analytics_created_at ON analytics(created_at DESC);
 
 -- ============================================
--- 🔧 FUNÇÕES SEGUROS
+--  FUNÇÕES SEGUROS
 -- ============================================
 
 -- Função segura para criar perfil automaticamente após signup
@@ -166,7 +166,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ============================================
--- 🎯 TRIGGERS
+--  TRIGGERS
 -- ============================================
 
 -- Trigger para criar perfil automaticamente
@@ -176,7 +176,7 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ============================================
--- 🛡️ RLS (ROW LEVEL SECURITY) - POLÍTICAS ESTRICTAS
+--  RLS (ROW LEVEL SECURITY) - POLÍTICAS ESTRICTAS
 -- ============================================
 
 -- ============================================
@@ -202,10 +202,31 @@ CREATE POLICY "Users can update own profile" ON profiles
 CREATE POLICY "Users can insert own profile" ON profiles
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
--- Política para permitir leitura pública de username (para busca de perfis)
+-- Política de leitura pública RESTRITA: apenas perfis publicados, somente os
+-- campos necessários são expostos via a view public_profile_pages
+-- (ver schema_security_fix.sql). Nada de SELECT livre na tabela profiles.
 DROP POLICY IF EXISTS "Public can view usernames" ON profiles;
-CREATE POLICY "Public can view usernames" ON profiles
-  FOR SELECT USING (true);
+
+-- View pública enxuta (criada também em schema_security_fix.sql)
+CREATE OR REPLACE VIEW public_profile_pages AS
+SELECT
+  id,
+  username,
+  name,
+  bio_url,
+  page_title,
+  bio_description,
+  avatar_url,
+  category,
+  location,
+  custom_link,
+  page_data,
+  updated_at
+FROM profiles
+WHERE published = true
+  AND page_data IS NOT NULL;
+
+GRANT SELECT ON public_profile_pages TO anon, authenticated;
 
 -- ============================================
 -- LINKS - Segurança Baseada em Profile
@@ -342,7 +363,7 @@ CREATE POLICY "Users can insert own analytics" ON analytics
   );
 
 -- ============================================
--- ✅ VALIDAÇÃO FINAL DE SEGURANÇA
+--  VALIDAÇÃO FINAL DE SEGURANÇA
 -- ============================================
 
 -- Verificar se RLS está habilitado em todas as tabelas
@@ -364,5 +385,5 @@ BEGIN
     END IF;
   END LOOP;
   
-  RAISE NOTICE '✅ Validação de segurança concluída: RLS habilitado em todas as tabelas';
+  RAISE NOTICE ' Validação de segurança concluída: RLS habilitado em todas as tabelas';
 END $$;

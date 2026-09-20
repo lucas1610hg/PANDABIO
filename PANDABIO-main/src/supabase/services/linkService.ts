@@ -9,7 +9,7 @@ export class LinkService {
    * Obtém todos os links do usuário atual
    */
   static async getLinks(): Promise<BioLink[]> {
-    if (!isSupabaseConfigured()) return [];
+    if (!isSupabaseConfigured() || !supabase) return [];
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -44,7 +44,7 @@ export class LinkService {
    * Cria um novo link
    */
   static async createLink(link: Omit<BioLink, 'id'>): Promise<BioLink | null> {
-    if (!isSupabaseConfigured()) return null;
+    if (!isSupabaseConfigured() || !supabase) return null;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -99,7 +99,7 @@ export class LinkService {
    * Atualiza um link existente
    */
   static async updateLink(id: string, updates: Partial<BioLink>): Promise<boolean> {
-    if (!isSupabaseConfigured()) return false;
+    if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
       const { error } = await supabase
@@ -125,7 +125,7 @@ export class LinkService {
    * Alterna o status ativo de um link
    */
   static async toggleLink(id: string): Promise<boolean> {
-    if (!isSupabaseConfigured()) return false;
+    if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
       const { error } = await supabase
@@ -145,7 +145,7 @@ export class LinkService {
    * Reordena links
    */
   static async reorderLinks(linkIds: string[]): Promise<boolean> {
-    if (!isSupabaseConfigured()) return false;
+    if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
       const updates = linkIds.map((id, index) => ({
@@ -169,7 +169,7 @@ export class LinkService {
    * Deleta um link
    */
   static async deleteLink(id: string): Promise<boolean> {
-    if (!isSupabaseConfigured()) return false;
+    if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
       const { error } = await supabase
@@ -189,7 +189,7 @@ export class LinkService {
    * Registra um clique em um link
    */
   static async registerClick(linkId: string): Promise<boolean> {
-    if (!isSupabaseConfigured()) return false;
+    if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
       // Incrementar contador de cliques

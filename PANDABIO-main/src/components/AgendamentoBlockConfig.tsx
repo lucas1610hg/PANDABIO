@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Clock, CreditCard, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Calendar, Clock, CreditCard, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
 import { PageBlock } from '../types';
 
 interface AgendamentoBlockConfigProps {
@@ -20,7 +20,7 @@ export const AgendamentoBlockConfig: React.FC<AgendamentoBlockConfigProps> = ({ 
           onClick={onDelete}
           className="p-2 hover:bg-red-100 text-red-500 rounded-lg transition-colors"
         >
-          🗑️
+          <Trash2 className="w-5 h-5" />
         </button>
       </div>
 

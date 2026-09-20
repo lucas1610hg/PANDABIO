@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Link as LinkIcon, FileText, Image as ImageIcon, Video, Calendar, Package, Smartphone, Mail, Music, MapPin } from 'lucide-react';
 import { BlockType } from '../types';
+import { Modal } from './Modal';
 
 interface AddBlockModalProps {
   isOpen: boolean;
@@ -17,7 +18,7 @@ export const AddBlockModal: React.FC<AddBlockModalProps> = ({ isOpen, onClose, o
     { type: 'image' as BlockType, icon: ImageIcon, label: 'Imagem', description: 'Adicione imagens e fotos' },
     { type: 'video' as BlockType, icon: Video, label: 'Vídeo', description: 'Adicione vídeos do YouTube' },
     { type: 'agendamento' as BlockType, icon: Calendar, label: 'Agendamento', description: 'Permita agendamentos' },
-    { type: 'produto' as BlockType, icon: Package, label: 'Produto', description: 'Venda seus produtos' },
+    { type: 'produto' as BlockType, icon: Package, label: 'Produto', description: 'Catálogo com vários produtos e links de afiliados' },
     { type: 'social' as BlockType, icon: Smartphone, label: 'Redes sociais', description: 'Suas redes sociais' },
     { type: 'contact' as BlockType, icon: Mail, label: 'Contato', description: 'Formulário de contato' },
     { type: 'music' as BlockType, icon: Music, label: 'Música', description: 'Adicione músicas' },
@@ -35,14 +36,14 @@ export const AddBlockModal: React.FC<AddBlockModalProps> = ({ isOpen, onClose, o
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+    <Modal isOpen={isOpen} onClose={onClose} label="Adicionar bloco" size="lg">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-bold text-[#131b2e]">Adicionar Bloco</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            aria-label="Fechar"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
           >
             <X className="w-5 h-5 text-gray-500" />
           </button>
@@ -50,14 +51,17 @@ export const AddBlockModal: React.FC<AddBlockModalProps> = ({ isOpen, onClose, o
 
         {/* Block Types Grid */}
         <div className="p-6 overflow-y-auto max-h-[60vh]">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4" role="radiogroup" aria-label="Tipos de bloco">
             {blockTypes.map((block) => {
               const Icon = block.icon;
               return (
                 <button
                   key={block.type}
+                  type="button"
+                  role="radio"
+                  aria-checked={selectedType === block.type}
                   onClick={() => setSelectedType(block.type)}
-                  className={`p-4 rounded-xl border-2 transition-all text-left ${
+                  className={`p-4 rounded-xl border-2 transition-all text-left cursor-pointer ${
                     selectedType === block.type
                       ? 'border-[#FF5E00] bg-[#FF5E00]/5'
                       : 'border-gray-200 hover:border-[#FF5E00] hover:bg-[#FF5E00]/5'
@@ -80,19 +84,18 @@ export const AddBlockModal: React.FC<AddBlockModalProps> = ({ isOpen, onClose, o
         <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
           <button
             onClick={onClose}
-            className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 font-medium transition-colors"
+            className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 font-medium transition-colors cursor-pointer"
           >
             Cancelar
           </button>
           <button
             onClick={handleAdd}
             disabled={!selectedType}
-            className="px-6 py-2 rounded-lg bg-[#FF5E00] text-white hover:bg-[#E55300] disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+            className="px-6 py-2 rounded-lg bg-[#FF5E00] text-white hover:bg-[#E55300] disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors cursor-pointer"
           >
             Adicionar
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 };

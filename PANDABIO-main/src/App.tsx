@@ -17,7 +17,7 @@ import { CreateItemModal } from './components/CreateItemModal';
 import { DetailedReportModal } from './components/DetailedReportModal';
 import { UpgradeModal } from './components/UpgradeModal';
 import { SectionViews } from './components/SectionViews';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Waves } from 'lucide-react';
 import { usePandaBioStore } from './store/usePandaBioStore';
 import { usePandaBioData } from './hooks/usePandaBioData';
 import { AuthService } from './supabase/services/authService';
@@ -37,7 +37,7 @@ export default function App() {
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   // Store hooks
-  const { authenticate, logout, switchUser, toggleLink, addLink, addProduct, updateUserProfile, upgradeToPro, getAllAccountsList } = usePandaBioStore();
+  const { authenticate, logout, switchUser, toggleLink, addLink, reorderLinks, addProduct, updateUserProfile, upgradeToPro, getAllAccountsList } = usePandaBioStore();
   const { user, links, products, leads, activities, realKpiData, funnelData } = usePandaBioData();
   const allUsersList = getAllAccountsList();
 
@@ -99,6 +99,10 @@ export default function App() {
 
   const handleAddLink = (newLink: BioLink) => {
     addLink(newLink);
+  };
+
+  const handleReorderLinks = (reordered: BioLink[]) => {
+    reorderLinks(reordered);
   };
 
   const handleAddProduct = (newProd: ProductItem) => {
@@ -183,9 +187,7 @@ export default function App() {
                         <h1 className="text-2xl sm:text-3xl font-extrabold text-[#131b2e] tracking-tight">
                           Olá, {user.name.split(' ')[0]}!
                         </h1>
-                        <span aria-hidden="true" className="text-2xl select-none">
-                          👋
-                        </span>
+                        <Waves aria-hidden="true" className="w-7 h-7 text-[#FF7A00] select-none" />
                       </div>
                       <p className="text-xs sm:text-sm text-[#464555] mt-0.5">
                         Gerencie sua página de bio e monitore suas conversões em tempo real.
@@ -229,6 +231,7 @@ export default function App() {
                       links={filteredLinks}
                       onToggleLink={handleToggleLink}
                       onAddLink={() => setIsCreateItemOpen(true)}
+                      onReorder={handleReorderLinks}
                     />
                     <TrafficSourcesCard links={links} />
                     <RecentActivityCard

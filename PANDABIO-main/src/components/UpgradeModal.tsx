@@ -1,6 +1,7 @@
 import React from 'react';
-import { X, Check, Zap, Sparkles } from 'lucide-react';
+import { X, Check, Sparkles } from 'lucide-react';
 import { PANDABIO_ASSETS } from '../constants/assets';
+import { Modal } from './Modal';
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -25,8 +26,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-y-auto border border-black/10 flex flex-col max-h-[90vh]">
+    <Modal isOpen={isOpen} onClose={onClose} label="Ativar PandaBio PRO">
         {/* Top Header with Dark Panda Gradient */}
         <div
           className="p-6 text-white relative overflow-hidden"
@@ -48,6 +48,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
             </div>
             <button
               onClick={onClose}
+              aria-label="Fechar modal de upgrade"
               className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
@@ -105,7 +106,6 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
             <span>Ativar PandaBio PRO Agora</span>
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 };

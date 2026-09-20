@@ -16,15 +16,17 @@ export const useSupabaseAuth = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isSupabaseConfigured()) {
+    if (!isSupabaseConfigured() || !supabase) {
       setLoading(false);
       return;
     }
 
+    const client = supabase;
+
     // Obter sessão atual
     const getSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await client.auth.getSession();
         setUser(session?.user ?? null);
         
         if (session?.user) {
@@ -43,7 +45,7 @@ export const useSupabaseAuth = () => {
     getSession();
 
     // Escutar mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = client.auth.onAuthStateChange(
       async (_event, session) => {
         setUser(session?.user ?? null);
         

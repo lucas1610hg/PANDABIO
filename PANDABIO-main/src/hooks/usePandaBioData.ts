@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { usePandaBioStore } from '../store/usePandaBioStore';
-import { KpiData, FunnelData } from '../components/KpiMetrics';
-import { BioLink, ProductItem } from '../types';
+import { KpiData } from '../components/KpiMetrics';
+import { BioLink, ProductItem, FunnelData } from '../types';
 
 /**
  * Hook customizado para extrair lógica de cálculo de dados do PandaBio
@@ -59,6 +59,7 @@ export const usePandaBioData = () => {
       ctr: estimatedVisits > 0 ? (totalClicks / estimatedVisits) * 100 : 0,
       leadRate: totalClicks > 0 ? (totalLeads / totalClicks) * 100 : 0,
       conversionRate: totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0,
+      leadToConversionRate: totalLeads > 0 ? (totalConversions / totalLeads) * 100 : 0,
     };
   }, [links, leads, products]);
 

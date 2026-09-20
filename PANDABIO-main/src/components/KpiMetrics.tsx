@@ -19,16 +19,6 @@ export interface KpiData {
   finalConversionRate: number;
 }
 
-export interface FunnelData {
-  visits: number;
-  clicks: number;
-  leads: number;
-  conversions: number;
-  ctr: number;
-  leadRate: number;
-  conversionRate: number;
-}
-
 interface KpiMetricsProps {
   data?: KpiData;
 }

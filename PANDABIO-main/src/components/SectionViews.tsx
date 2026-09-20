@@ -17,7 +17,13 @@ interface SectionViewsProps {
 export const SectionViews: React.FC<SectionViewsProps> = ({ section, user, onUpdateUser }) => {
   // Renderizar PageEditor para a seção 'minha-pagina'
   if (section === 'minha-pagina' && user) {
-    return <PageEditor user={user} onUpdateUser={onUpdateUser || (() => {})} />;
+    return (
+      <PageEditor
+        key={user.email || user.username || user.bioUrl || 'anonymous'}
+        user={user}
+        onUpdateUser={onUpdateUser || (() => {})}
+      />
+    );
   }
 
   // Outras seções mantidas vazias por enquanto

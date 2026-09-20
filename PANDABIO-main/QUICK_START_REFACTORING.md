@@ -1,6 +1,6 @@
 # Quick Start - Refatoração Prioritária PandaBio
 
-## 🚀 Melhorias Imediatas (Quick Wins)
+##  Melhorias Imediatas (Quick Wins)
 
 ### 1. Adicionar React.memo nos Componentes Principais
 **Arquivo**: `src/components/KpiMetrics.tsx`
@@ -106,14 +106,14 @@ export const safeStorage = {
 };
 ```
 
-## 📦 Instalação de Dependências Necessárias
+##  Instalação de Dependências Necessárias
 
 ```bash
 npm install zustand zod dompurify react-hot-toast
 npm install -D @types/dompurify
 ```
 
-## 🎯 Implementação em 3 Fases
+##  Implementação em 3 Fases
 
 ### Fase 1: Setup (1 dia)
 1. Instalar dependências
@@ -133,7 +133,7 @@ npm install -D @types/dompurify
 3. Refatorar App.tsx em componentes menores
 4. Testar todas as funcionalidades
 
-## 🔍 Como Validar as Melhorias
+##  Como Validar as Melhorias
 
 ### Performance
 ```bash
@@ -154,21 +154,21 @@ npm run lint
 npm run type-check
 ```
 
-## 📊 Métricas Esperadas
+##  Métricas Esperadas
 
 - **Bundle Size**: -15% após React.memo
 - **Código Duplicado**: -30% após utilitários
 - **UX**: +20% satisfação com toasts
 - **Segurança**: +40% com validação
 
-## ⚠️ Notas Importantes
+##  Notas Importantes
 
 1. **Backup**: Sempre faça backup antes de refatorações grandes
 2. **Testes**: Teste cada mudança individualmente
 3. **Commits**: Faça commits pequenos e frequentes
 4. **Documentação**: Atualize conforme avança
 
-## 🆘 Suporte
+##  Suporte
 
 Para dúvidas durante a implementação:
 - Consulte o arquivo completo `ANALISE_E_MELHORIAS.md`

@@ -1,4 +1,4 @@
-import React, { useState, memo } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import {
   X,
   Copy,
@@ -10,9 +10,11 @@ import {
   MessageCircle,
   Layers,
   ShoppingBag,
+  PawPrint,
 } from 'lucide-react';
 import { BioLink, UserProfile } from '../types';
-import { getLinkIconBg } from '../utils/iconMapper';
+import { getPageUrl } from '../utils/pageUrl';
+import { Modal } from './Modal';
 
 interface PhonePreviewModalProps {
   isOpen: boolean;
@@ -28,20 +30,31 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(({
   links,
 }) => {
   const [copied, setCopied] = useState(false);
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimer.current) clearTimeout(copyTimer.current);
+    };
+  }, []);
 
   if (!isOpen) return null;
 
   const handleCopyLink = () => {
-    navigator.clipboard?.writeText?.(`https://${user.bioUrl}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    const url = getPageUrl(user.bioUrl, user.username);
+    navigator.clipboard?.writeText(url)
+      .then(() => {
+        setCopied(true);
+        if (copyTimer.current) clearTimeout(copyTimer.current);
+        copyTimer.current = setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => setCopied(false));
   };
 
   const activeLinks = links.filter((l) => l.active);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-black/10 flex flex-col max-h-[90vh]">
+    <Modal isOpen={isOpen} onClose={onClose} label={`Prévia da página: ${user.bioUrl}`} size="sm">
         {/* Header bar */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 bg-[#faf8ff]">
           <div className="flex items-center gap-2">
@@ -61,6 +74,7 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(({
             </button>
             <button
               onClick={onClose}
+              aria-label="Fechar prévia"
               className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
@@ -76,29 +90,81 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(({
               <div className="w-8 h-1 bg-gray-600 rounded-full" />
             </div>
 
-            {/* Profile Avatar */}
-            <div className="relative w-20 h-20 rounded-full p-1 bg-gradient-to-tr from-[#FF7A00] to-[#FF5500] shadow-md mb-2">
-              <img
-                src={user.avatarUrl}
-                alt={user.name}
-                className="w-full h-full object-cover rounded-full bg-white"
-              />
-              <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-[#10B981] border-2 border-white" />
-            </div>
-
-            {/* Name & Bio Title */}
-            <h3 className="font-bold text-base text-[#131b2e] tracking-tight text-center">
-              {user.pageTitle || user.name}
-            </h3>
-            <span className="text-xs text-[#FF7A00] font-semibold">
-              @{user.username}
-            </span>
-
-            {/* Bio Description */}
-            {user.bioDescription && (
-              <p className="text-[11px] text-gray-600 text-center mt-1.5 px-2 leading-relaxed">
-                {user.bioDescription}
-              </p>
+            {user.coverUrl ? (
+              <div className="relative w-full -mt-1 mb-3 overflow-hidden rounded-2xl flex flex-col items-center text-center px-3 pt-8 pb-5 min-h-[190px]">
+                {/* Capa como fundo */}
+                <div className="absolute inset-0">
+                  <img src={user.coverUrl} alt="Capa" className="w-full h-full object-cover" />
+                  <div
+                    className="absolute inset-0"
+                    style={{ background: 'linear-gradient(to bottom, rgba(10,12,18,0.24) 0%, rgba(10,12,18,0.55) 100%)' }}
+                  />
+                  <div
+                    className="pointer-events-none absolute inset-0"
+                    style={{
+                      background: 'linear-gradient(to bottom, transparent, #ffffff 130%)',
+                      WebkitMaskImage: 'linear-gradient(to bottom, transparent, #000 80%)',
+                      maskImage: 'linear-gradient(to bottom, transparent, #000 80%)',
+                    }}
+                  />
+                </div>
+                {/* Conteúdo por cima da capa */}
+                <div className="relative z-10 flex flex-col items-center">
+                  <div className="relative w-20 h-20 rounded-full p-1 bg-gradient-to-tr from-[#FF7A00] to-[#FF5500] shadow-lg ring-2 ring-white/30 mb-2">
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="w-full h-full object-cover rounded-full bg-white"
+                    />
+                    <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-[#10B981] border-2 border-white" />
+                  </div>
+                  <h3
+                    className="font-bold text-base text-white tracking-tight"
+                    style={{ textShadow: '0 1px 8px rgba(0,0,0,0.5)' }}
+                  >
+                    {user.pageTitle || user.name}
+                  </h3>
+                  <span
+                    className="text-xs text-[#FFC99B] font-semibold"
+                    style={{ textShadow: '0 1px 8px rgba(0,0,0,0.5)' }}
+                  >
+                    @{user.username}
+                  </span>
+                  {user.bioDescription && (
+                    <p
+                      className="text-[11px] text-white/90 text-center mt-1.5 px-2 leading-relaxed"
+                      style={{ textShadow: '0 1px 8px rgba(0,0,0,0.45)' }}
+                    >
+                      {user.bioDescription}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Profile Avatar */}
+                <div className="relative w-20 h-20 rounded-full p-1 bg-gradient-to-tr from-[#FF7A00] to-[#FF5500] shadow-md mb-2">
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.name}
+                    className="w-full h-full object-cover rounded-full bg-white"
+                  />
+                  <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-[#10B981] border-2 border-white" />
+                </div>
+                {/* Name & Bio Title */}
+                <h3 className="font-bold text-base text-[#131b2e] tracking-tight text-center">
+                  {user.pageTitle || user.name}
+                </h3>
+                <span className="text-xs text-[#FF7A00] font-semibold">
+                  @{user.username}
+                </span>
+                {/* Bio Description */}
+                {user.bioDescription && (
+                  <p className="text-[11px] text-gray-600 text-center mt-1.5 px-2 leading-relaxed">
+                    {user.bioDescription}
+                  </p>
+                )}
+              </>
             )}
 
             {/* Social Share / Action */}
@@ -154,15 +220,25 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(({
             {/* Footer Logo */}
             <div className="mt-auto pt-5 pb-1 flex items-center gap-1 opacity-70">
               <span className="text-[10px] font-medium text-gray-500">Feito com</span>
-              <span className="text-[10px] font-bold text-[#FF7A00]">PandaBio 🐼</span>
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#FF7A00]">
+                <PawPrint className="w-3 h-3" />
+                PandaBio
+              </span>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }, (prevProps, nextProps) => {
-  return prevProps.isOpen === nextProps.isOpen &&
-         prevProps.user.bioUrl === nextProps.user.bioUrl &&
-         prevProps.links.length === nextProps.links.length;
+  const linkKey = (links: BioLink[]) => links.map((l) => `${l.id}|${l.active}|${l.title}|${l.url}|${l.type}`).join('~');
+  const userKey = (u: UserProfile) =>
+    [
+      u.bioUrl, u.username, u.name, u.pageTitle, u.bioDescription, u.avatarUrl, u.coverUrl,
+      u.category, u.location, u.customLink,
+    ].join('|');
+  return (
+    prevProps.isOpen === nextProps.isOpen &&
+    userKey(prevProps.user) === userKey(nextProps.user) &&
+    linkKey(prevProps.links) === linkKey(nextProps.links)
+  );
 });

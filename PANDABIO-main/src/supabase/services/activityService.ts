@@ -9,7 +9,7 @@ export class ActivityService {
    * Obtém todas as atividades do usuário atual
    */
   static async getActivities(limit: number = 20): Promise<ActivityItem[]> {
-    if (!isSupabaseConfigured()) return [];
+    if (!isSupabaseConfigured() || !supabase) return [];
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -43,7 +43,7 @@ export class ActivityService {
    * Cria uma nova atividade
    */
   static async createActivity(activity: Omit<ActivityItem, 'id'>): Promise<boolean> {
-    if (!isSupabaseConfigured()) return false;
+    if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -111,7 +111,7 @@ export class ActivityService {
    * Limpa atividades antigas (manutenção)
    */
   static async cleanupOldActivities(daysToKeep: number = 30): Promise<boolean> {
-    if (!isSupabaseConfigured()) return false;
+    if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();

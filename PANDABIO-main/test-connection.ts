@@ -20,11 +20,11 @@ async function testConnection() {
     
     if (error) {
       console.error('Erro na conexão:', error.message);
-      console.log('⚠️  A tabela users não existe. Você precisa executar o schema.sql no painel do Supabase.');
+      console.log('  A tabela users não existe. Você precisa executar o schema.sql no painel do Supabase.');
       process.exit(1);
     }
     
-    console.log('✅ Conexão com Supabase estabelecida com sucesso!');
+    console.log(' Conexão com Supabase estabelecida com sucesso!');
     console.log('Dados retornados:', data);
     
     // Testar se a tabela users existe
@@ -34,9 +34,9 @@ async function testConnection() {
       .limit(1);
     
     if (tableError) {
-      console.log('⚠️  Tabela users pode não existir ainda:', tableError.message);
+      console.log('  Tabela users pode não existir ainda:', tableError.message);
     } else {
-      console.log('✅ Tabela users acessível');
+      console.log(' Tabela users acessível');
     }
     
   } catch (error) {

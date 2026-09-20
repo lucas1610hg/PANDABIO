@@ -59,13 +59,13 @@ npm run dev
 
 ## Funcionalidades habilitadas após configuração:
 
-- ✅ Cadastro de usuários com email e senha
-- ✅ Login com email e senha
-- ✅ Login social (Google, Facebook) - se configurado
-- ✅ Criação automática de perfil ao cadastrar
-- ✅ Recuperação de senha
-- ✅ Sessão persistente
-- ✅ Refresh automático de token
+-  Cadastro de usuários com email e senha
+-  Login com email e senha
+-  Login social (Google, Facebook) - se configurado
+-  Criação automática de perfil ao cadastrar
+-  Recuperação de senha
+-  Sessão persistente
+-  Refresh automático de token
 
 ## Teste a autenticação:
 

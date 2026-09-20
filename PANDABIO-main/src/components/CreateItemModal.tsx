@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { X, Link as LinkIcon, Package } from 'lucide-react';
 import { BioLink, ProductItem } from '../types';
 import { linkSchema, productSchema, LinkFormData, ProductFormData } from '../schemas/linkSchema';
+import { Modal } from './Modal';
 import toast from 'react-hot-toast';
 
 interface CreateItemModalProps {
@@ -27,6 +28,9 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
   // Product form state
   const [prodName, setProdName] = useState('');
   const [prodPrice, setProdPrice] = useState('');
+
+  const linkTitleRef = useRef<HTMLInputElement>(null);
+  const prodNameRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
 
@@ -102,8 +106,8 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-y-auto border border-black/10 flex flex-col p-5 sm:p-6 max-h-[90vh]">
+    <Modal isOpen={isOpen} onClose={onClose} label="Criar novo item" size="sm" initialFocusRef={activeTab === 'link' ? linkTitleRef : prodNameRef}>
+      <div className="flex flex-col overflow-y-auto p-5 sm:p-6">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
@@ -118,6 +122,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
           </div>
           <button
             onClick={onClose}
+            aria-label="Fechar"
             className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -125,9 +130,11 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
         </div>
 
         {/* Tab switch */}
-        <div className="flex bg-[#f2f3ff] p-1 rounded-xl my-4 text-xs font-semibold">
+        <div role="tablist" aria-label="Tipo de item" className="flex bg-[#f2f3ff] p-1 rounded-xl my-4 text-xs font-semibold">
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'link'}
             onClick={() => setActiveTab('link')}
             className={`flex-1 py-2 rounded-lg transition-all cursor-pointer ${
               activeTab === 'link'
@@ -139,6 +146,8 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
           </button>
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'product'}
             onClick={() => setActiveTab('product')}
             className={`flex-1 py-2 rounded-lg transition-all cursor-pointer ${
               activeTab === 'product'
@@ -160,6 +169,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
               <input
                 type="text"
                 required
+                ref={linkTitleRef}
                 value={linkTitle}
                 onChange={(e) => setLinkTitle(e.target.value)}
                 placeholder="Ex: Agende no WhatsApp, Meu Canal, E-book..."
@@ -195,6 +205,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
                   <button
                     key={cat.id}
                     type="button"
+                    aria-pressed={linkType === cat.id}
                     onClick={() => setLinkType(cat.id as any)}
                     className={`py-2 px-2 text-center rounded-xl text-xs font-medium border transition-colors cursor-pointer ${
                       linkType === cat.id
@@ -225,6 +236,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
               <input
                 type="text"
                 required
+                ref={prodNameRef}
                 value={prodName}
                 onChange={(e) => setProdName(e.target.value)}
                 placeholder="Ex: Consultoria VIP, E-book..."
@@ -256,6 +268,6 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
           </form>
         )}
       </div>
-    </div>
+    </Modal>
   );
 };

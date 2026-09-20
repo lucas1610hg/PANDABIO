@@ -1,15 +1,6 @@
 import React from 'react';
 import { Filter, Eye, Link as LinkIcon, Users, Target } from 'lucide-react';
-
-interface FunnelData {
-  visits: number;
-  clicks: number;
-  leads: number;
-  conversions: number;
-  ctr: number;
-  leadRate: number;
-  conversionRate: number;
-}
+import { FunnelData } from '../types';
 
 interface ConversionFunnelProps {
   data?: FunnelData;
@@ -24,6 +15,7 @@ export const ConversionFunnel: React.FC<ConversionFunnelProps> = ({
     ctr: 0,
     leadRate: 0,
     conversionRate: 0,
+    leadToConversionRate: 0,
   },
 }) => {
   return (
@@ -64,7 +56,7 @@ export const ConversionFunnel: React.FC<ConversionFunnelProps> = ({
             </div>
           </div>
           <span className="text-[11px] text-[#464555] font-semibold shrink-0">
-            {data.visits > 0 ? `${data.ctr.toFixed(1)}%` : '0%'}
+            {data.visits > 0 ? `${data.ctr.toFixed(1).replace('.', ',')}%` : '0%'}
           </span>
         </div>
 
@@ -84,7 +76,7 @@ export const ConversionFunnel: React.FC<ConversionFunnelProps> = ({
             </div>
           </div>
           <span className="text-[11px] text-[#464555] font-semibold shrink-0">
-            {data.clicks > 0 ? `${data.leadRate.toFixed(1)}%` : '0%'}
+            {data.clicks > 0 ? `${data.leadRate.toFixed(1).replace('.', ',')}%` : '0%'}
           </span>
         </div>
 
@@ -104,7 +96,7 @@ export const ConversionFunnel: React.FC<ConversionFunnelProps> = ({
             </div>
           </div>
           <span className="text-[11px] text-[#464555] font-semibold shrink-0">
-            {data.leads > 0 ? `${data.conversionRate.toFixed(1)}%` : '0%'}
+            {data.leads > 0 ? `${data.leadToConversionRate.toFixed(1).replace('.', ',')}%` : '0%'}
           </span>
         </div>
 

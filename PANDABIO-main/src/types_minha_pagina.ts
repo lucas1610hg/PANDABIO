@@ -155,7 +155,7 @@ export interface BlockData {
   video_url?: string;
   thumbnail_url?: string;
   autoplay?: boolean;
-  platform?: 'youtube' | 'vimeo' | 'direct';
+  video_platform?: 'youtube' | 'vimeo' | 'direct';
   
   // Dados para social
   platform?: string;
@@ -247,6 +247,7 @@ export interface UserProfile {
   pageTitle: string;
   bioDescription: string;
   avatarUrl: string;
+  coverUrl?: string;
   category?: string;
   location?: string;
   customLink?: string;

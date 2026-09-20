@@ -1,4 +1,4 @@
--- 📄 SCHEMA SQL - PÁGINA DO USUÁRIO (Minha Página)
+--  SCHEMA SQL - PÁGINA DO USUÁRIO (Minha Página)
 -- Versão: 1.0
 -- Data: 19/09/2026
 -- Descrição: Estrutura para armazenar dados da página personalizada do usuário
@@ -60,6 +60,8 @@ CREATE TABLE IF NOT EXISTS page_blocks (
   -- Campos específicos para produto
   product_name VARCHAR(200),
   product_price DECIMAL(10, 2),
+  -- Catálogo de produtos (JSONB): [{ id, name, price, image_url, link }]
+  products JSONB DEFAULT '[]'::jsonb,
   -- Campos específicos para social
   platform VARCHAR(50),
   -- Campos específicos para localização
@@ -458,5 +460,5 @@ BEGIN
     RAISE NOTICE 'Índice idx_profiles_page_data não foi criado (pode ser opcional)';
   END IF;
   
-  RAISE NOTICE '✅ Schema de páginas do usuário configurado com sucesso';
+  RAISE NOTICE ' Schema de páginas do usuário configurado com sucesso';
 END $$;

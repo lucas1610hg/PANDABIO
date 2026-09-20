@@ -1,4 +1,4 @@
-# 🏗️ Arquitetura - Módulo Minha Página
+#  Arquitetura - Módulo Minha Página
 
 ## Visão Geral
 
@@ -180,9 +180,9 @@ PANDA BIO
 
 ## Próximos Passos
 
-1. ✅ Definir arquitetura do banco de dados
-2. ✅ Criar schema SQL de produção
-3. ✅ Definir tipos TypeScript
+1.  Definir arquitetura do banco de dados
+2.  Criar schema SQL de produção
+3.  Definir tipos TypeScript
 4. ⏳ Executar schema no Supabase
 5. ⏳ Criar serviços Supabase para as novas tabelas
 6. ⏳ Adaptar frontend para usar nova estrutura

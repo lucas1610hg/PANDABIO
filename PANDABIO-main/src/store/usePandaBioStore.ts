@@ -25,6 +25,7 @@ interface PandaBioStore {
   // Actions específicas
   toggleLink: (linkId: string) => void;
   addLink: (link: BioLink) => void;
+  reorderLinks: (reordered: BioLink[]) => void;
   addProduct: (product: ProductItem) => void;
   updateUserProfile: (updates: Partial<UserProfile>) => void;
   upgradeToPro: () => void;
@@ -195,15 +196,20 @@ export const usePandaBioStore = create<PandaBioStore>((set, get) => {
             id: `act-${Date.now()}`,
             title: `Novo link adicionado: ${link.title}`,
             subtitle: 'Publicado na bio',
-            timeAgo: 'agora',
+timeAgo: 'agora',
             type: 'clicks',
             timestamp: 'Agora mesmo',
+            date: Date.now(),
           },
           ...prev.activities,
         ],
       }));
     },
-    
+
+    reorderLinks: (reordered: BioLink[]) => {
+      get().updateCurrentAccount((prev) => ({ ...prev, links: reordered }));
+    },
+
     addProduct: (product: ProductItem) => {
       get().updateCurrentAccount((prev) => ({
         ...prev,
@@ -216,6 +222,7 @@ export const usePandaBioStore = create<PandaBioStore>((set, get) => {
             timeAgo: 'agora',
             type: 'order',
             timestamp: 'Agora mesmo',
+            date: Date.now(),
           },
           ...prev.activities,
         ],

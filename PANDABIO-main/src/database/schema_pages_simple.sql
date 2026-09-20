@@ -1,4 +1,4 @@
--- 📄 SCHEMA SQL SIMPLE - ADICIONAR COLUNAS À TABELA PROFILES
+--  SCHEMA SQL SIMPLE - ADICIONAR COLUNAS À TABELA PROFILES
 -- Versão: 1.0 Simplificada
 -- Data: 19/09/2026
 -- Descrição: Adiciona apenas as colunas necessárias para a funcionalidade de páginas
@@ -43,5 +43,5 @@ BEGIN
     RAISE EXCEPTION 'Coluna page_data não foi adicionada';
   END IF;
   
-  RAISE NOTICE '✅ Colunas para páginas do usuário adicionadas com sucesso';
+  RAISE NOTICE ' Colunas para páginas do usuário adicionadas com sucesso';
 END $$;

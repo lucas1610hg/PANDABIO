@@ -1,11 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Eye, Copy, Smartphone, Palette, Check, Loader2, Plus } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Eye, Copy, Smartphone, Monitor, Check, Loader2, Plus, User, Settings, Link2, Type, Image, Video, Calendar, ShoppingBag, Mail, Music, MapPin, Package, ArrowUp, ArrowDown, Trash2, CopyPlus, Power, ImagePlus } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { motion } from 'motion/react';
 import { UserProfile, PageBlock, PageTheme, BlockType } from '../types';
 import { AddBlockModal } from './AddBlockModal';
-import { AgendamentoBlockConfig } from './AgendamentoBlockConfig';
+import { BlockConfigModal } from './BlockConfigModal';
+import { PagePreview } from './PagePreview';
+import { AppearancePanel } from './AppearancePanel';
 import { PageService } from '../supabase/services/pageService';
-import { AuthService } from '../supabase/services/authService';
+import { StorageService } from '../supabase/services/storageService';
+import { supabase } from '../supabase/client';
+import { safeStorage } from '../utils/storage';
+import { getPageUrl } from '../utils/pageUrl';
+import { defaultPageTheme } from '../theme/presets';
+
+const LOCAL_PAGE_STORAGE_KEY = 'pandabio_page_data_v1';
 
 interface PageEditorProps {
   user: UserProfile;
@@ -18,37 +27,84 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
   const [copySuccess, setCopySuccess] = useState(false);
   const [isAddBlockModalOpen, setIsAddBlockModalOpen] = useState(false);
   const [editingBlock, setEditingBlock] = useState<PageBlock | null>(null);
+  const [previewDevice, setPreviewDevice] = useState<'mobile' | 'desktop'>('mobile');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const hasLoadedRef = useRef(false);
   const [pageData, setPageData] = useState({
     profile: user,
     blocks: [] as PageBlock[],
-    theme: {
-      theme: 'light' as const,
-      backgroundColor: '#ffffff',
-      backgroundType: 'color' as const,
-      buttonStyle: 'rounded' as const,
-      fontFamily: 'Inter',
-      animationsEnabled: true,
-    } as PageTheme,
+    theme: defaultPageTheme() as PageTheme,
     published: false,
     lastUpdated: new Date().toISOString(),
   });
 
-  // Auto-save com debounce
+  // Resolve o id da linha do perfil no banco; cria a linha se ainda não existir
+  // (fallback caso o trigger handle_new_user não tenha criado o registro).
+  const getOrCreateProfileId = async (): Promise<string | null> => {
+    if (!supabase) return null;
+
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) return null;
+
+    const selectResult = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', authUser.id)
+      .maybeSingle();
+
+    if (selectResult.data?.id) return selectResult.data.id;
+
+    if (selectResult.error) {
+      console.error('Error looking up profile:', selectResult.error);
+      return null;
+    }
+
+    const { data: created, error: insertError } = await supabase
+      .from('profiles')
+      .insert({
+        user_id: authUser.id,
+        email: authUser.email || '',
+        name: (pageData.profile.name || (authUser.user_metadata?.name as string) || '').slice(0, 100),
+        username: pageData.profile.username || authUser.email?.split('@')[0] || 'usuario',
+        bio_url: pageData.profile.bioUrl || `pandabio.com/${pageData.profile.username || 'usuario'}`,
+        page_title: pageData.profile.pageTitle || 'Minha Página • Bio Oficial',
+      })
+      .select('id')
+      .single();
+
+    if (insertError) {
+      console.error('Error creating profile row:', insertError);
+      // Corrida: outra requisição pode ter criado a linha; tenta buscar de novo.
+      const retry = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', authUser.id)
+        .maybeSingle();
+      return retry.data?.id ?? null;
+    }
+
+    return created?.id ?? null;
+  };
+
+  // Auto-save com debounce (não salva antes do carregamento inicial)
   useEffect(() => {
+    if (!hasLoadedRef.current) return;
+
     const timer = setTimeout(async () => {
-      // Obter o usuário atual do Supabase Auth
-      const { data: { user } } = await supabase?.auth.getUser() || { data: { user: null } };
-      if (user) {
-        // Buscar o profile_id na tabela profiles
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
-        
-        if (profile) {
-          await PageService.savePageData(profile.id, pageData);
+      if (!supabase) {
+        safeStorage.set(LOCAL_PAGE_STORAGE_KEY, pageData);
+        return;
+      }
+      try {
+        const profileId = await getOrCreateProfileId();
+        if (!profileId) return;
+        const result = await PageService.savePageData(profileId, pageData);
+        if (!result.success) {
+          console.error('Auto-save page data error:', result.error);
         }
+      } catch (error) {
+        console.error('Auto-save page data error:', error);
       }
     }, 2000);
 
@@ -58,88 +114,181 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
   // Carregar dados da página ao montar
   useEffect(() => {
     const loadPageData = async () => {
-      const { data: { user } } = await supabase?.auth.getUser() || { data: { user: null } };
-      if (user) {
-        // Buscar o profile_id na tabela profiles
+      if (hasLoadedRef.current) return;
+
+      if (!supabase) {
+        const stored = safeStorage.get<typeof pageData | null>(LOCAL_PAGE_STORAGE_KEY, null);
+        if (stored) {
+          setPageData(prev => ({
+            ...stored,
+            theme: { ...defaultPageTheme(), ...(stored.theme || {}) },
+            profile: { ...user, ...(stored.profile || {}) },
+          }));
+        }
+        hasLoadedRef.current = true;
+        return;
+      }
+
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (authUser) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('id')
-          .eq('user_id', user.id)
-          .single();
-        
+          .eq('user_id', authUser.id)
+          .maybeSingle();
+
         if (profile) {
           const { success, pageData: loadedPageData } = await PageService.loadPageData(profile.id);
           if (success && loadedPageData) {
-            setPageData(loadedPageData);
+            // Mescla o perfil do banco com o do contexto: campos salvos (cover,
+            // categoria, localização, customLink...) têm prioridade sobre o mock.
+            const savedProfile = (loadedPageData.profile || {}) as Partial<UserProfile>;
+            setPageData(prev => ({
+              ...loadedPageData,
+              theme: { ...defaultPageTheme(), ...(loadedPageData.theme || {}) },
+              profile: {
+                ...user,
+                ...Object.fromEntries(
+                  Object.entries(savedProfile).filter(([, v]) => v !== null && v !== undefined)
+                ),
+              } as UserProfile,
+            }));
           }
         }
       }
+      hasLoadedRef.current = true;
     };
 
     loadPageData();
   }, []);
 
+  // Sincronizar o perfil editado no pageData (evita salvar perfil desatualizado),
+  // preservando campos do banco que ainda não existem no contexto.
+  // O usuário (fonte de edição) tem prioridade; campos do banco ainda ausentes
+  // no contexto (undefined/null) são mantidos de prev.profile.
+  useEffect(() => {
+    setPageData(prev => {
+      const editedFields = Object.fromEntries(
+        Object.entries(user).filter(([, value]) => value !== undefined && value !== null)
+      );
+      return {
+        ...prev,
+        profile: {
+          ...(prev.profile || {}),
+          ...editedFields,
+        } as UserProfile,
+        lastUpdated: new Date().toISOString(),
+      };
+    });
+  }, [user]);
+
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(`https://pandabio.com/${user.username}`);
-    setCopySuccess(true);
-    setTimeout(() => setCopySuccess(false), 2000);
+    const url = getPageUrl(user.bioUrl, user.username);
+    navigator.clipboard?.writeText(url)
+      .then(() => {
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+        toast.success('Link copiado!');
+      })
+      .catch(() => toast.error('Não foi possível copiar o link'));
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Selecione um arquivo de imagem válido');
+      return;
+    }
+    const previousUrl = user.avatarUrl;
+    const result = await StorageService.uploadImage(file, 'avatar', { maxDim: 512, quality: 0.85 });
+    e.target.value = '';
+    if (!result.success || !result.url) {
+      toast.error(result.error || 'Não foi possível processar a imagem');
+      return;
+    }
+    onUpdateUser({ avatarUrl: result.url });
+    if (result.path) StorageService.deleteByUrl(previousUrl);
+    toast.success('Foto de perfil atualizada');
+  };
+
+  const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Selecione um arquivo de imagem válido');
+      return;
+    }
+    const previousUrl = user.coverUrl;
+    const result = await StorageService.uploadImage(file, 'cover', { maxDim: 1400, quality: 0.82 });
+    e.target.value = '';
+    if (!result.success || !result.url) {
+      toast.error(result.error || 'Não foi possível processar a imagem');
+      return;
+    }
+    onUpdateUser({ coverUrl: result.url });
+    if (result.path) StorageService.deleteByUrl(previousUrl);
+    toast.success('Capa atualizada');
+  };
+
+  const handleRemoveCover = () => {
+    StorageService.deleteByUrl(user.coverUrl);
+    onUpdateUser({ coverUrl: '' });
+    toast.success('Capa removida');
   };
 
   const handlePublish = async () => {
     setIsPublishing(true);
     try {
-      console.log('Iniciando publicação...');
-      
-      const { data: { user } } = await supabase?.auth.getUser() || { data: { user: null } };
-      console.log('Usuário autenticado:', user);
-      
-      if (user) {
-        // Buscar o profile_id na tabela profiles
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
-        
-        console.log('Profile encontrado:', profile);
-        console.log('Profile error:', profileError);
-        
-        if (profile) {
-          console.log('Chamando PageService.publishPage com ID:', profile.id);
-          const result = await PageService.publishPage(profile.id);
-          console.log('Resultado do publishPage:', result);
-          
-          if (result.success) {
-            setPageData(prev => ({ ...prev, published: true }));
-          } else {
-            console.error('Erro ao publicar:', result.error);
-          }
-        } else {
-          console.error('Profile não encontrado para user_id:', user.id);
-        }
+      if (!supabase) {
+        const publishedData = { ...pageData, published: true, lastUpdated: new Date().toISOString() };
+        setPageData(publishedData);
+        safeStorage.set(LOCAL_PAGE_STORAGE_KEY, publishedData);
+        toast.success('Página publicada (modo local)');
+        return;
+      }
+
+      const profileId = await getOrCreateProfileId();
+      if (!profileId) {
+        toast.error('Perfil não encontrado');
+        return;
+      }
+
+      // Salvar as últimas edições antes de publicar
+      const saveResult = await PageService.savePageData(profileId, pageData);
+      if (!saveResult.success) {
+        toast.error(saveResult.error || 'Erro ao salvar antes de publicar');
+        return;
+      }
+      const result = await PageService.publishPage(profileId);
+      if (result.success) {
+        setPageData(prev => ({ ...prev, published: true, lastUpdated: new Date().toISOString() }));
+        toast.success('Página publicada!');
       } else {
-        console.error('Nenhum usuário autenticado');
+        toast.error(result.error || 'Erro ao publicar página');
       }
     } catch (error) {
       console.error('Error publishing page:', error);
+      toast.error('Erro ao publicar página');
     } finally {
       setIsPublishing(false);
     }
   };
 
   const handleAddBlock = (type: BlockType) => {
-    const newBlock: PageBlock = {
-      id: crypto.randomUUID(),
-      type,
-      order: pageData.blocks.length,
-      active: true,
-    };
-
-    setPageData(prev => ({
-      ...prev,
-      blocks: [...prev.blocks, newBlock],
-      lastUpdated: new Date().toISOString(),
-    }));
+    setPageData(prev => {
+      const newBlock: PageBlock = {
+        id: crypto.randomUUID(),
+        type,
+        order: prev.blocks.length,
+        active: true,
+      };
+      return {
+        ...prev,
+        blocks: [...prev.blocks, newBlock],
+        lastUpdated: new Date().toISOString(),
+      };
+    });
   };
 
   const handleUpdateBlock = (blockId: string, updates: Partial<PageBlock>) => {
@@ -155,26 +304,59 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
   const handleDeleteBlock = (blockId: string) => {
     setPageData(prev => ({
       ...prev,
-      blocks: prev.blocks.filter(block => block.id !== blockId),
+      blocks: prev.blocks
+        .filter(block => block.id !== blockId)
+        .map((block, i) => ({ ...block, order: i })),
+      lastUpdated: new Date().toISOString(),
+    }));
+  };
+
+  const handleDuplicateBlock = (blockId: string) => {
+    setPageData(prev => {
+      const source = prev.blocks.find(b => b.id === blockId);
+      if (!source) return prev;
+      const { id, order, ...rest } = source;
+      const copy: PageBlock = {
+        ...rest,
+        id: crypto.randomUUID(),
+        order: prev.blocks.length,
+        active: true,
+      };
+      return {
+        ...prev,
+        blocks: [...prev.blocks, copy],
+        lastUpdated: new Date().toISOString(),
+      };
+    });
+  };
+
+  const handleToggleBlockActive = (blockId: string) => {
+    setPageData(prev => ({
+      ...prev,
+      blocks: prev.blocks.map(block =>
+        block.id === blockId ? { ...block, active: !(block.active ?? true) } : block
+      ),
       lastUpdated: new Date().toISOString(),
     }));
   };
 
   const handleMoveBlock = (blockId: string, direction: 'up' | 'down') => {
-    const blocks = [...pageData.blocks];
-    const index = blocks.findIndex(b => b.id === blockId);
-    
-    if (direction === 'up' && index > 0) {
-      [blocks[index], blocks[index - 1]] = [blocks[index - 1], blocks[index]];
-    } else if (direction === 'down' && index < blocks.length - 1) {
-      [blocks[index], blocks[index + 1]] = [blocks[index + 1], blocks[index]];
-    }
+    setPageData(prev => {
+      const blocks = [...prev.blocks];
+      const index = blocks.findIndex(b => b.id === blockId);
 
-    setPageData(prev => ({
-      ...prev,
-      blocks: blocks.map((block, i) => ({ ...block, order: i })),
-      lastUpdated: new Date().toISOString(),
-    }));
+      if (direction === 'up' && index > 0) {
+        [blocks[index], blocks[index - 1]] = [blocks[index - 1], blocks[index]];
+      } else if (direction === 'down' && index < blocks.length - 1) {
+        [blocks[index], blocks[index + 1]] = [blocks[index + 1], blocks[index]];
+      }
+
+      return {
+        ...prev,
+        blocks: blocks.map((block, i) => ({ ...block, order: i })),
+        lastUpdated: new Date().toISOString(),
+      };
+    });
   };
 
   const handleThemeUpdate = (updates: Partial<PageTheme>) => {
@@ -186,7 +368,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#F6EFE9]">
+    <div className="flex flex-col h-[calc(100dvh-9rem)] min-h-[520px] bg-[#F6EFE9]">
       {/* Header do Editor */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-4">
@@ -235,9 +417,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
       </div>
 
       {/* Área Principal Dividida */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Área de Configurações */}
-        <div className="flex-1 overflow-y-auto p-6 border-r border-gray-200">
+        <div className="flex-1 overflow-y-auto p-6 border-r border-gray-200 min-h-0 overscroll-contain">
           {!isPreviewMode && (
             <div className="space-y-6">
               {/* 1. Informações do Perfil */}
@@ -251,13 +433,63 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                       {user.avatarUrl ? (
                         <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-3xl">👤</span>
+                        <User className="w-9 h-9 text-gray-400" />
                       )}
                     </div>
-                    <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
-                      🖼️ Alterar foto
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+                    >
+                      <Image className="w-4 h-4 text-gray-500" />
+                      Alterar foto
                     </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarChange}
+                    />
                   </div>
+
+                  {/* Capa da página (opcional) */}
+                  <div className="flex items-center gap-4">
+                    <div className="w-40 h-16 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                      {user.coverUrl ? (
+                        <img src={user.coverUrl} alt="Capa" className="w-full h-full object-cover" />
+                      ) : (
+                        <ImagePlus className="w-6 h-6 text-gray-400" />
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => coverInputRef.current?.click()}
+                        className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+                      >
+                        <Image className="w-4 h-4 text-gray-500" />
+                        {user.coverUrl ? 'Alterar capa' : 'Adicionar capa'}
+                      </button>
+                      {user.coverUrl && (
+                        <button
+                          onClick={handleRemoveCover}
+                          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Remover capa
+                        </button>
+                      )}
+                    </div>
+                    <input
+                      ref={coverInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleCoverChange}
+                    />
+                  </div>
+                  <p className="text-[11px] text-gray-400 -mt-2">
+                    Opcional. A capa aparecerá no topo da sua página com um degradê suave para o fundo.
+                  </p>
 
                   {/* Nome */}
                   <div>
@@ -265,6 +497,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                     <input
                       type="text"
                       value={user.name}
+                      maxLength={50}
                       onChange={(e) => onUpdateUser({ name: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent"
                     />
@@ -273,22 +506,30 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                   {/* Usuário */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Usuário</label>
-                    <div className="flex items-center">
-                      <span className="text-gray-400 mr-2">@</span>
+                    <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-[#FF5E00]">
+                      <span className="bg-gray-50 px-3 py-2 text-sm text-gray-500 border-r border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600">@</span>
                       <input
                         type="text"
                         value={user.username}
-                        onChange={(e) => onUpdateUser({ username: e.target.value })}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent"
+                        maxLength={20}
+                        onChange={(e) => onUpdateUser({ username: e.target.value.replace(/\s+/g, '').toLowerCase() })}
+                        className="flex-1 px-4 py-2 outline-none"
                       />
                     </div>
+                    <p className="text-[11px] text-gray-400 mt-1">
+                      Sua página: <span className="font-mono text-[#FF5E00]">pandabio.com/{user.username}</span>
+                    </p>
                   </div>
 
                   {/* Bio */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-sm font-medium text-gray-700">Bio</label>
+                      <span className="text-[10px] text-gray-400 font-medium">{(user.bioDescription || '').length}/200</span>
+                    </div>
                     <textarea
                       value={user.bioDescription}
+                      maxLength={200}
                       onChange={(e) => onUpdateUser({ bioDescription: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent resize-none"
                       rows={3}
@@ -299,14 +540,19 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                   {/* Categoria */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
-                    <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent">
-                      <option>Criador de conteúdo</option>
-                      <option>Empreendedor</option>
-                      <option>Artista</option>
-                      <option>Músico</option>
-                      <option>Desenvolvedor</option>
-                      <option>Outro</option>
-                    </select>
+                    <select
+                        value={user.category || ''}
+                        onChange={(e) => onUpdateUser({ category: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent"
+                      >
+                        <option value="">Selecione...</option>
+                        <option>Criador de conteúdo</option>
+                        <option>Empreendedor</option>
+                        <option>Artista</option>
+                        <option>Músico</option>
+                        <option>Desenvolvedor</option>
+                        <option>Outro</option>
+                      </select>
                   </div>
 
                   {/* Localização */}
@@ -314,6 +560,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Localização</label>
                     <input
                       type="text"
+                      value={user.location || ''}
+                      maxLength={100}
+                      onChange={(e) => onUpdateUser({ location: e.target.value })}
                       placeholder="São Paulo, Brasil"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent"
                     />
@@ -324,6 +573,8 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Link personalizado</label>
                     <input
                       type="text"
+                      value={user.customLink || ''}
+                      onChange={(e) => onUpdateUser({ customLink: e.target.value })}
                       placeholder="meusite.com"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent"
                     />
@@ -337,7 +588,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                 
                 <button 
                   onClick={() => setIsAddBlockModalOpen(true)}
-                  className="w-full mb-4 px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-[#FF5E00] hover:text-[#FF5E00] transition-colors font-medium flex items-center justify-center gap-2"
+                  className="w-full mb-4 px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-[#FF5E00] hover:text-[#FF5E00] transition-colors font-medium flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   Adicionar bloco
@@ -353,200 +604,198 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                     {pageData.blocks.map((block, index) => (
                       <div
                         key={block.id}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
+                        className={`flex items-center gap-2.5 p-3 bg-gray-50 rounded-lg border transition-opacity ${
+                          block.active === false ? 'opacity-55' : 'border-gray-200'
+                        }`}
                       >
-                        <span className="text-lg">{getBlockIcon(block.type)}</span>
+                        <span className="w-9 h-9 rounded-xl bg-[#f2f3ff] flex items-center justify-center shrink-0 text-[#FF5E00]">
+                          {getBlockIcon(block.type)}
+                        </span>
                         <input
                           type="text"
                           value={block.title || getBlockPlaceholder(block.type)}
                           onChange={(e) => handleUpdateBlock(block.id, { title: e.target.value })}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent text-sm"
+                          className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent text-sm"
                         />
-                        <button
-                          onClick={() => setEditingBlock(block)}
-                          className="p-1 hover:bg-blue-100 text-blue-500 rounded"
-                          title="Configurar"
-                        >
-                          ⚙️
-                        </button>
-                        <button
-                          onClick={() => handleMoveBlock(block.id, 'up')}
-                          disabled={index === 0}
-                          className="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                          ↑
-                        </button>
-                        <button
-                          onClick={() => handleMoveBlock(block.id, 'down')}
-                          disabled={index === pageData.blocks.length - 1}
-                          className="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                          ↓
-                        </button>
-                        <button
-                          onClick={() => handleDeleteBlock(block.id)}
-                          className="p-1 hover:bg-red-100 text-red-500 rounded"
-                        >
-                          ×
-                        </button>
+                        {block.type === 'produto' && (block.products?.length ?? 0) > 0 && (
+                          <span className="shrink-0 px-2 py-1 rounded-full bg-[#FF7A00]/10 text-[#FF7A00] text-[10px] font-bold whitespace-nowrap">
+                            {(block.products?.length ?? 0)} {block.products!.length === 1 ? 'produto' : 'produtos'}
+                          </span>
+                        )}
+                        {block.type === 'image' && (block.gallery?.images.length ?? 0) > 0 && (
+                          <span className="shrink-0 px-2 py-1 rounded-full bg-[#FF7A00]/10 text-[#FF7A00] text-[10px] font-bold whitespace-nowrap">
+                            {(block.gallery?.images.length ?? 0)} {block.gallery!.images.length === 1 ? 'imagem' : 'imagens'}
+                          </span>
+                        )}
+                        {block.type === 'social' && ((block.socialLinks?.filter((l) => l.url && l.url.trim()).length ?? 0) > 0) && (
+                          <span className="shrink-0 px-2 py-1 rounded-full bg-[#FF7A00]/10 text-[#FF7A00] text-[10px] font-bold whitespace-nowrap">
+                            {block.socialLinks!.filter((l) => l.url && l.url.trim()).length} redes
+                          </span>
+                        )}
+                        {block.type === 'contact' && ((block.contact?.whatsapp?.trim() || block.contact?.email?.trim()) ? (
+                          <span className="shrink-0 px-2 py-1 rounded-full bg-[#FF7A00]/10 text-[#FF7A00] text-[10px] font-bold whitespace-nowrap">
+                            {block.contact?.whatsapp?.trim() && block.contact?.email?.trim() ? 'WhatsApp + E-mail' : block.contact?.whatsapp?.trim() ? 'WhatsApp' : 'E-mail'}
+                          </span>
+                        ) : null)}
+                        <div className="flex items-center gap-0.5">
+                          <button
+                            onClick={() => handleToggleBlockActive(block.id)}
+                            title={block.active === false ? 'Ativar bloco' : 'Desativar bloco'}
+                            aria-label={block.active === false ? 'Ativar bloco' : 'Desativar bloco'}
+                            className={`p-1.5 rounded transition-colors cursor-pointer ${
+                              block.active === false ? 'text-green-500 hover:bg-green-50' : 'text-gray-400 hover:bg-gray-200'
+                            }`}
+                          >
+                            <Power className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setEditingBlock(block)}
+                            title="Configurar"
+                            aria-label="Configurar bloco"
+                            className="p-1.5 hover:bg-blue-100 text-blue-500 rounded transition-colors cursor-pointer"
+                          >
+                            <Settings className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDuplicateBlock(block.id)}
+                            title="Duplicar"
+                            aria-label="Duplicar bloco"
+                            className="p-1.5 hover:bg-gray-200 text-gray-500 rounded transition-colors cursor-pointer"
+                          >
+                            <CopyPlus className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleMoveBlock(block.id, 'up')}
+                            disabled={index === 0}
+                            title="Mover para cima"
+                            aria-label="Mover bloco para cima"
+                            className="p-1.5 hover:bg-gray-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                          >
+                            <ArrowUp className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleMoveBlock(block.id, 'down')}
+                            disabled={index === pageData.blocks.length - 1}
+                            title="Mover para baixo"
+                            aria-label="Mover bloco para baixo"
+                            className="p-1.5 hover:bg-gray-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                          >
+                            <ArrowDown className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteBlock(block.id)}
+                            title="Excluir"
+                            aria-label="Excluir bloco"
+                            className="p-1.5 hover:bg-red-100 text-red-500 rounded transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* 3. Aparência Rápida */}
+              {/* 3. Aparência */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-bold text-[#131b2e]">Aparência Rápida</h2>
-                  <button className="flex items-center gap-2 text-sm text-[#FF5E00] font-medium hover:underline">
-                    <Palette className="w-4 h-4" />
-                    Personalizar aparência
-                  </button>
-                </div>
-
-                <div className="space-y-4">
-                  {/* Tema */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Tema</label>
-                    <div className="flex gap-2">
-                      {(['light', 'dark', 'auto'] as const).map((theme) => (
-                        <button
-                          key={theme}
-                          onClick={() => handleThemeUpdate({ theme })}
-                          className={`px-4 py-2 rounded-lg border transition-colors ${
-                            pageData.theme.theme === theme
-                              ? 'bg-[#FF5E00] text-white border-[#FF5E00]'
-                              : 'border-gray-300 hover:border-gray-400'
-                          }`}
-                        >
-                          {theme === 'light' ? '☀️ Claro' : theme === 'dark' ? '🌙 Escuro' : '🔄 Auto'}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Fundo */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Fundo</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="color"
-                        value={pageData.theme.backgroundColor}
-                        onChange={(e) => handleThemeUpdate({ backgroundColor: e.target.value, backgroundType: 'color' })}
-                        className="w-12 h-10 rounded cursor-pointer"
-                      />
-                      <select
-                        value={pageData.theme.backgroundType}
-                        onChange={(e) => handleThemeUpdate({ backgroundType: e.target.value as 'color' | 'gradient' | 'image' })}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent"
-                      >
-                        <option value="color">Cor</option>
-                        <option value="gradient">Gradiente</option>
-                        <option value="image">Imagem</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Fonte */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Fonte</label>
-                    <select
-                      value={pageData.theme.fontFamily}
-                      onChange={(e) => handleThemeUpdate({ fontFamily: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent"
-                    >
-                      <option>Inter</option>
-                      <option>Roboto</option>
-                      <option>Open Sans</option>
-                      <option>Poppins</option>
-                    </select>
-                  </div>
-
-                  {/* Animações */}
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="animations"
-                      checked={pageData.theme.animationsEnabled}
-                      onChange={(e) => handleThemeUpdate({ animationsEnabled: e.target.checked })}
-                      className="w-4 h-4 rounded text-[#FF5E00] focus:ring-[#FF5E00]"
-                    />
-                    <label htmlFor="animations" className="text-sm text-gray-700">Ativar animações</label>
-                  </div>
-                </div>
+                <h2 className="text-lg font-bold text-[#131b2e] mb-4">Aparência</h2>
+                <AppearancePanel
+                  theme={pageData.theme}
+                  onThemeUpdate={handleThemeUpdate}
+                />
               </div>
             </div>
           )}
 
           {/* Modo Preview - Todo tela é preview */}
           {isPreviewMode && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-[#131b2e]">Preview Completo</h2>
-                <button
-                  onClick={() => setIsPreviewMode(false)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium"
-                >
-                  <Palette className="w-4 h-4" />
-                  Voltar ao editor
-                </button>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-[#131b2e]">Preview</h2>
+                <div className="flex items-center gap-2">
+                  <div className="flex bg-[#f2f3ff] p-1 rounded-xl text-xs font-semibold">
+                    <button
+                      onClick={() => setPreviewDevice('mobile')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                        previewDevice === 'mobile' ? 'bg-white text-[#131b2e] shadow-xs' : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      <Smartphone className="w-3.5 h-3.5" /> Celular
+                    </button>
+                    <button
+                      onClick={() => setPreviewDevice('desktop')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                        previewDevice === 'desktop' ? 'bg-white text-[#131b2e] shadow-xs' : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      <Monitor className="w-3.5 h-3.5" /> Desktop
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => setIsPreviewMode(false)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium cursor-pointer"
+                  >
+                    Voltar ao editor
+                  </button>
+                </div>
               </div>
-              <div className="text-center py-8 text-gray-400">
-                <Smartphone className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Preview da página em desenvolvimento</p>
-              </div>
+              <motion.div
+                key={previewDevice}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-3xl shadow-sm border border-gray-100 p-4 sm:p-8 flex justify-center"
+              >
+                <PagePreview
+                  profile={pageData.profile}
+                  theme={pageData.theme}
+                  blocks={pageData.blocks}
+                  device={previewDevice}
+                />
+              </motion.div>
             </div>
           )}
         </div>
 
         {/* Área de Preview (Direita) */}
-        <div className="w-[400px] bg-gray-100 p-6 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden sticky top-6" style={{ minHeight: '600px' }}>
-            {/* Preview Header */}
-            <div className="bg-[#FF5E00] text-white p-4 text-center">
-              <div className="w-16 h-16 mx-auto rounded-full bg-white/20 flex items-center justify-center mb-2">
-                {user.avatarUrl ? (
-                  <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover rounded-full" />
-                ) : (
-                  <span className="text-2xl">👤</span>
-                )}
-              </div>
-              <h3 className="font-bold text-lg">{user.name}</h3>
-              <p className="text-sm opacity-90">@{user.username}</p>
-              {user.bioDescription && (
-                <p className="text-xs mt-2 opacity-80">{user.bioDescription}</p>
-              )}
+        <div className="hidden md:flex flex-col w-[420px] shrink-0 bg-gray-100 p-5 min-h-0">
+          <div className="flex items-center justify-between mb-3 shrink-0">
+            <h3 className="text-sm font-bold text-[#131b2e]">Visualização ao vivo</h3>
+            <div className="flex bg-[#f2f3ff] p-0.5 rounded-xl text-xs font-semibold">
+              <button
+                onClick={() => setPreviewDevice('mobile')}
+                title="Modo celular"
+                className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                  previewDevice === 'mobile' ? 'bg-white text-[#131b2e] shadow-xs' : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => setPreviewDevice('desktop')}
+                title="Modo desktop"
+                className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                  previewDevice === 'desktop' ? 'bg-white text-[#131b2e] shadow-xs' : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                <Monitor className="w-3.5 h-3.5" />
+              </button>
             </div>
-
-            {/* Preview Blocks */}
-            <div className="p-4 space-y-3">
-              {pageData.blocks.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
-                  <p className="text-sm">Adicione blocos para ver o preview</p>
-                </div>
-              ) : (
-                pageData.blocks.map((block) => (
-                  <div
-                    key={block.id}
-                    className="p-3 bg-gray-50 rounded-lg border border-gray-200"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-lg">{getBlockIcon(block.type)}</span>
-                      <span className="font-medium text-sm">{block.title || getBlockPlaceholder(block.type)}</span>
-                    </div>
-                    {block.content && (
-                      <p className="text-xs text-gray-600">{block.content}</p>
-                    )}
-                  </div>
-                ))
-              )}
-            </div>
-
-            {/* Preview Footer */}
-            <div className="bg-gray-50 p-3 text-center">
-              <p className="text-xs text-gray-500">🐼 PandaBio</p>
-            </div>
+          </div>
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pb-1">
+            <motion.div
+              key={previewDevice}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="sticky top-2"
+            >
+              <PagePreview
+                profile={pageData.profile}
+                theme={pageData.theme}
+                blocks={pageData.blocks}
+                device={previewDevice}
+              />
+            </motion.div>
           </div>
         </div>
       </div>
@@ -559,46 +808,30 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
       />
 
       {/* Configuração de bloco específico */}
-      {editingBlock && editingBlock.type === 'agendamento' && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
-            <AgendamentoBlockConfig
-              block={editingBlock}
-              onUpdate={(updates) => handleUpdateBlock(editingBlock.id, updates)}
-              onDelete={() => {
-                handleDeleteBlock(editingBlock.id);
-                setEditingBlock(null);
-              }}
-            />
-            <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-end">
-              <button
-                onClick={() => setEditingBlock(null)}
-                className="px-6 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium transition-colors"
-              >
-                Fechar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <BlockConfigModal
+        block={editingBlock}
+        onClose={() => setEditingBlock(null)}
+        onUpdate={handleUpdateBlock}
+        onDelete={handleDeleteBlock}
+      />
     </div>
   );
 };
 
-function getBlockIcon(type: BlockType): string {
-  const icons = {
-    link: '🔗',
-    text: '📝',
-    image: '🖼️',
-    video: '🎥',
-    agendamento: '📅',
-    produto: '🛍️',
-    social: '📱',
-    contact: '📧',
-    music: '🎵',
-    location: '📍',
+function getBlockIcon(type: BlockType): React.ReactNode {
+  const icons: Record<string, React.ReactNode> = {
+    link: <Link2 className="w-5 h-5 text-gray-600" />,
+    text: <Type className="w-5 h-5 text-gray-600" />,
+    image: <Image className="w-5 h-5 text-gray-600" />,
+    video: <Video className="w-5 h-5 text-gray-600" />,
+    agendamento: <Calendar className="w-5 h-5 text-gray-600" />,
+    produto: <ShoppingBag className="w-5 h-5 text-gray-600" />,
+    social: <Smartphone className="w-5 h-5 text-gray-600" />,
+    contact: <Mail className="w-5 h-5 text-gray-600" />,
+    music: <Music className="w-5 h-5 text-gray-600" />,
+    location: <MapPin className="w-5 h-5 text-gray-600" />,
   };
-  return icons[type] || '📦';
+  return icons[type] || <Package className="w-5 h-5 text-gray-600" />;
 }
 
 function getBlockPlaceholder(type: BlockType): string {
@@ -608,7 +841,7 @@ function getBlockPlaceholder(type: BlockType): string {
     image: 'Sua imagem',
     video: 'Seu vídeo',
     agendamento: 'Agende seu horário',
-    produto: 'Conheça meus produtos',
+    produto: 'Meus produtos',
     social: 'Minhas redes sociais',
     contact: 'Entre em contato',
     music: 'Minha música',
