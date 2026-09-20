@@ -52,7 +52,7 @@ export interface Database {
       links: {
         Row: {
           id: string;
-          user_id: string;
+          profile_id: string;
           title: string;
           url: string;
           clicks: number;
@@ -66,7 +66,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          user_id: string;
+          profile_id: string;
           title: string;
           url: string;
           clicks?: number;
@@ -80,7 +80,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          user_id?: string;
+          profile_id?: string;
           title?: string;
           url?: string;
           clicks?: number;
@@ -95,7 +95,7 @@ export interface Database {
       products: {
         Row: {
           id: string;
-          user_id: string;
+          profile_id: string;
           name: string;
           price: number;
           sales_count: number;
@@ -107,7 +107,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          user_id: string;
+          profile_id: string;
           name: string;
           price: number;
           sales_count?: number;
@@ -119,7 +119,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          user_id?: string;
+          profile_id?: string;
           name?: string;
           price?: number;
           sales_count?: number;
@@ -132,7 +132,7 @@ export interface Database {
       leads: {
         Row: {
           id: string;
-          user_id: string;
+          profile_id: string;
           name: string;
           email: string;
           phone?: string;
@@ -142,7 +142,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          user_id: string;
+          profile_id: string;
           name: string;
           email: string;
           phone?: string;
@@ -152,7 +152,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          user_id?: string;
+          profile_id?: string;
           name?: string;
           email?: string;
           phone?: string;
@@ -163,7 +163,7 @@ export interface Database {
       activities: {
         Row: {
           id: string;
-          user_id: string;
+          profile_id: string;
           title: string;
           subtitle: string;
           time_ago: string;
@@ -173,7 +173,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          user_id: string;
+          profile_id: string;
           title: string;
           subtitle: string;
           time_ago: string;
@@ -183,7 +183,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          user_id?: string;
+          profile_id?: string;
           title?: string;
           subtitle?: string;
           time_ago?: string;
@@ -194,7 +194,7 @@ export interface Database {
       analytics: {
         Row: {
           id: string;
-          user_id: string;
+          profile_id: string;
           link_id: string;
           event_type: 'click' | 'view' | 'conversion';
           device_type: 'mobile' | 'desktop' | 'tablet';
@@ -205,7 +205,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          user_id: string;
+          profile_id: string;
           link_id: string;
           event_type: 'click' | 'view' | 'conversion';
           device_type: 'mobile' | 'desktop' | 'tablet';
@@ -216,7 +216,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          user_id?: string;
+          profile_id?: string;
           link_id?: string;
           event_type?: 'click' | 'view' | 'conversion';
           device_type?: 'mobile' | 'desktop' | 'tablet';
