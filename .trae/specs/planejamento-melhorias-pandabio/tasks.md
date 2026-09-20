@@ -189,12 +189,12 @@ Cada tarefa traz Rollback de 3 níveis. Executar em ordem:
 ---
 
 ## Task 7: Instalar e configurar ESLint + @typescript-eslint + React hooks + a11y
-- **Status**: `pending`
+- **Status**: `completed`
 - **Priority**: high
 - **Depends On**: T6
-- **Branch**: `feature/T7-eslint`
+- **Branch**: `feature/T7-eslint` (squashada em main `d9d8662`, apagada)
 - **Description**:
-  - Instalar devDeps: `eslint`, `@eslint/js`, `typescript-eslint`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`, `eslint-plugin-jsx-a11y`, `globals` (formato flat config ESLint 9+).
+  - Instalar devDeps: `eslint@^9.39.5`, `@eslint/js@^9.39.5`, `typescript-eslint`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`, `eslint-plugin-jsx-a11y`, `globals` (flat config ESLint 9+).
   - Criar `eslint.config.js` na raiz com regras: erro para `@typescript-eslint/no-unused-vars`, `react-hooks/rules-of-hooks`, `jsx-a11y/alt-text`, `jsx-a11y/role-has-required-aria-props`, etc.
   - Atualizar `package.json` script `lint` → `"lint": "eslint . && tsc --noEmit"`.
 - **Acceptance Criteria Addressed**: AC-9, NFR-5
@@ -203,6 +203,14 @@ Cada tarefa traz Rollback de 3 níveis. Executar em ordem:
   - `rule` TR-7.2: Arquivo `eslint.config.js` existe e importa plugins 5 acima.
   - `rule` TR-7.3: `npm run build` continua passando.
 - **Rollback**: R1 + R2 → `git checkout main` (volta package.json e remove eslint.config.js).
+- **Completion Evidence**:
+  - PRE-FLIGHT PASS: main clean → branch `feature/T7-eslint` → `npm ci` ok → `tsc --noEmit` exit=0 → `npm run build` exit=0 (2247 modules, ~264 KB gzip).
+  - Decisão de deps: `typescript@7.0.2` estava fora do peer de `typescript-eslint` (`<6.1.0`) → downgrade para `typescript@^5.9.3` (tsc exit=0). `eslint` pinado `^9.39.5` (jsx-a11y não suporta ESLint 10). `esbuild@^0.28.2` para satisfazer peerOptional do Vite 8.3 (não usado em src).
+  - TR-7.1 PASS: `npm run lint` → `0 errors, 6 warnings` exit=0. Resolvidos 52 problemas iniciais: 26 `no-unused-vars` (13 arquivos), 19 `no-explicit-any` (catch sem `: any`; `{} as UserProfile`; `unknown` em jsonb), `immutability` (TrafficSourcesCard c/ reduce), parse error `as const` corrigido.
+  - TR-7.2 PASS: `eslint.config.js` importa `@eslint/js`, `globals`, `typescript-eslint`, `react-hooks`, `react-refresh`, `jsx-a11y`.
+  - TR-7.3 PASS: `npm run build` exit=0 (745ms), bundle estável ~264 KB gzip.
+  - POST-FLIGHT PASS: smoke HTTP 200 (`vite preview` porta 4317). Squash merge `d9d8662` em main. Branch apagada.
+- **Notes**: 6 warnings aceitos: 3 `exhaustive-deps` (pré-existentes) + 3 `set-state-in-effect` (padrão derivado-em-efeito intencional; regra rebaixada a `warn` — refactor via `key`-prop fica para T31).
 
 ---
 
