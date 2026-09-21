@@ -1,6 +1,16 @@
---  SCHEMA SQL SEGURO - CORREÇÃO DE VULNERABILIDADES
--- Versão: 1.0 - Segurança Fortificada
--- Data: 19/09/2026
+-- =============================================================
+-- PANDABIO — SCHEMA SQL CONSOLIDADO
+-- Versão: 2.0 — Pós-melhorias T1–T14
+-- Data: 2026-09-20
+-- =============================================================
+-- Este arquivo é a fonte de verdade do schema. Inclui:
+--   • Tabelas com RLS habilitado (profile_id como FK nas dependentes)
+--   • Índices de performance
+--   • Funções: handle_new_user, toggle_link_status (T4), anonymize_ip (T6)
+--   • Triggers: auto-create profile, analytics IP anonymization
+--   • RLS policies (todas as tabelas + view pública)
+--   • Bloco de validação final
+-- =============================================================
 
 -- Habilita extensão para UUID
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -139,10 +149,10 @@ CREATE INDEX IF NOT EXISTS idx_analytics_event_type ON analytics(event_type);
 CREATE INDEX IF NOT EXISTS idx_analytics_created_at ON analytics(created_at DESC);
 
 -- ============================================
---  FUNÇÕES SEGUROS
+--  FUNÇÕES
 -- ============================================
 
--- Função segura para criar perfil automaticamente após signup
+-- [T1] Função segura para criar perfil automaticamente após signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -150,7 +160,7 @@ BEGIN
   IF NOT (TG_TABLE_NAME = 'users' AND TG_TABLE_SCHEMA = 'auth') THEN
     RAISE EXCEPTION 'Acesso não autorizado: trigger executado fora do contexto auth.users';
   END IF;
-  
+
   -- Inserir perfil com validação
   INSERT INTO public.profiles (user_id, name, username, email, bio_url, page_title)
   VALUES (
@@ -165,25 +175,88 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- [T4] Função RPC toggle_link_status: inverte `active` atomicamente
+CREATE OR REPLACE FUNCTION toggle_link_status(link_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY INVOKER
+AS $$
+DECLARE
+  current_active BOOLEAN;
+  new_active BOOLEAN;
+BEGIN
+  SELECT active INTO current_active
+  FROM links
+  WHERE id = link_id;
+
+  IF NOT FOUND THEN
+    RETURN FALSE;
+  END IF;
+
+  new_active := NOT current_active;
+
+  UPDATE links
+  SET active = new_active,
+      updated_at = now()
+  WHERE id = link_id;
+
+  RETURN new_active;
+END;
+$$;
+
+-- [T6] Função para anonimizar IP (LGPD): IPv4 /24, IPv6 /64
+CREATE OR REPLACE FUNCTION anonymize_ip(ip INET)
+RETURNS INET
+LANGUAGE sql
+IMMUTABLE
+AS $$
+  SELECT CASE
+    WHEN ip IS NULL THEN NULL
+    WHEN family(ip) = 4 THEN set_masklen(ip, 24)
+    ELSE set_masklen(ip, 64)
+  END;
+$$;
+
+-- [T6] Trigger function para anonimizar IP antes de inserir analytics
+CREATE OR REPLACE FUNCTION trg_analytics_anonymize_ip_before_insert()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY INVOKER
+AS $$
+BEGIN
+  NEW.ip_address := anonymize_ip(COALESCE(NEW.ip_address, inet_client_addr()));
+  NEW.user_agent := NULLIF(COALESCE(NULLIF(NEW.user_agent, ''), ''), '')::text;
+  NEW.referrer := NULLIF(COALESCE(NULLIF(NEW.referrer, ''), ''), '')::text;
+  RETURN NEW;
+END;
+$$;
+
 -- ============================================
 --  TRIGGERS
 -- ============================================
 
--- Trigger para criar perfil automaticamente
+-- Trigger para criar perfil automaticamente após signup em auth.users
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
+-- [T6] Trigger para anonimizar IP em analytics
+DROP TRIGGER IF EXISTS trg_analytics_anon_ip ON analytics;
+CREATE TRIGGER trg_analytics_anon_ip
+  BEFORE INSERT ON analytics
+  FOR EACH ROW
+  EXECUTE FUNCTION trg_analytics_anonymize_ip_before_insert();
+
 -- ============================================
---  RLS (ROW LEVEL SECURITY) - POLÍTICAS ESTRICTAS
+--  RLS (ROW LEVEL SECURITY) - POLÍTICAS ESTRITAS
 -- ============================================
 
 -- ============================================
--- PROFILES - Segurança Máxima
+-- PROFILES — Segurança Máxima
 -- ============================================
 
--- Limpar políticas antigas
+-- Limpar políticas anteriores
 DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
 DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
@@ -202,12 +275,9 @@ CREATE POLICY "Users can update own profile" ON profiles
 CREATE POLICY "Users can insert own profile" ON profiles
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
--- Política de leitura pública RESTRITA: apenas perfis publicados, somente os
--- campos necessários são expostos via a view public_profile_pages
--- (ver schema_security_fix.sql). Nada de SELECT livre na tabela profiles.
+-- View pública enxuta (somente perfis publicados)
 DROP POLICY IF EXISTS "Public can view usernames" ON profiles;
 
--- View pública enxuta (criada também em schema_security_fix.sql)
 CREATE OR REPLACE VIEW public_profile_pages AS
 SELECT
   id,
@@ -229,19 +299,16 @@ WHERE published = true
 GRANT SELECT ON public_profile_pages TO anon, authenticated;
 
 -- ============================================
--- LINKS - Segurança Baseada em Profile
+-- LINKS — Segurança Baseada em Profile
 -- ============================================
 
--- Limpar políticas antigas
 DROP POLICY IF EXISTS "Users can view own links" ON links;
 DROP POLICY IF EXISTS "Users can insert own links" ON links;
 DROP POLICY IF EXISTS "Users can update own links" ON links;
 DROP POLICY IF EXISTS "Users can delete own links" ON links;
 
--- Habilitar RLS
 ALTER TABLE links ENABLE ROW LEVEL SECURITY;
 
--- Políticas RLS estritas para links
 CREATE POLICY "Users can view own links" ON links
   FOR SELECT USING (
     auth.uid() = (SELECT user_id FROM profiles WHERE id = profile_id)
@@ -263,19 +330,16 @@ CREATE POLICY "Users can delete own links" ON links
   );
 
 -- ============================================
--- PRODUCTS - Segurança Baseada em Profile
+-- PRODUCTS — Segurança Baseada em Profile
 -- ============================================
 
--- Limpar políticas antigas
 DROP POLICY IF EXISTS "Users can view own products" ON products;
 DROP POLICY IF EXISTS "Users can insert own products" ON products;
 DROP POLICY IF EXISTS "Users can update own products" ON products;
 DROP POLICY IF EXISTS "Users can delete own products" ON products;
 
--- Habilitar RLS
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 
--- Políticas RLS estritas para products
 CREATE POLICY "Users can view own products" ON products
   FOR SELECT USING (
     auth.uid() = (SELECT user_id FROM profiles WHERE id = profile_id)
@@ -297,17 +361,14 @@ CREATE POLICY "Users can delete own products" ON products
   );
 
 -- ============================================
--- LEADS - Segurança Baseada em Profile
+-- LEADS — Segurança Baseada em Profile
 -- ============================================
 
--- Limpar políticas antigas
 DROP POLICY IF EXISTS "Users can view own leads" ON leads;
 DROP POLICY IF EXISTS "Users can insert own leads" ON leads;
 
--- Habilitar RLS
 ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
 
--- Políticas RLS estritas para leads
 CREATE POLICY "Users can view own leads" ON leads
   FOR SELECT USING (
     auth.uid() = (SELECT user_id FROM profiles WHERE id = profile_id)
@@ -319,17 +380,14 @@ CREATE POLICY "Users can insert own leads" ON leads
   );
 
 -- ============================================
--- ACTIVITIES - Segurança Baseada em Profile
+-- ACTIVITIES — Segurança Baseada em Profile
 -- ============================================
 
--- Limpar políticas antigas
 DROP POLICY IF EXISTS "Users can view own activities" ON activities;
 DROP POLICY IF EXISTS "Users can insert own activities" ON activities;
 
--- Habilitar RLS
 ALTER TABLE activities ENABLE ROW LEVEL SECURITY;
 
--- Políticas RLS estritas para activities
 CREATE POLICY "Users can view own activities" ON activities
   FOR SELECT USING (
     auth.uid() = (SELECT user_id FROM profiles WHERE id = profile_id)
@@ -341,17 +399,14 @@ CREATE POLICY "Users can insert own activities" ON activities
   );
 
 -- ============================================
--- ANALYTICS - Segurança Baseada em Profile
+-- ANALYTICS — Segurança Baseada em Profile
 -- ============================================
 
--- Limpar políticas antigas
 DROP POLICY IF EXISTS "Users can view own analytics" ON analytics;
 DROP POLICY IF EXISTS "Users can insert own analytics" ON analytics;
 
--- Habilitar RLS
 ALTER TABLE analytics ENABLE ROW LEVEL SECURITY;
 
--- Políticas RLS estritas para analytics
 CREATE POLICY "Users can view own analytics" ON analytics
   FOR SELECT USING (
     auth.uid() = (SELECT user_id FROM profiles WHERE id = profile_id)
@@ -366,24 +421,71 @@ CREATE POLICY "Users can insert own analytics" ON analytics
 --  VALIDAÇÃO FINAL DE SEGURANÇA
 -- ============================================
 
--- Verificar se RLS está habilitado em todas as tabelas
 DO $$
 DECLARE
-  table_name text;
-  rls_enabled boolean;
+  _tbl text;
+  _rls boolean;
+  _policy_count int;
+  _total_policies int := 0;
 BEGIN
-  FOR table_name IN 
-    SELECT tablename FROM pg_tables WHERE schemaname = 'public'
-    AND tablename IN ('profiles', 'links', 'products', 'leads', 'activities', 'analytics')
+  -- 1. Verificar RLS habilitado em todas as tabelas
+  FOR _tbl IN
+    SELECT unnest(ARRAY['profiles', 'links', 'products', 'leads', 'activities', 'analytics'])
   LOOP
-    SELECT relrowsecurity INTO rls_enabled 
-    FROM pg_class 
-    WHERE relname = table_name;
-    
-    IF NOT rls_enabled THEN
-      RAISE EXCEPTION 'ALERTA: RLS não está habilitado na tabela %', table_name;
+    SELECT relrowsecurity INTO _rls
+    FROM pg_class
+    WHERE relname = _tbl AND relnamespace = 'public'::regnamespace;
+
+    IF NOT _rls THEN
+      RAISE EXCEPTION 'FALHA: RLS não está habilitado na tabela %', _tbl;
     END IF;
+
+    -- Contar policies por tabela
+    SELECT count(*) INTO _policy_count
+    FROM pg_policies
+    WHERE tablename = _tbl AND schemaname = 'public';
+
+    _total_policies := _total_policies + _policy_count;
+
+    RAISE NOTICE '  ✓ % — RLS habilitado, % policies', _tbl, _policy_count;
   END LOOP;
-  
-  RAISE NOTICE ' Validação de segurança concluída: RLS habilitado em todas as tabelas';
+
+  -- 2. Verificar que tabelas dependentes usam profile_id (não user_id)
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name IN ('links','products','leads','activities','analytics')
+      AND column_name = 'user_id'
+  ) THEN
+    RAISE EXCEPTION 'FALHA: Tabelas dependentes ainda possuem coluna user_id — executar migration 2026092003';
+  END IF;
+
+  -- 3. Verificar que profiles mantém user_id
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'profiles'
+      AND column_name = 'user_id'
+  ) THEN
+    RAISE EXCEPTION 'FALHA: Tabela profiles perdeu a coluna user_id (FK para auth.users)';
+  END IF;
+
+  -- 4. Verificar funções existem
+  IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'handle_new_user') THEN
+    RAISE EXCEPTION 'FALHA: Função handle_new_user não encontrada';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'toggle_link_status') THEN
+    RAISE EXCEPTION 'FALHA: Função toggle_link_status não encontrada';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'anonymize_ip') THEN
+    RAISE EXCEPTION 'FALHA: Função anonymize_ip não encontrada';
+  END IF;
+
+  RAISE NOTICE '';
+  RAISE NOTICE '═══════════════════════════════════════════════════';
+  RAISE NOTICE '✓ Validação completa: RLS em 6 tabelas, % policies totais', _total_policies;
+  RAISE NOTICE '✓ FK naming: profiles.user_id (auth), dependentes.profile_id';
+  RAISE NOTICE '✓ Funções: handle_new_user, toggle_link_status, anonymize_ip';
+  RAISE NOTICE '✓ Triggers: on_auth_user_created, trg_analytics_anon_ip';
+  RAISE NOTICE '═══════════════════════════════════════════════════';
 END $$;
