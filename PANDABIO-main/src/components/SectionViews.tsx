@@ -4,6 +4,7 @@ import { PageEditor } from './PageEditor';
 import { ProfileSection } from './ProfileSection';
 import { LinksSection } from './LinksSection';
 import { ProductsSection } from './ProductsSection';
+import { ContentSection } from './ContentSection';
 
 interface SectionViewsProps {
   section: NavSection;
@@ -75,6 +76,11 @@ export const SectionViews: React.FC<SectionViewsProps> = ({
         onAddProduct={onOpenCreateItem || (() => {})}
       />
     );
+  }
+
+  // Seção de Conteúdo
+  if (section === 'conteudo') {
+    return <ContentSection />;
   }
 
   // Outras seções mantidas vazias por enquanto
