@@ -2,6 +2,7 @@ import React from 'react';
 import { NavSection, BioLink, ProductItem, LeadItem, UserProfile } from '../types';
 import { PageEditor } from './PageEditor';
 import { ProfileSection } from './ProfileSection';
+import { LinksSection } from './LinksSection';
 
 interface SectionViewsProps {
   section: NavSection;
@@ -14,13 +15,18 @@ interface SectionViewsProps {
   onOpenPhonePreview?: () => void;
   onUpdateUser?: (u: Partial<UserProfile>) => void;
   onLogout?: () => void;
+  onReorderLinks?: (reordered: BioLink[]) => void;
 }
 
 export const SectionViews: React.FC<SectionViewsProps> = ({
   section,
+  links,
   user,
+  onToggleLink,
+  onOpenCreateItem,
   onUpdateUser,
   onLogout,
+  onReorderLinks,
 }) => {
   // Renderizar PageEditor para a seção 'minha-pagina'
   if (section === 'minha-pagina' && user) {
@@ -40,6 +46,18 @@ export const SectionViews: React.FC<SectionViewsProps> = ({
         user={user}
         onUpdateUser={onUpdateUser || (() => {})}
         onLogout={onLogout}
+      />
+    );
+  }
+
+  // Seção de Links
+  if (section === 'links') {
+    return (
+      <LinksSection
+        links={links || []}
+        onToggleLink={onToggleLink || (() => {})}
+        onAddLink={onOpenCreateItem || (() => {})}
+        onReorder={onReorderLinks}
       />
     );
   }

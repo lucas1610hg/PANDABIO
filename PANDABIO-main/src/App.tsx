@@ -265,6 +265,7 @@ export default function App() {
                   onOpenPhonePreview={() => setIsPhonePreviewOpen(true)}
                   onUpdateUser={handleUpdateUser}
                   onLogout={handleLogout}
+                  onReorderLinks={handleReorderLinks}
                 />
               )}
             </main>
