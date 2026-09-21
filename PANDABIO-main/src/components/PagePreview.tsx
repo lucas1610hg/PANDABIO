@@ -492,7 +492,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ profile, theme, blocks
                         />
                       ) : (
                         <span className="flex flex-col items-center gap-0.5">
-                          <ShoppingBag aria-hidden="true" className="w-4 h-4 text-gray-400" />
+                          <ShoppingBag aria-hidden="true" className="w-4 h-4 text-gray-500" />
                           <span className={`text-[9px] ${muted}`}>Sem imagem</span>
                         </span>
                       )}

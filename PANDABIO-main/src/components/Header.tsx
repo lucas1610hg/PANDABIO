@@ -143,7 +143,7 @@ export const Header: React.FC<HeaderProps> = ({
                   )}
                   <button
                     onClick={() => setShowNotifications(false)}
-                    className="p-1 text-gray-400 hover:text-gray-600 cursor-pointer"
+                    className="p-1 text-gray-500 hover:text-gray-600 cursor-pointer"
                   >
                     <X aria-hidden="true" className="w-4 h-4" />
                   </button>
@@ -163,7 +163,7 @@ export const Header: React.FC<HeaderProps> = ({
                         <span className="font-semibold text-xs text-neutral-dark">
                           {item.title}
                         </span>
-                        <span className="text-[10px] text-gray-400 shrink-0">{item.time}</span>
+                        <span className="text-[10px] text-gray-500 shrink-0">{item.time}</span>
                       </div>
                       <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">{item.desc}</p>
                     </div>

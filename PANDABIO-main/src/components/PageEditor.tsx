@@ -478,7 +478,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <User aria-hidden="true" className="w-9 h-9 text-gray-400" />
+                        <User aria-hidden="true" className="w-9 h-9 text-gray-500" />
                       )}
                     </div>
                     <button
@@ -507,7 +507,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <ImagePlus aria-hidden="true" className="w-6 h-6 text-gray-400" />
+                        <ImagePlus aria-hidden="true" className="w-6 h-6 text-gray-500" />
                       )}
                     </div>
                     <div className="flex flex-col gap-2">
@@ -536,7 +536,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                       onChange={handleCoverChange}
                     />
                   </div>
-                  <p className="text-[11px] text-gray-400 -mt-2">
+                  <p className="text-[11px] text-gray-500 -mt-2">
                     Opcional. A capa aparecerá no topo da sua página com um degradê suave para o
                     fundo.
                   </p>
@@ -572,7 +572,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                         className="flex-1 px-4 py-2 outline-none"
                       />
                     </div>
-                    <p className="text-[11px] text-gray-400 mt-1">
+                    <p className="text-[11px] text-gray-500 mt-1">
                       Sua página:{' '}
                       <span className="font-mono text-[#FF5E00]">pandabio.com/{user.username}</span>
                     </p>
@@ -582,7 +582,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-sm font-medium text-gray-700">Bio</label>
-                      <span className="text-[10px] text-gray-400 font-medium">
+                      <span className="text-[10px] text-gray-500 font-medium">
                         {(user.bioDescription || '').length}/200
                       </span>
                     </div>
@@ -660,7 +660,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                 </button>
 
                 {pageData.blocks.length === 0 ? (
-                  <div className="text-center py-8 text-gray-400">
+                  <div className="text-center py-8 text-gray-500">
                     <p className="text-sm">Nenhum bloco adicionado ainda</p>
                     <p className="text-xs mt-1">Adicione blocos para personalizar sua página</p>
                   </div>
@@ -719,7 +719,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                             className={`p-1.5 rounded transition-colors cursor-pointer ${
                               block.active === false
                                 ? 'text-green-500 hover:bg-green-50'
-                                : 'text-gray-400 hover:bg-gray-200'
+                                : 'text-gray-500 hover:bg-gray-200'
                             }`}
                           >
                             <Power aria-hidden="true" className="w-4 h-4" />

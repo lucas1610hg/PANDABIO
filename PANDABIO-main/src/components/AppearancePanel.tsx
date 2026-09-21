@@ -28,7 +28,7 @@ interface AppearancePanelProps {
 }
 
 const SECTION_TITLE = 'block text-sm font-semibold text-gray-700 mb-2';
-const SECTION_HINT = 'block text-xs text-gray-400 mb-2.5';
+const SECTION_HINT = 'block text-xs text-gray-500 mb-2.5';
 const FIELD_LABEL = 'block text-xs text-gray-500 mb-1.5';
 const INPUT_BASE =
   'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent text-sm bg-white';
@@ -171,7 +171,7 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
           <button
             onClick={() => onThemeUpdate({ ...defaultPageTheme(), ...resetResidualFields() })}
             title="Restaurar configuração padrão"
-            className="flex items-center gap-1 text-xs text-gray-400 hover:text-[#FF5E00] transition-colors cursor-pointer"
+            className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#FF5E00] transition-colors cursor-pointer"
           >
             <RotateCcw aria-hidden="true" className="w-3.5 h-3.5" /> Restaurar padrão
           </button>
@@ -223,7 +223,7 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
           ]}
           onSelect={(id) => onThemeUpdate({ theme: id as ThemeType })}
         />
-        <p className="text-[11px] text-gray-400 mt-1.5">
+        <p className="text-[11px] text-gray-500 mt-1.5">
           Em cores personalizadas, o modo define qual conjunto de cores (claras ou escuras) é
           exibido no preview.
         </p>
@@ -421,7 +421,7 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
                     StorageService.deleteByUrl(theme.backgroundImage);
                     onThemeUpdate({ backgroundImage: undefined });
                   }}
-                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                  className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors cursor-pointer"
                 >
                   <X aria-hidden="true" className="w-3.5 h-3.5" /> Remover
                 </button>

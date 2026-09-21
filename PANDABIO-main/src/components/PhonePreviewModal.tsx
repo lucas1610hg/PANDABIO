@@ -72,7 +72,7 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(
             <button
               onClick={onClose}
               aria-label="Fechar prévia"
-              className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+              className="p-1.5 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
             >
               <X aria-hidden="true" className="w-5 h-5" />
             </button>
@@ -208,9 +208,9 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(
                 ))
               ) : (
                 <div className="p-4 text-center rounded-2xl bg-gray-50 border border-dashed border-gray-200 w-full my-2">
-                  <Link2 aria-hidden="true" className="w-5 h-5 mx-auto text-gray-400 mb-1" />
+                  <Link2 aria-hidden="true" className="w-5 h-5 mx-auto text-gray-500 mb-1" />
                   <p className="text-xs font-semibold text-gray-600">Nenhum link ativo</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">
+                  <p className="text-[10px] text-gray-500 mt-0.5">
                     Adicione links no painel para exibi-los aqui.
                   </p>
                 </div>

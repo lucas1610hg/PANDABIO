@@ -351,7 +351,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                     {/* Divider */}
                     <div className="flex items-center my-3">
                       <div className="flex-grow border-t border-gray-200" />
-                      <span className="flex-shrink mx-3 text-xs text-gray-400 font-medium tracking-wide uppercase">
+                      <span className="flex-shrink mx-3 text-xs text-gray-500 font-medium tracking-wide uppercase">
                         ou com seus dados
                       </span>
                       <div className="flex-grow border-t border-gray-200" />
@@ -398,12 +398,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                             type="button"
                             aria-label="Exibir ou ocultar senha"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+                            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-gray-600 focus:outline-none cursor-pointer"
                           >
                             {showPassword ? (
-                              <EyeOff aria-hidden="true" className="w-5 h-5 text-gray-400" />
+                              <EyeOff aria-hidden="true" className="w-5 h-5 text-gray-500" />
                             ) : (
-                              <Eye aria-hidden="true" className="w-5 h-5 text-gray-400" />
+                              <Eye aria-hidden="true" className="w-5 h-5 text-gray-500" />
                             )}
                           </button>
                         </div>
@@ -556,7 +556,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                     {/* Divider */}
                     <div className="flex items-center my-3">
                       <div className="flex-grow border-t border-gray-200" />
-                      <span className="flex-shrink mx-3 text-xs text-gray-400 font-medium tracking-wide uppercase">
+                      <span className="flex-shrink mx-3 text-xs text-gray-500 font-medium tracking-wide uppercase">
                         ou com seus dados
                       </span>
                       <div className="flex-grow border-t border-gray-200" />
@@ -608,7 +608,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                           Nome de usuário
                         </label>
                         <div className="flex items-center w-full px-3 py-2.5 bg-[#F1F3F6] rounded-2xl focus-within:bg-white focus-within:ring-2 focus-within:ring-[#FF5E00] transition duration-150">
-                          <span className="text-xs sm:text-sm font-medium text-gray-400 select-none pl-1">
+                          <span className="text-xs sm:text-sm font-medium text-gray-500 select-none pl-1">
                             panda.bio/
                           </span>
                           <input
@@ -644,12 +644,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                             type="button"
                             aria-label="Exibir ou ocultar senha"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+                            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-gray-600 focus:outline-none cursor-pointer"
                           >
                             {showPassword ? (
-                              <EyeOff aria-hidden="true" className="w-5 h-5 text-gray-400" />
+                              <EyeOff aria-hidden="true" className="w-5 h-5 text-gray-500" />
                             ) : (
-                              <Eye aria-hidden="true" className="w-5 h-5 text-gray-400" />
+                              <Eye aria-hidden="true" className="w-5 h-5 text-gray-500" />
                             )}
                           </button>
                         </div>

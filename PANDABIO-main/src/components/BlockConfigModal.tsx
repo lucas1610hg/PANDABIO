@@ -554,7 +554,7 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                 </div>
               ))}
               {(form.gallery?.images.length || 0) < 10 && (
-                <label className="aspect-square rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-[#FF7A00] hover:text-[#FF7A00] cursor-pointer transition-colors">
+                <label className="aspect-square rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-1 text-gray-500 hover:border-[#FF7A00] hover:text-[#FF7A00] cursor-pointer transition-colors">
                   <Plus aria-hidden="true" className="w-5 h-5" />
                   <span className="text-[10px] font-semibold">Adicionar</span>
                   <input
@@ -587,7 +587,7 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
               )}
             </div>
             {form.gallery?.images && form.gallery.images.length > 0 && (
-              <p className="text-[11px] text-gray-400">
+              <p className="text-[11px] text-gray-500">
                 A galeria salva as imagens localmente. Até 10 imagens.
               </p>
             )}
@@ -789,7 +789,7 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                 </button>
               </div>
               {(!form.products || form.products.length === 0) && (
-                <p className="text-xs text-gray-400 text-center py-3 border border-dashed border-gray-300 rounded-xl">
+                <p className="text-xs text-gray-500 text-center py-3 border border-dashed border-gray-300 rounded-xl">
                   Nenhum produto no catálogo. Clique em "Adicionar produto".
                 </p>
               )}
@@ -800,7 +800,7 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                     className="border border-gray-200 rounded-xl p-3 space-y-2.5"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
+                      <span className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
                         Produto {index + 1}
                       </span>
                       <button
@@ -827,7 +827,7 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <ImageIcon className="w-5 h-5 text-gray-300" />
+                          <ImageIcon className="w-5 h-5 text-gray-400" />
                         )}
                       </div>
                       <div className="flex-1 space-y-2.5">
@@ -961,7 +961,7 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                     {galleryOpenFor === product.id && (
                       <div className="rounded-xl border border-gray-200 p-2">
                         {gallery.length === 0 ? (
-                          <p className="text-[11px] text-gray-400 text-center py-2">
+                          <p className="text-[11px] text-gray-500 text-center py-2">
                             Nenhuma imagem na galeria ainda. Suba imagens para reutilizá-las.
                           </p>
                         ) : (
