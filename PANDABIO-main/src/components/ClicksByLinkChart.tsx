@@ -21,7 +21,7 @@ export const ClicksByLinkChart: React.FC<ClicksByLinkChartProps> = ({ links = []
             <BarChart3 className="w-4 h-4" />
           </div>
           <div className="flex flex-col">
-            <h3 className="text-base font-bold text-[#131b2e]">Cliques por link</h3>
+            <h2 className="text-base font-bold text-[#131b2e]">Cliques por link</h2>
             <span className="text-xs text-[#464555]">Últimos 7 dias</span>
           </div>
         </div>

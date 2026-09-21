@@ -278,6 +278,8 @@ CREATE POLICY "Users can insert own profile" ON profiles
 -- View pública enxuta (somente perfis publicados)
 DROP POLICY IF EXISTS "Public can view usernames" ON profiles;
 
+DROP VIEW IF EXISTS public_profile_pages;
+
 CREATE OR REPLACE VIEW public_profile_pages AS
 SELECT
   id,

@@ -43,7 +43,7 @@ export const Card: React.FC<CardProps> = ({
               {icon}
             </div>
             <div className="flex flex-col">
-              <h4 className="text-sm font-bold text-neutral-dark leading-tight">{title}</h4>
+              <h2 className="text-sm font-bold text-neutral-dark leading-tight">{title}</h2>
               {subtitle && <span className="text-[11px] text-neutral-gray">{subtitle}</span>}
             </div>
           </div>

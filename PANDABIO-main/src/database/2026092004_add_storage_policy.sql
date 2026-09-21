@@ -27,8 +27,7 @@ SET
     file_size_limit    = EXCLUDED.file_size_limit,
     allowed_mime_types = EXCLUDED.allowed_mime_types;
 
--- 2. RLS habilitado em storage.objects
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+-- 2. RLS em storage.objects já é gerenciado pelo Supabase por padrão.
 
 -- 3. Policies — DROP IF EXISTS garante idempotência
 

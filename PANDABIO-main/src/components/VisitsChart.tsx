@@ -76,7 +76,7 @@ export const VisitsChart: React.FC<VisitsChartProps> = ({ totalVisits = 0 }) => 
             <TrendingUp className="w-4 h-4" />
           </div>
           <div className="flex flex-col">
-            <h3 className="text-base font-bold text-[#131b2e]">Visitas à página</h3>
+            <h2 className="text-base font-bold text-[#131b2e]">Visitas à página</h2>
             <span className="text-xs text-[#464555]">{TIMEFRAME_LABEL[timeframe]}</span>
           </div>
         </div>

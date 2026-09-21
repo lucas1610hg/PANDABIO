@@ -32,9 +32,9 @@ export const DetailedReportModal: React.FC<DetailedReportModalProps> = ({
             <TrendingUp className="w-5 h-5" />
           </div>
           <div>
-            <h3 id="report-modal-title" className="font-bold text-lg text-[#131b2e]">
+            <h2 id="report-modal-title" className="font-bold text-lg text-[#131b2e]">
               Relatório de Desempenho PandaBio
-            </h3>
+            </h2>
             <p className="text-xs text-[#464555]">
               Análise de tráfego, cliques e conversões da sua página
             </p>
@@ -61,11 +61,11 @@ export const DetailedReportModal: React.FC<DetailedReportModalProps> = ({
             <span className="text-xs font-bold text-[#FF7A00] uppercase tracking-wider">
               Status dos Dados
             </span>
-            <h4 className="text-sm sm:text-base font-extrabold text-[#131b2e] leading-snug">
+            <h3 className="text-sm sm:text-base font-extrabold text-[#131b2e] leading-snug">
               {totalClicks > 0
                 ? `Sua página registrou ${totalClicks} cliques e ${totalLeads} leads reais.`
                 : 'Sua página está pronta para receber tráfego e registrar cliques.'}
-            </h4>
+            </h3>
             <p className="text-xs text-[#464555] mt-0.5">
               Os dados são atualizados conforme seus seguidores interagem com sua bio oficial.
             </p>
@@ -110,9 +110,9 @@ export const DetailedReportModal: React.FC<DetailedReportModalProps> = ({
 
         {/* Top Recommendations */}
         <div>
-          <h4 className="font-bold text-sm text-[#131b2e] mb-2.5">
+          <h3 className="font-bold text-sm text-[#131b2e] mb-2.5">
             Dicas para potencializar sua bio
-          </h4>
+          </h3>
           <div className="space-y-2">
             <div className="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50 text-emerald-950 text-xs border border-emerald-100">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />

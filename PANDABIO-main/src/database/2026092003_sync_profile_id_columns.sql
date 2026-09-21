@@ -18,22 +18,26 @@ DECLARE
 BEGIN
   FOR _tbl IN SELECT unnest(ARRAY['links','products','leads','activities','analytics'])
   LOOP
-    -- Verifica se a coluna user_id existe na tabela
+    -- Verifica se a coluna user_id existe na tabela e se é BASE TABLE
     IF EXISTS (
-      SELECT 1 FROM information_schema.columns
-      WHERE table_schema = 'public'
-        AND table_name  = _tbl
-        AND column_name = 'user_id'
+      SELECT 1 FROM information_schema.columns c
+      JOIN information_schema.tables t ON c.table_name = t.table_name AND c.table_schema = t.table_schema
+      WHERE c.table_schema = 'public'
+        AND c.table_name  = _tbl
+        AND c.column_name = 'user_id'
+        AND t.table_type = 'BASE TABLE'
     ) AND NOT EXISTS (
-      SELECT 1 FROM information_schema.columns
-      WHERE table_schema = 'public'
-        AND table_name  = _tbl
-        AND column_name = 'profile_id'
+      SELECT 1 FROM information_schema.columns c
+      JOIN information_schema.tables t ON c.table_name = t.table_name AND c.table_schema = t.table_schema
+      WHERE c.table_schema = 'public'
+        AND c.table_name  = _tbl
+        AND c.column_name = 'profile_id'
+        AND t.table_type = 'BASE TABLE'
     ) THEN
       EXECUTE format('ALTER TABLE public.%I RENAME COLUMN user_id TO profile_id', _tbl);
       RAISE NOTICE 'Renamed user_id → profile_id in table %', _tbl;
     ELSE
-      RAISE NOTICE 'Table % already has profile_id (or no user_id to rename) — skipping', _tbl;
+      RAISE NOTICE 'Table % already has profile_id, has no user_id, or is a view — skipping', _tbl;
     END IF;
   END LOOP;
 END $$;
@@ -63,10 +67,12 @@ DECLARE
   _count int;
 BEGIN
   SELECT count(*) INTO _count
-  FROM information_schema.columns
-  WHERE table_schema = 'public'
-    AND table_name IN ('links','products','leads','activities','analytics')
-    AND column_name = 'user_id';
+  FROM information_schema.columns c
+  JOIN information_schema.tables t ON c.table_name = t.table_name AND c.table_schema = t.table_schema
+  WHERE c.table_schema = 'public'
+    AND c.table_name IN ('links','products','leads','activities','analytics')
+    AND c.column_name = 'user_id'
+    AND t.table_type = 'BASE TABLE';
 
   IF _count > 0 THEN
     RAISE EXCEPTION 'FALHA: % tabelas dependentes ainda possuem coluna user_id', _count;

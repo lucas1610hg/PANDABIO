@@ -128,9 +128,9 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
                 <Package className="w-4 h-4" />
               )}
             </div>
-            <h3 id="create-item-title" className="font-bold text-base text-[#131b2e]">
+            <h2 id="create-item-title" className="font-bold text-base text-[#131b2e]">
               Criar Novo Item
-            </h3>
+            </h2>
           </div>
           <button
             onClick={onClose}

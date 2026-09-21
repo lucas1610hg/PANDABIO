@@ -56,9 +56,9 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
         </div>
 
         <div className="mt-4 relative z-10">
-          <h3 id="upgrade-modal-title" className="text-2xl font-extrabold tracking-tight">
+          <h2 id="upgrade-modal-title" className="text-2xl font-extrabold tracking-tight">
             Evolua sua Bio para o nível profissional
-          </h3>
+          </h2>
           <p className="text-xs text-gray-300 mt-1">
             Todas as ferramentas que você precisa para multiplicar suas conversões.
           </p>

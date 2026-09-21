@@ -118,12 +118,12 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(
                     />
                     <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-[#10B981] border-2 border-white" />
                   </div>
-                  <h3
+                  <h2
                     className="font-bold text-base text-white tracking-tight"
                     style={{ textShadow: '0 1px 8px rgba(0,0,0,0.5)' }}
                   >
                     {user.pageTitle || user.name}
-                  </h3>
+                  </h2>
                   <span
                     className="text-xs text-[#FFC99B] font-semibold"
                     style={{ textShadow: '0 1px 8px rgba(0,0,0,0.5)' }}
@@ -152,9 +152,9 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(
                   <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-[#10B981] border-2 border-white" />
                 </div>
                 {/* Name & Bio Title */}
-                <h3 className="font-bold text-base text-[#131b2e] tracking-tight text-center">
+                <h2 className="font-bold text-base text-[#131b2e] tracking-tight text-center">
                   {user.pageTitle || user.name}
-                </h3>
+                </h2>
                 <span className="text-xs text-[#FF7A00] font-semibold">@{user.username}</span>
                 {/* Bio Description */}
                 {user.bioDescription && (

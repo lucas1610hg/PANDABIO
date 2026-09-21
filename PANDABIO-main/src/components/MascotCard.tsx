@@ -23,9 +23,9 @@ export const MascotCard: React.FC<MascotCardProps> = ({ onOpenReport, hasActivit
           />
         </div>
 
-        <h4 className="text-base font-bold text-[#131b2e] leading-tight">
+        <h2 className="text-base font-bold text-[#131b2e] leading-tight">
           {hasActivity ? 'Sua página está no ar!' : 'Sua página está pronta!'}
-        </h4>
+        </h2>
         <p className="text-xs text-[#464555] mt-1.5 leading-snug">
           {hasActivity
             ? 'Acompanhe as métricas de cliques, leads e conversões nos relatórios.'

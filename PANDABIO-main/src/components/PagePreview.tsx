@@ -736,12 +736,12 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ profile, theme, blocks
                   className="w-full h-full object-cover rounded-full bg-white"
                 />
               </div>
-              <h3
+              <h1
                 className="font-bold text-lg tracking-tight text-white"
                 style={{ textShadow: '0 1px 10px rgba(0,0,0,0.55)' }}
               >
                 {profile.pageTitle || profile.name}
-              </h3>
+              </h1>
               <span
                 className="text-xs font-semibold text-[#FFC99B]"
                 style={{ textShadow: '0 1px 8px rgba(0,0,0,0.55)' }}
@@ -783,9 +783,9 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ profile, theme, blocks
                 className="w-full h-full object-cover rounded-full bg-white"
               />
             </div>
-            <h3 className="font-bold text-lg tracking-tight" style={{ color: textColor }}>
+            <h1 className="font-bold text-lg tracking-tight" style={{ color: textColor }}>
               {profile.pageTitle || profile.name}
-            </h3>
+            </h1>
             <span className="text-xs font-semibold text-[#FF7A00]">@{profile.username}</span>
 
             {profile.bioDescription && (
