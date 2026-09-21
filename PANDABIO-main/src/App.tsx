@@ -44,6 +44,7 @@ export default function App() {
     toggleLink,
     addLink,
     reorderLinks,
+    toggleProduct,
     addProduct,
     updateUserProfile,
     upgradeToPro,
@@ -115,6 +116,10 @@ export default function App() {
 
   const handleReorderLinks = (reordered: BioLink[]) => {
     reorderLinks(reordered);
+  };
+
+  const handleToggleProduct = (id: string) => {
+    toggleProduct(id);
   };
 
   const handleAddProduct = (newProd: ProductItem) => {
@@ -261,6 +266,7 @@ export default function App() {
                   leads={leads}
                   user={user}
                   onToggleLink={handleToggleLink}
+                  onToggleProduct={handleToggleProduct}
                   onOpenCreateItem={() => setIsCreateItemOpen(true)}
                   onOpenPhonePreview={() => setIsPhonePreviewOpen(true)}
                   onUpdateUser={handleUpdateUser}

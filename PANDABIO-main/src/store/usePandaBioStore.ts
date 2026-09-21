@@ -32,6 +32,7 @@ interface PandaBioStore {
   toggleLink: (linkId: string) => void;
   addLink: (link: BioLink) => void;
   reorderLinks: (reordered: BioLink[]) => void;
+  toggleProduct: (productId: string) => void;
   addProduct: (product: ProductItem) => void;
   updateUserProfile: (updates: Partial<UserProfile>) => void;
   upgradeToPro: () => void;
@@ -224,6 +225,15 @@ export const usePandaBioStore = create<PandaBioStore>((set, get) => {
 
     reorderLinks: (reordered: BioLink[]) => {
       get().updateCurrentAccount((prev) => ({ ...prev, links: reordered }));
+    },
+
+    toggleProduct: (productId: string) => {
+      get().updateCurrentAccount((prev) => ({
+        ...prev,
+        products: prev.products.map((p: ProductItem) =>
+          p.id === productId ? { ...p, status: p.status === 'active' ? 'draft' : 'active' } : p
+        ),
+      }));
     },
 
     addProduct: (product: ProductItem) => {

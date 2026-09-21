@@ -3,6 +3,7 @@ import { NavSection, BioLink, ProductItem, LeadItem, UserProfile } from '../type
 import { PageEditor } from './PageEditor';
 import { ProfileSection } from './ProfileSection';
 import { LinksSection } from './LinksSection';
+import { ProductsSection } from './ProductsSection';
 
 interface SectionViewsProps {
   section: NavSection;
@@ -11,6 +12,7 @@ interface SectionViewsProps {
   leads?: LeadItem[];
   user?: UserProfile;
   onToggleLink?: (id: string) => void;
+  onToggleProduct?: (id: string) => void;
   onOpenCreateItem?: () => void;
   onOpenPhonePreview?: () => void;
   onUpdateUser?: (u: Partial<UserProfile>) => void;
@@ -21,8 +23,10 @@ interface SectionViewsProps {
 export const SectionViews: React.FC<SectionViewsProps> = ({
   section,
   links,
+  products,
   user,
   onToggleLink,
+  onToggleProduct,
   onOpenCreateItem,
   onUpdateUser,
   onLogout,
@@ -58,6 +62,17 @@ export const SectionViews: React.FC<SectionViewsProps> = ({
         onToggleLink={onToggleLink || (() => {})}
         onAddLink={onOpenCreateItem || (() => {})}
         onReorder={onReorderLinks}
+      />
+    );
+  }
+
+  // Seção de Produtos
+  if (section === 'produtos') {
+    return (
+      <ProductsSection
+        products={products || []}
+        onToggleProduct={onToggleProduct || (() => {})}
+        onAddProduct={onOpenCreateItem || (() => {})}
       />
     );
   }
