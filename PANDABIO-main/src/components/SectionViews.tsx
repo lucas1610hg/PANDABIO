@@ -5,6 +5,7 @@ import { ProfileSection } from './ProfileSection';
 import { LinksSection } from './LinksSection';
 import { ProductsSection } from './ProductsSection';
 import { ContentSection } from './ContentSection';
+import { AppearanceSection } from './AppearanceSection';
 
 interface SectionViewsProps {
   section: NavSection;
@@ -81,6 +82,11 @@ export const SectionViews: React.FC<SectionViewsProps> = ({
   // Seção de Conteúdo
   if (section === 'conteudo') {
     return <ContentSection />;
+  }
+
+  // Seção de Aparência
+  if (section === 'aparencia') {
+    return <AppearanceSection />;
   }
 
   // Outras seções mantidas vazias por enquanto
