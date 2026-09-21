@@ -113,7 +113,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      label="Criar novo item"
+      titleId="create-item-title"
       size="sm"
       initialFocusRef={activeTab === 'link' ? linkTitleRef : prodNameRef}
     >
@@ -128,7 +128,9 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
                 <Package className="w-4 h-4" />
               )}
             </div>
-            <h3 className="font-bold text-base text-[#131b2e]">Criar Novo Item</h3>
+            <h3 id="create-item-title" className="font-bold text-base text-[#131b2e]">
+              Criar Novo Item
+            </h3>
           </div>
           <button
             onClick={onClose}

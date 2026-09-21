@@ -24,7 +24,7 @@ export const DetailedReportModal: React.FC<DetailedReportModalProps> = ({
   const activeLinks = links.filter((l) => l.active).length;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} label="Relatório de Desempenho PandaBio" size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} titleId="report-modal-title" size="lg">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-[#faf8ff]">
         <div className="flex items-center gap-3">
@@ -32,7 +32,9 @@ export const DetailedReportModal: React.FC<DetailedReportModalProps> = ({
             <TrendingUp className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-lg text-[#131b2e]">Relatório de Desempenho PandaBio</h3>
+            <h3 id="report-modal-title" className="font-bold text-lg text-[#131b2e]">
+              Relatório de Desempenho PandaBio
+            </h3>
             <p className="text-xs text-[#464555]">
               Análise de tráfego, cliques e conversões da sua página
             </p>

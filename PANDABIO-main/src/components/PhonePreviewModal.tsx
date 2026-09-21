@@ -51,12 +51,14 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(
     const activeLinks = links.filter((l) => l.active);
 
     return (
-      <Modal isOpen={isOpen} onClose={onClose} label={`Prévia da página: ${user.bioUrl}`} size="sm">
+      <Modal isOpen={isOpen} onClose={onClose} titleId="preview-modal-title" size="sm">
         {/* Header bar */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 bg-[#faf8ff]">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse" />
-            <span className="text-xs font-bold text-[#131b2e]">Prévia: {user.bioUrl}</span>
+            <span id="preview-modal-title" className="text-xs font-bold text-[#131b2e]">
+              Prévia: {user.bioUrl}
+            </span>
           </div>
           <div className="flex items-center gap-1.5">
             <button

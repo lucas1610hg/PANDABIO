@@ -26,7 +26,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
   ];
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} label="Ativar PandaBio PRO">
+    <Modal isOpen={isOpen} onClose={onClose} titleId="upgrade-modal-title">
       {/* Top Header with Dark Panda Gradient */}
       <div
         className="p-6 text-white relative overflow-hidden"
@@ -56,7 +56,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
         </div>
 
         <div className="mt-4 relative z-10">
-          <h3 className="text-2xl font-extrabold tracking-tight">
+          <h3 id="upgrade-modal-title" className="text-2xl font-extrabold tracking-tight">
             Evolua sua Bio para o nível profissional
           </h3>
           <p className="text-xs text-gray-300 mt-1">

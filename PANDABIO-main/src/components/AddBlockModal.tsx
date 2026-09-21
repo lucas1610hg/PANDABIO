@@ -93,10 +93,12 @@ export const AddBlockModal: React.FC<AddBlockModalProps> = ({ isOpen, onClose, o
   if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} label="Adicionar bloco" size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} titleId="add-block-title" size="lg">
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200">
-        <h2 className="text-xl font-bold text-[#131b2e]">Adicionar Bloco</h2>
+        <h2 id="add-block-title" className="text-xl font-bold text-[#131b2e]">
+          Adicionar Bloco
+        </h2>
         <button
           onClick={onClose}
           aria-label="Fechar"

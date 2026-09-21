@@ -1151,11 +1151,13 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
     <Modal
       isOpen={!!block}
       onClose={onClose}
-      label={`Configurar bloco de ${BLOCK_NAMES[block.type]}`}
+      titleId="block-config-title"
       size={block.type === 'produto' ? 'lg' : 'md'}
     >
       <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-gray-100">
-        <h3 className="font-bold text-base text-[#131b2e]">Configurar {BLOCK_NAMES[block.type]}</h3>
+        <h3 id="block-config-title" className="font-bold text-base text-[#131b2e]">
+          Configurar {BLOCK_NAMES[block.type]}
+        </h3>
         <button
           onClick={() => {
             onDelete(block.id);
