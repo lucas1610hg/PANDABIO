@@ -281,7 +281,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ profile, theme, blocks
               <Icon className="w-4 h-4 text-[#3525cd]" />
             </span>
             <span className="truncate">{block.title || block.content || 'Meu link'}</span>
-            <ExternalLink className="w-3 h-3 opacity-40 ml-auto shrink-0" />
+            <ExternalLink aria-hidden="true" className="w-3 h-3 opacity-40 ml-auto shrink-0" />
           </span>,
         );
       }
@@ -382,7 +382,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ profile, theme, blocks
                 />
                 <span className="absolute inset-0 flex items-center justify-center">
                   <span className="w-11 h-11 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
-                    <Play className="w-5 h-5 text-[#131b2e] ml-0.5" />
+                    <Play aria-hidden="true" className="w-5 h-5 text-[#131b2e] ml-0.5" />
                   </span>
                 </span>
                 <span
@@ -395,7 +395,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ profile, theme, blocks
               <>
                 <div className="h-24 bg-black/70 flex items-center justify-center">
                   <span className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center">
-                    <Play className="w-4 h-4 text-[#131b2e] ml-0.5" />
+                    <Play aria-hidden="true" className="w-4 h-4 text-[#131b2e] ml-0.5" />
                   </span>
                 </div>
                 <span
@@ -414,7 +414,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ profile, theme, blocks
         return (
           <div className={`${cardCls} space-y-1.5`}>
             <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-[#FF7A00]" />
+              <Calendar aria-hidden="true" className="w-4 h-4 text-[#FF7A00]" />
               <span className={`font-bold text-sm ${titleStrong}`}>
                 {block.appointmentTitle || block.title || 'Agende seu horário'}
               </span>
@@ -437,12 +437,12 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ profile, theme, blocks
                 <div className="flex items-center gap-2.5 pt-1">
                   {block.showPrice && block.price !== undefined && (
                     <span className={`flex items-center gap-1 text-[11px] ${muted}`}>
-                      <Tag className="w-3 h-3" /> {currency(block.price)}
+                      <Tag aria-hidden="true" className="w-3 h-3" /> {currency(block.price)}
                     </span>
                   )}
                   {block.showDuration && block.duration && (
                     <span className={`flex items-center gap-1 text-[11px] ${muted}`}>
-                      <Clock className="w-3 h-3" /> {block.duration} min
+                      <Clock aria-hidden="true" className="w-3 h-3" /> {block.duration} min
                     </span>
                   )}
                 </div>
@@ -467,7 +467,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ profile, theme, blocks
             <div className={cardCls}>
               <div className="flex items-center gap-2 mb-2.5">
                 <span className="w-7 h-7 rounded-lg bg-[#FF7A00]/15 flex items-center justify-center shrink-0">
-                  <ShoppingBag className="w-3.5 h-3.5 text-[#FF7A00]" />
+                  <ShoppingBag aria-hidden="true" className="w-3.5 h-3.5 text-[#FF7A00]" />
                 </span>
                 <span className={`font-bold text-sm ${titleStrong}`}>
                   {block.title || 'Meus produtos'}
@@ -492,7 +492,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ profile, theme, blocks
                         />
                       ) : (
                         <span className="flex flex-col items-center gap-0.5">
-                          <ShoppingBag className="w-4 h-4 text-gray-400" />
+                          <ShoppingBag aria-hidden="true" className="w-4 h-4 text-gray-400" />
                           <span className={`text-[9px] ${muted}`}>Sem imagem</span>
                         </span>
                       )}
@@ -604,7 +604,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ profile, theme, blocks
                   className={`flex-1 px-4 py-3 shadow-sm border ${effectiveDark ? 'bg-white/10 border-white/10 text-white' : 'bg-white/95 border-black/5 text-[#131b2e]'} font-bold text-sm flex items-center justify-center gap-2 ${buttonRadius} ${animation}`}
                   style={fxVars('#ffffff')}
                 >
-                  <MessageCircle className="w-4 h-4 text-[#FF7A00]" />
+                  <MessageCircle aria-hidden="true" className="w-4 h-4 text-[#FF7A00]" />
                   WhatsApp
                 </a>
               )}
@@ -614,7 +614,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ profile, theme, blocks
                   className={`flex-1 px-4 py-3 shadow-sm border ${effectiveDark ? 'bg-white/10 border-white/10 text-white' : 'bg-white/95 border-black/5 text-[#131b2e]'} font-bold text-sm flex items-center justify-center gap-2 ${buttonRadius} ${animation}`}
                   style={fxVars('#ffffff')}
                 >
-                  <Mail className="w-4 h-4 text-[#FF7A00]" />
+                  <Mail aria-hidden="true" className="w-4 h-4 text-[#FF7A00]" />
                   E-mail
                 </a>
               )}
@@ -623,7 +623,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ profile, theme, blocks
         }
         return renderBlockButton(
           <span className="flex items-center gap-2.5 justify-center">
-            <Mail className="w-4 h-4 text-[#FF7A00]" />
+            <Mail aria-hidden="true" className="w-4 h-4 text-[#FF7A00]" />
             {block.content || block.title || 'Entre em contato'}
           </span>,
         );
@@ -642,7 +642,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ profile, theme, blocks
             style={fxVars('#ffffff')}
           >
             <span className="w-9 h-9 rounded-lg bg-[#FF7A00]/15 flex items-center justify-center shrink-0">
-              <Music className="w-4 h-4 text-[#FF7A00]" />
+              <Music aria-hidden="true" className="w-4 h-4 text-[#FF7A00]" />
             </span>
             <div className="flex-1 min-w-0">
               <p className={`font-bold text-sm truncate ${titleStrong}`}>
@@ -660,7 +660,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ profile, theme, blocks
               </span>
             )}
             <span className="w-8 h-8 rounded-full bg-[#FF7A00] flex items-center justify-center shrink-0">
-              <Play className="w-3.5 h-3.5 text-white ml-0.5" />
+              <Play aria-hidden="true" className="w-3.5 h-3.5 text-white ml-0.5" />
             </span>
           </div>
         );
@@ -669,7 +669,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ profile, theme, blocks
         return (
           <div className={cardCls}>
             <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[#FF7A00]" />
+              <MapPin aria-hidden="true" className="w-4 h-4 text-[#FF7A00]" />
               <span className={`font-bold text-sm ${titleStrong}`}>
                 {block.title || 'Localização'}
               </span>
@@ -695,7 +695,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ profile, theme, blocks
       default:
         return renderBlockButton(
           <span className="flex items-center gap-2.5">
-            <Link2 className="w-4 h-4 text-[#3525cd]" />
+            <Link2 aria-hidden="true" className="w-4 h-4 text-[#3525cd]" />
             {block.title || block.content || 'Bloco'}
           </span>,
         );
@@ -859,12 +859,12 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ profile, theme, blocks
         <div className="pb-5 flex flex-col items-center gap-1.5">
           {profile.customLink && (
             <span className="flex items-center gap-1 text-[10px] text-gray-500">
-              <Globe className="w-3 h-3" />
+              <Globe aria-hidden="true" className="w-3 h-3" />
               <span className="truncate max-w-[200px]">{profile.customLink}</span>
             </span>
           )}
           <span className={`flex items-center gap-1 text-[10px] ${muted}`}>
-            <PawPrint className="w-3 h-3" />
+            <PawPrint aria-hidden="true" className="w-3 h-3" />
             <span className="font-semibold">PandaBio</span>
           </span>
         </div>

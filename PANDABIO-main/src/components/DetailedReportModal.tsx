@@ -29,7 +29,7 @@ export const DetailedReportModal: React.FC<DetailedReportModalProps> = ({
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-[#faf8ff]">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#FFF3E6] text-[#FF7A00] flex items-center justify-center">
-            <TrendingUp className="w-5 h-5" />
+            <TrendingUp aria-hidden="true" className="w-5 h-5" />
           </div>
           <div>
             <h2 id="report-modal-title" className="font-bold text-lg text-[#131b2e]">
@@ -44,7 +44,7 @@ export const DetailedReportModal: React.FC<DetailedReportModalProps> = ({
           onClick={onClose}
           className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
         >
-          <X className="w-5 h-5" />
+          <X aria-hidden="true" className="w-5 h-5" />
         </button>
       </div>
 
@@ -115,14 +115,14 @@ export const DetailedReportModal: React.FC<DetailedReportModalProps> = ({
           </h3>
           <div className="space-y-2">
             <div className="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50 text-emerald-950 text-xs border border-emerald-100">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              <CheckCircle2 aria-hidden="true" className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <span>
                 Mantenha seu canal de contato principal (como WhatsApp ou direct) entre as primeiras
                 opções do topo.
               </span>
             </div>
             <div className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-50 text-blue-950 text-xs border border-blue-100">
-              <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <CheckCircle2 aria-hidden="true" className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
               <span>
                 Sua bio carrega de forma instantânea em redes sociais sem barreiras intermediárias
                 de navegação.

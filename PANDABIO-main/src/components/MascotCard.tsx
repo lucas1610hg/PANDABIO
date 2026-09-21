@@ -41,7 +41,7 @@ export const MascotCard: React.FC<MascotCardProps> = ({ onOpenReport, hasActivit
           className="w-full py-2.5 px-4 rounded-xl bg-[#FF7A00] hover:bg-[#e56e00] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-[0_4px_14px_0_rgba(255,122,0,0.3)] cursor-pointer"
         >
           <span>Ver relatório analítico</span>
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRight aria-hidden="true" className="w-4 h-4" />
         </button>
       </div>
     </div>

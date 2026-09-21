@@ -216,7 +216,7 @@ export default function App() {
                         className="p-2 rounded-xl bg-[#f2f3ff] hover:bg-[#eaedff] text-[#464555] hover:text-[#FF7A00] transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
                         title="Abrir prévia no celular"
                       >
-                        <ExternalLink className="w-4 h-4" />
+                        <ExternalLink aria-hidden="true" className="w-4 h-4" />
                       </button>
                     </div>
                   </div>

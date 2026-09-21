@@ -423,9 +423,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
               title="Copiar link"
             >
               {copySuccess ? (
-                <Check className="w-4 h-4 text-green-500" />
+                <Check aria-hidden="true" className="w-4 h-4 text-green-500" />
               ) : (
-                <Copy className="w-4 h-4" />
+                <Copy aria-hidden="true" className="w-4 h-4" />
               )}
             </button>
           </div>
@@ -439,7 +439,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            <Eye className="w-4 h-4" />
+            <Eye aria-hidden="true" className="w-4 h-4" />
             <span>{isPreviewMode ? 'Editar' : 'Visualizar'}</span>
           </button>
           <button
@@ -448,9 +448,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#FF5E00] text-white font-medium hover:bg-[#E55300] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isPublishing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 aria-hidden="true" className="w-4 h-4 animate-spin" />
             ) : (
-              <Check className="w-4 h-4" />
+              <Check aria-hidden="true" className="w-4 h-4" />
             )}
             <span>{isPublishing ? 'Publicando...' : 'Publicar'}</span>
           </button>
@@ -478,14 +478,14 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <User className="w-9 h-9 text-gray-400" />
+                        <User aria-hidden="true" className="w-9 h-9 text-gray-400" />
                       )}
                     </div>
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
                     >
-                      <Image className="w-4 h-4 text-gray-500" />
+                      <Image aria-hidden="true" className="w-4 h-4 text-gray-500" />
                       Alterar foto
                     </button>
                     <input
@@ -507,7 +507,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <ImagePlus className="w-6 h-6 text-gray-400" />
+                        <ImagePlus aria-hidden="true" className="w-6 h-6 text-gray-400" />
                       )}
                     </div>
                     <div className="flex flex-col gap-2">
@@ -515,7 +515,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                         onClick={() => coverInputRef.current?.click()}
                         className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
                       >
-                        <Image className="w-4 h-4 text-gray-500" />
+                        <Image aria-hidden="true" className="w-4 h-4 text-gray-500" />
                         {user.coverUrl ? 'Alterar capa' : 'Adicionar capa'}
                       </button>
                       {user.coverUrl && (
@@ -523,7 +523,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                           onClick={handleRemoveCover}
                           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 aria-hidden="true" className="w-4 h-4" />
                           Remover capa
                         </button>
                       )}
@@ -655,7 +655,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                   onClick={() => setIsAddBlockModalOpen(true)}
                   className="w-full mb-4 px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-[#FF5E00] hover:text-[#FF5E00] transition-colors font-medium flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus aria-hidden="true" className="w-4 h-4" />
                   Adicionar bloco
                 </button>
 
@@ -722,7 +722,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                                 : 'text-gray-400 hover:bg-gray-200'
                             }`}
                           >
-                            <Power className="w-4 h-4" />
+                            <Power aria-hidden="true" className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => setEditingBlock(block)}
@@ -730,7 +730,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                             aria-label="Configurar bloco"
                             className="p-1.5 hover:bg-blue-100 text-blue-500 rounded transition-colors cursor-pointer"
                           >
-                            <Settings className="w-4 h-4" />
+                            <Settings aria-hidden="true" className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDuplicateBlock(block.id)}
@@ -738,7 +738,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                             aria-label="Duplicar bloco"
                             className="p-1.5 hover:bg-gray-200 text-gray-500 rounded transition-colors cursor-pointer"
                           >
-                            <CopyPlus className="w-4 h-4" />
+                            <CopyPlus aria-hidden="true" className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleMoveBlock(block.id, 'up')}
@@ -747,7 +747,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                             aria-label="Mover bloco para cima"
                             className="p-1.5 hover:bg-gray-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                           >
-                            <ArrowUp className="w-4 h-4" />
+                            <ArrowUp aria-hidden="true" className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleMoveBlock(block.id, 'down')}
@@ -756,7 +756,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                             aria-label="Mover bloco para baixo"
                             className="p-1.5 hover:bg-gray-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                           >
-                            <ArrowDown className="w-4 h-4" />
+                            <ArrowDown aria-hidden="true" className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteBlock(block.id)}
@@ -764,7 +764,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                             aria-label="Excluir bloco"
                             className="p-1.5 hover:bg-red-100 text-red-500 rounded transition-colors cursor-pointer"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 aria-hidden="true" className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
@@ -796,7 +796,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                           : 'text-gray-500 hover:text-gray-900'
                       }`}
                     >
-                      <Smartphone className="w-3.5 h-3.5" /> Celular
+                      <Smartphone aria-hidden="true" className="w-3.5 h-3.5" /> Celular
                     </button>
                     <button
                       onClick={() => setPreviewDevice('desktop')}
@@ -806,7 +806,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                           : 'text-gray-500 hover:text-gray-900'
                       }`}
                     >
-                      <Monitor className="w-3.5 h-3.5" /> Desktop
+                      <Monitor aria-hidden="true" className="w-3.5 h-3.5" /> Desktop
                     </button>
                   </div>
                   <button
@@ -848,7 +848,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                     : 'text-gray-500 hover:text-gray-900'
                 }`}
               >
-                <Smartphone className="w-3.5 h-3.5" />
+                <Smartphone aria-hidden="true" className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => setPreviewDevice('desktop')}
@@ -859,7 +859,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                     : 'text-gray-500 hover:text-gray-900'
                 }`}
               >
-                <Monitor className="w-3.5 h-3.5" />
+                <Monitor aria-hidden="true" className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -901,18 +901,18 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
 
 function getBlockIcon(type: BlockType): React.ReactNode {
   const icons: Record<string, React.ReactNode> = {
-    link: <Link2 className="w-5 h-5 text-gray-600" />,
-    text: <Type className="w-5 h-5 text-gray-600" />,
-    image: <Image className="w-5 h-5 text-gray-600" />,
-    video: <Video className="w-5 h-5 text-gray-600" />,
-    agendamento: <Calendar className="w-5 h-5 text-gray-600" />,
-    produto: <ShoppingBag className="w-5 h-5 text-gray-600" />,
-    social: <Smartphone className="w-5 h-5 text-gray-600" />,
-    contact: <Mail className="w-5 h-5 text-gray-600" />,
-    music: <Music className="w-5 h-5 text-gray-600" />,
-    location: <MapPin className="w-5 h-5 text-gray-600" />,
+    link: <Link2 aria-hidden="true" className="w-5 h-5 text-gray-600" />,
+    text: <Type aria-hidden="true" className="w-5 h-5 text-gray-600" />,
+    image: <Image aria-hidden="true" className="w-5 h-5 text-gray-600" />,
+    video: <Video aria-hidden="true" className="w-5 h-5 text-gray-600" />,
+    agendamento: <Calendar aria-hidden="true" className="w-5 h-5 text-gray-600" />,
+    produto: <ShoppingBag aria-hidden="true" className="w-5 h-5 text-gray-600" />,
+    social: <Smartphone aria-hidden="true" className="w-5 h-5 text-gray-600" />,
+    contact: <Mail aria-hidden="true" className="w-5 h-5 text-gray-600" />,
+    music: <Music aria-hidden="true" className="w-5 h-5 text-gray-600" />,
+    location: <MapPin aria-hidden="true" className="w-5 h-5 text-gray-600" />,
   };
-  return icons[type] || <Package className="w-5 h-5 text-gray-600" />;
+  return icons[type] || <Package aria-hidden="true" className="w-5 h-5 text-gray-600" />;
 }
 
 function getBlockPlaceholder(type: BlockType): string {

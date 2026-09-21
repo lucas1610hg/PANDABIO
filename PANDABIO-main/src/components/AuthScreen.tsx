@@ -401,9 +401,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                             className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
                           >
                             {showPassword ? (
-                              <EyeOff className="w-5 h-5 text-gray-400" />
+                              <EyeOff aria-hidden="true" className="w-5 h-5 text-gray-400" />
                             ) : (
-                              <Eye className="w-5 h-5 text-gray-400" />
+                              <Eye aria-hidden="true" className="w-5 h-5 text-gray-400" />
                             )}
                           </button>
                         </div>
@@ -647,9 +647,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                             className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
                           >
                             {showPassword ? (
-                              <EyeOff className="w-5 h-5 text-gray-400" />
+                              <EyeOff aria-hidden="true" className="w-5 h-5 text-gray-400" />
                             ) : (
-                              <Eye className="w-5 h-5 text-gray-400" />
+                              <Eye aria-hidden="true" className="w-5 h-5 text-gray-400" />
                             )}
                           </button>
                         </div>

@@ -549,13 +549,13 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                     aria-label={`Remover imagem ${index + 1}`}
                     className="absolute top-1 right-1 p-1 bg-black/60 text-white rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-500 transition-all cursor-pointer"
                   >
-                    <X className="w-3 h-3" />
+                    <X aria-hidden="true" className="w-3 h-3" />
                   </button>
                 </div>
               ))}
               {(form.gallery?.images.length || 0) < 10 && (
                 <label className="aspect-square rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-[#FF7A00] hover:text-[#FF7A00] cursor-pointer transition-colors">
-                  <Plus className="w-5 h-5" />
+                  <Plus aria-hidden="true" className="w-5 h-5" />
                   <span className="text-[10px] font-semibold">Adicionar</span>
                   <input
                     type="file"
@@ -785,7 +785,7 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                   }
                   className="flex items-center gap-1 text-xs font-bold text-[#FF7A00] hover:bg-[#FF7A00]/10 rounded-lg px-2.5 py-1.5 transition-colors cursor-pointer"
                 >
-                  <Plus className="w-3.5 h-3.5" /> Adicionar produto
+                  <Plus aria-hidden="true" className="w-3.5 h-3.5" /> Adicionar produto
                 </button>
               </div>
               {(!form.products || form.products.length === 0) && (
@@ -815,7 +815,7 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                         aria-label={`Remover produto ${index + 1}`}
                         className="flex items-center gap-1 text-[11px] font-semibold text-red-500 hover:bg-red-50 rounded-lg px-2 py-1 transition-colors cursor-pointer"
                       >
-                        <Trash2 className="w-3 h-3" /> Remover
+                        <Trash2 aria-hidden="true" className="w-3 h-3" /> Remover
                       </button>
                     </div>
                     <div className="flex gap-2.5">
@@ -886,14 +886,14 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                         title="Busca a imagem REAL do produto a partir do link (não o logo da plataforma)"
                       >
                         {fetchingProductId === product.id ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <Loader2 aria-hidden="true" className="w-3.5 h-3.5 animate-spin" />
                         ) : (
-                          <Wand2 className="w-3.5 h-3.5" />
+                          <Wand2 aria-hidden="true" className="w-3.5 h-3.5" />
                         )}
                         Buscar imagem do link
                       </button>
                       <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-600 hover:bg-gray-100 rounded-lg px-2.5 py-1.5 transition-colors cursor-pointer">
-                        <Upload className="w-3.5 h-3.5" /> Subir imagem
+                        <Upload aria-hidden="true" className="w-3.5 h-3.5" /> Subir imagem
                         <input
                           type="file"
                           accept="image/*"
@@ -919,7 +919,7 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                           }}
                           className="flex items-center gap-1.5 text-[11px] font-semibold text-red-500 hover:bg-red-50 rounded-lg px-2.5 py-1.5 transition-colors cursor-pointer"
                         >
-                          <Trash2 className="w-3 h-3" /> Remover imagem
+                          <Trash2 aria-hidden="true" className="w-3 h-3" /> Remover imagem
                         </button>
                       )}
                     </div>

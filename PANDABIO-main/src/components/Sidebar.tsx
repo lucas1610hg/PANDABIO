@@ -250,9 +250,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 title={collapsed ? 'Expandir Menu' : 'Recolher Menu'}
               >
                 {collapsed ? (
-                  <PanelLeft className="w-4 h-4" />
+                  <PanelLeft aria-hidden="true" className="w-4 h-4" />
                 ) : (
-                  <PanelLeftClose className="w-4 h-4" />
+                  <PanelLeftClose aria-hidden="true" className="w-4 h-4" />
                 )}
               </button>
 
@@ -264,7 +264,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   className="lg:hidden flex items-center justify-center w-8 h-8 rounded-lg text-neutral-muted-soft hover:text-white hover:bg-white/[0.08] transition-colors shrink-0 cursor-pointer"
                   title="Fechar menu lateral"
                 >
-                  <X className="w-4 h-4" />
+                  <X aria-hidden="true" className="w-4 h-4" />
                 </button>
               )}
             </div>
@@ -283,7 +283,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20 shrink-0" />
                 <span className="truncate text-zinc-300 font-mono text-[11px]">{user.bioUrl}</span>
               </div>
-              <ExternalLink className="w-3.5 h-3.5 text-sidebar-icon group-hover:text-primary-orange shrink-0 transition-colors" />
+              <ExternalLink aria-hidden="true" className="w-3.5 h-3.5 text-sidebar-icon group-hover:text-primary-orange shrink-0 transition-colors" />
             </a>
           )}
 
@@ -301,13 +301,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <div className="flex items-center gap-2.5">
                 <div className="w-5 h-5 rounded-md bg-white/20 flex items-center justify-center shrink-0 border border-white/25">
-                  <Plus className="w-3.5 h-3.5 text-white stroke-[2.5]" />
+                  <Plus aria-hidden="true" className="w-3.5 h-3.5 text-white stroke-[2.5]" />
                 </div>
                 <span className={`whitespace-nowrap ${collapsed ? 'block lg:hidden' : 'block'}`}>
                   Criar novo
                 </span>
               </div>
-              <ChevronRight
+              <ChevronRight aria-hidden="true"
                 className={`w-4 h-4 text-white/80 group-hover:translate-x-0.5 transition-transform ${
                   collapsed ? 'block lg:hidden' : 'block'
                 }`}
@@ -636,7 +636,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="relative z-10 flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-1.5 text-[11px] font-bold text-white uppercase tracking-wider">
-                    <Sparkles className="w-3.5 h-3.5 text-primary-orange" />
+                    <Sparkles aria-hidden="true" className="w-3.5 h-3.5 text-primary-orange" />
                     PandaBio PRO
                   </span>
                   <span className="text-[10px] font-semibold text-primary-orange bg-primary-orange-strong/15 px-1.5 py-0.5 rounded-full border border-primary-orange-strong/30">
@@ -674,7 +674,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title="Perfil"
           >
             <div className="flex items-center gap-3">
-              <User className="w-[18px] h-[18px] text-neutral-muted-dark group-hover:text-white shrink-0 transition-colors" />
+              <User aria-hidden="true" className="w-[18px] h-[18px] text-neutral-muted-dark group-hover:text-white shrink-0 transition-colors" />
               <span
                 className={`whitespace-nowrap group-hover:text-white ${collapsed ? 'lg:hidden' : ''}`}
               >
@@ -718,7 +718,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
 
               <div className={`flex items-center gap-1 ${collapsed ? 'lg:hidden' : ''}`}>
-                <ChevronRight
+                <ChevronRight aria-hidden="true"
                   className={`w-4 h-4 text-sidebar-chevron group-hover:text-zinc-200 transition-transform duration-200 ${
                     profileMenuOpen ? '-rotate-90' : 'rotate-90'
                   }`}
@@ -742,7 +742,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {allUsers.length > 1 && onSwitchUser && (
                   <div className="px-2 py-1.5 bg-black/20 rounded-lg border border-white/[0.04] mb-1">
                     <div className="flex items-center gap-1.5 px-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-muted-dark">
-                      <ArrowLeftRight className="w-3 h-3 text-primary-orange" />
+                      <ArrowLeftRight aria-hidden="true" className="w-3 h-3 text-primary-orange" />
                       <span>Alternar Usuário</span>
                     </div>
                     <div className="flex flex-col gap-0.5">
@@ -777,7 +777,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClick={handleUpgradeClick}
                   className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12.5px] text-primary-orange-highlight hover:bg-primary-orange-strong/10 hover:text-primary-orange-highlight-soft font-medium transition-colors cursor-pointer"
                 >
-                  <Sparkles className="w-4 h-4 text-primary-orange" />
+                  <Sparkles aria-hidden="true" className="w-4 h-4 text-primary-orange" />
                   <span>Fazer upgrade para PRO</span>
                 </button>
 
@@ -785,7 +785,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClick={() => handleNavClick('configuracoes')}
                   className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12.5px] text-zinc-300 hover:text-white hover:bg-white/[0.06] font-medium transition-colors cursor-pointer"
                 >
-                  <Settings className="w-4 h-4 text-neutral-muted-dark" />
+                  <Settings aria-hidden="true" className="w-4 h-4 text-neutral-muted-dark" />
                   <span>Configurações da conta</span>
                 </button>
 
@@ -795,7 +795,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   rel="noopener noreferrer"
                   className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12.5px] text-zinc-300 hover:text-white hover:bg-white/[0.06] font-medium transition-colors cursor-pointer"
                 >
-                  <HelpCircle className="w-4 h-4 text-neutral-muted-dark" />
+                  <HelpCircle aria-hidden="true" className="w-4 h-4 text-neutral-muted-dark" />
                   <span>Central de Ajuda</span>
                 </a>
 
@@ -805,7 +805,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClick={handleLogoutClick}
                   className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12.5px] text-rose-400 hover:bg-rose-500/10 font-medium transition-colors cursor-pointer"
                 >
-                  <LogOut className="w-4 h-4 text-rose-400" />
+                  <LogOut aria-hidden="true" className="w-4 h-4 text-rose-400" />
                   <span>Sair da conta</span>
                 </button>
               </div>

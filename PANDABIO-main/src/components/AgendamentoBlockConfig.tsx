@@ -17,14 +17,14 @@ export const AgendamentoBlockConfig: React.FC<AgendamentoBlockConfigProps> = ({
     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-[#FF5E00]" />
+          <Calendar aria-hidden="true" className="w-5 h-5 text-[#FF5E00]" />
           <h3 className="text-lg font-bold text-[#131b2e]">Configurar Agendamento</h3>
         </div>
         <button
           onClick={onDelete}
           className="p-2 hover:bg-red-100 text-red-500 rounded-lg transition-colors"
         >
-          <Trash2 className="w-5 h-5" />
+          <Trash2 aria-hidden="true" className="w-5 h-5" />
         </button>
       </div>
 
@@ -86,7 +86,7 @@ export const AgendamentoBlockConfig: React.FC<AgendamentoBlockConfigProps> = ({
         <div className="space-y-2 pt-2 border-t border-gray-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-gray-500" />
+              <CreditCard aria-hidden="true" className="w-4 h-4 text-gray-500" />
               <span className="text-sm text-gray-700">Mostrar preço</span>
             </div>
             <button
@@ -105,7 +105,7 @@ export const AgendamentoBlockConfig: React.FC<AgendamentoBlockConfigProps> = ({
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-gray-500" />
+              <Clock aria-hidden="true" className="w-4 h-4 text-gray-500" />
               <span className="text-sm text-gray-700">Mostrar duração</span>
             </div>
             <button
@@ -128,7 +128,7 @@ export const AgendamentoBlockConfig: React.FC<AgendamentoBlockConfigProps> = ({
           <p className="text-xs text-gray-500 mb-2">Preview:</p>
           <div className="bg-white rounded-lg p-4 border border-gray-200">
             <div className="flex items-center gap-2 mb-2">
-              <Calendar className="w-5 h-5 text-[#FF5E00]" />
+              <Calendar aria-hidden="true" className="w-5 h-5 text-[#FF5E00]" />
               <span className="font-semibold text-[#131b2e]">
                 {block.appointmentTitle || 'Agende seu horário'}
               </span>

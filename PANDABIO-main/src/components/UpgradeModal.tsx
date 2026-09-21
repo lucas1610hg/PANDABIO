@@ -51,7 +51,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
             aria-label="Fechar modal de upgrade"
             className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X aria-hidden="true" className="w-5 h-5" />
           </button>
         </div>
 
@@ -86,7 +86,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
           {features.map((f, idx) => (
             <div key={idx} className="flex items-start gap-2.5 text-xs text-gray-700">
               <div className="w-4 h-4 rounded-full bg-[#10B981]/20 text-[#10B981] flex items-center justify-center shrink-0 mt-0.5">
-                <Check className="w-3 h-3" />
+                <Check aria-hidden="true" className="w-3 h-3" />
               </div>
               <span>{f}</span>
             </div>
@@ -102,7 +102,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
           }}
           className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#FF7A00] to-[#FF5500] hover:brightness-110 active:scale-[0.99] text-white text-sm font-bold shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
         >
-          <Sparkles className="w-4 h-4" />
+          <Sparkles aria-hidden="true" className="w-4 h-4" />
           <span>Ativar PandaBio PRO Agora</span>
         </button>
       </div>

@@ -26,7 +26,7 @@ export const ConversionFunnel: React.FC<ConversionFunnelProps> = ({
       {/* Title block */}
       <div className="flex items-center gap-3 min-w-[260px]">
         <div className="w-11 h-11 rounded-xl bg-[#FF7A00] text-white flex items-center justify-center shrink-0 shadow-sm">
-          <Filter className="w-5 h-5" />
+          <Filter aria-hidden="true" className="w-5 h-5" />
         </div>
         <div className="flex flex-col">
           <h2 className="text-base sm:text-lg font-bold text-[#131b2e] leading-tight">
@@ -44,7 +44,7 @@ export const ConversionFunnel: React.FC<ConversionFunnelProps> = ({
         <div className="flex items-center gap-2 bg-[#f2f3ff] p-2.5 sm:px-3 sm:py-2 rounded-xl justify-between min-w-0">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-8 h-8 rounded-lg bg-[#FFF3E6] text-[#FF7A00] flex items-center justify-center shrink-0">
-              <Eye className="w-4 h-4" />
+              <Eye aria-hidden="true" className="w-4 h-4" />
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-xs sm:text-sm font-bold text-[#131b2e] leading-none truncate">
@@ -84,7 +84,7 @@ export const ConversionFunnel: React.FC<ConversionFunnelProps> = ({
         <div className="flex items-center gap-2 bg-[#f2f3ff] p-2.5 sm:px-3 sm:py-2 rounded-xl justify-between min-w-0">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-8 h-8 rounded-lg bg-[#E0F2FE] text-[#0284C7] flex items-center justify-center shrink-0">
-              <Users className="w-4 h-4" />
+              <Users aria-hidden="true" className="w-4 h-4" />
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-xs sm:text-sm font-bold text-[#131b2e] leading-none truncate">
@@ -104,7 +104,7 @@ export const ConversionFunnel: React.FC<ConversionFunnelProps> = ({
         <div className="flex items-center gap-2 bg-gradient-to-r from-[#FF7A00] to-[#FF5500] text-white p-2.5 sm:px-3.5 sm:py-2 rounded-xl shadow-[0_2px_8px_rgba(255,122,0,0.25)] justify-between min-w-0">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-8 h-8 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0">
-              <Target className="w-4 h-4" />
+              <Target aria-hidden="true" className="w-4 h-4" />
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-xs sm:text-sm font-bold text-white leading-none truncate">

@@ -73,7 +73,7 @@ export const VisitsChart: React.FC<VisitsChartProps> = ({ totalVisits = 0 }) => 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-[#FFF3E6] flex items-center justify-center text-[#FF7A00]">
-            <TrendingUp className="w-4 h-4" />
+            <TrendingUp aria-hidden="true" className="w-4 h-4" />
           </div>
           <div className="flex flex-col">
             <h2 className="text-base font-bold text-[#131b2e]">Visitas à página</h2>
@@ -176,7 +176,7 @@ export const VisitsChart: React.FC<VisitsChartProps> = ({ totalVisits = 0 }) => 
         ) : (
           <div className="flex flex-col items-center justify-center text-center p-6 bg-[#faf8ff] rounded-2xl border border-dashed border-[#eaedff] w-full h-full">
             <div className="w-10 h-10 rounded-full bg-[#f2f3ff] flex items-center justify-center text-[#969cb0] mb-2">
-              <BarChart2 className="w-5 h-5" />
+              <BarChart2 aria-hidden="true" className="w-5 h-5" />
             </div>
             <p className="text-xs sm:text-sm font-bold text-[#131b2e]">
               Aguardando primeiras visitas

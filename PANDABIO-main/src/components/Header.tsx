@@ -57,12 +57,12 @@ export const Header: React.FC<HeaderProps> = ({
           className="p-2 rounded-xl text-neutral-gray hover:bg-neutral-lighter hover:text-neutral-dark transition-colors flex items-center justify-center cursor-pointer shrink-0"
           title="Alternar Menu"
         >
-          <Menu className="w-5 h-5" />
+          <Menu aria-hidden="true" className="w-5 h-5" />
         </button>
 
         {/* Search Bar */}
         <div className="relative flex items-center min-w-0">
-          <Search className="w-4 h-4 absolute left-3 text-neutral-gray-light pointer-events-none shrink-0" />
+          <Search aria-hidden="true" className="w-4 h-4 absolute left-3 text-neutral-gray-light pointer-events-none shrink-0" />
           <input
             id="global-search-input"
             type="text"
@@ -83,7 +83,7 @@ export const Header: React.FC<HeaderProps> = ({
           className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-neutral-border/60 text-xs font-semibold text-neutral-gray hover:text-primary-orange hover:border-primary-orange/40 transition-all shadow-xs cursor-pointer"
           title="Ver Tela de Login / Cadastro"
         >
-          <Lock className="w-3.5 h-3.5 text-primary-orange" />
+          <Lock aria-hidden="true" className="w-3.5 h-3.5 text-primary-orange" />
           <span className="hidden md:inline">Tela de Login</span>
           <span className="md:hidden">Login</span>
         </button>
@@ -103,7 +103,7 @@ export const Header: React.FC<HeaderProps> = ({
           className="p-2 rounded-xl bg-neutral-light hover:bg-neutral-lighter text-neutral-gray hover:text-primary-orange transition-colors flex items-center justify-center cursor-pointer"
           title="Ver prévia da página pública no celular"
         >
-          <ExternalLink className="w-4 h-4" />
+          <ExternalLink aria-hidden="true" className="w-4 h-4" />
         </button>
 
         {/* Notifications Button */}
@@ -114,7 +114,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="relative p-2 rounded-xl text-neutral-gray hover:bg-neutral-lighter hover:text-neutral-dark transition-colors cursor-pointer"
             title="Notificações"
           >
-            <Bell className="w-5 h-5" />
+            <Bell aria-hidden="true" className="w-5 h-5" />
             {unreadCount > 0 && (
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-functional-error-dark" />
             )}
@@ -145,7 +145,7 @@ export const Header: React.FC<HeaderProps> = ({
                     onClick={() => setShowNotifications(false)}
                     className="p-1 text-gray-400 hover:text-gray-600 cursor-pointer"
                   >
-                    <X className="w-4 h-4" />
+                    <X aria-hidden="true" className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -177,7 +177,7 @@ export const Header: React.FC<HeaderProps> = ({
 
               <div className="pt-3 mt-2 border-t border-gray-100 text-center">
                 <span className="text-xs text-emerald-600 font-medium flex items-center justify-center gap-1">
-                  <CheckCircle className="w-3.5 h-3.5" />
+                  <CheckCircle aria-hidden="true" className="w-3.5 h-3.5" />
                   Sua bio está 100% ativa e monitorada
                 </span>
               </div>

@@ -66,7 +66,7 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(
               className="p-1.5 text-xs text-[#3525cd] hover:bg-[#eaedff] rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
               title="Copiar link"
             >
-              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? <Check aria-hidden="true" className="w-3.5 h-3.5" /> : <Copy aria-hidden="true" className="w-3.5 h-3.5" />}
               <span>{copied ? 'Copiado!' : 'Copiar'}</span>
             </button>
             <button
@@ -74,7 +74,7 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(
               aria-label="Fechar prévia"
               className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <X aria-hidden="true" className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -171,7 +171,7 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(
                 onClick={handleCopyLink}
                 className="px-3 py-1 rounded-full bg-gray-100 hover:bg-gray-200 text-[11px] font-semibold text-gray-700 flex items-center gap-1 transition-colors cursor-pointer"
               >
-                <Share2 className="w-3 h-3" />
+                <Share2 aria-hidden="true" className="w-3 h-3" />
                 <span>Compartilhar</span>
               </button>
             </div>
@@ -203,12 +203,12 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(
                       </span>
                       <span className="truncate">{link.title}</span>
                     </div>
-                    <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100 shrink-0 ml-1" />
+                    <ExternalLink aria-hidden="true" className="w-3 h-3 opacity-50 group-hover:opacity-100 shrink-0 ml-1" />
                   </a>
                 ))
               ) : (
                 <div className="p-4 text-center rounded-2xl bg-gray-50 border border-dashed border-gray-200 w-full my-2">
-                  <Link2 className="w-5 h-5 mx-auto text-gray-400 mb-1" />
+                  <Link2 aria-hidden="true" className="w-5 h-5 mx-auto text-gray-400 mb-1" />
                   <p className="text-xs font-semibold text-gray-600">Nenhum link ativo</p>
                   <p className="text-[10px] text-gray-400 mt-0.5">
                     Adicione links no painel para exibi-los aqui.
@@ -221,7 +221,7 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(
             <div className="mt-auto pt-5 pb-1 flex items-center gap-1 opacity-70">
               <span className="text-[10px] font-medium text-gray-500">Feito com</span>
               <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#FF7A00]">
-                <PawPrint className="w-3 h-3" />
+                <PawPrint aria-hidden="true" className="w-3 h-3" />
                 PandaBio
               </span>
             </div>

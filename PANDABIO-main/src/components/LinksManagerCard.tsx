@@ -34,7 +34,7 @@ export const LinksManagerCard = memo<LinksManagerCardProps>(
     return (
       <Card
         id="card-user-links"
-        icon={<ListFilter className="w-4 h-4" />}
+        icon={<ListFilter aria-hidden="true" className="w-4 h-4" />}
         title="Seus links"
         subtitle="Links que você compartilha"
         headerClassName="pb-3"
@@ -52,7 +52,7 @@ export const LinksManagerCard = memo<LinksManagerCardProps>(
                 onClick={onAddLink}
                 className="flex-1 py-2 px-3 rounded-xl bg-[#f2f3ff] hover:bg-[#eaedff] text-[#3525cd] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus aria-hidden="true" className="w-3.5 h-3.5" />
                 <span>Adicionar link</span>
               </button>
               {links.length > 1 && (
@@ -70,7 +70,7 @@ export const LinksManagerCard = memo<LinksManagerCardProps>(
                   }`}
                   title={reorderMode ? 'Concluir reordenação' : 'Arraste para reordenar'}
                 >
-                  <GripVertical className="w-3.5 h-3.5" />
+                  <GripVertical aria-hidden="true" className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">{reorderMode ? 'Concluir' : 'Reordenar'}</span>
                 </button>
               )}
@@ -114,7 +114,7 @@ export const LinksManagerCard = memo<LinksManagerCardProps>(
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    {reorderMode && <GripVertical className="w-4 h-4 text-[#c7c4d8] shrink-0" />}
+                    {reorderMode && <GripVertical aria-hidden="true" className="w-4 h-4 text-[#c7c4d8] shrink-0" />}
                     <div
                       className={`w-7 h-7 rounded-lg ${getLinkIconBg(
                         link.type,

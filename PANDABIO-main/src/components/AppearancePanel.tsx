@@ -173,7 +173,7 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
             title="Restaurar configuração padrão"
             className="flex items-center gap-1 text-xs text-gray-400 hover:text-[#FF5E00] transition-colors cursor-pointer"
           >
-            <RotateCcw className="w-3.5 h-3.5" /> Restaurar padrão
+            <RotateCcw aria-hidden="true" className="w-3.5 h-3.5" /> Restaurar padrão
           </button>
         </div>
         <p className={SECTION_HINT}>Aplique um visual pronto para o seu segmento</p>
@@ -423,7 +423,7 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
                   }}
                   className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
                 >
-                  <X className="w-3.5 h-3.5" /> Remover
+                  <X aria-hidden="true" className="w-3.5 h-3.5" /> Remover
                 </button>
               )}
             </div>

@@ -125,7 +125,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
               {activeTab === 'link' ? (
                 <LinkIcon className="w-4 h-4" />
               ) : (
-                <Package className="w-4 h-4" />
+                <Package aria-hidden="true" className="w-4 h-4" />
               )}
             </div>
             <h2 id="create-item-title" className="font-bold text-base text-[#131b2e]">
@@ -137,7 +137,7 @@ export const CreateItemModal: React.FC<CreateItemModalProps> = ({
             aria-label="Fechar"
             className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X aria-hidden="true" className="w-5 h-5" />
           </button>
         </div>
 

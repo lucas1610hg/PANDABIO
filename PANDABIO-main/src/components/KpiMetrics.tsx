@@ -54,7 +54,7 @@ export const KpiMetrics = memo<KpiMetricsProps>(
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-primary-orange-light flex items-center justify-center text-primary-orange">
-                  <Eye className="w-5 h-5" />
+                  <Eye aria-hidden="true" className="w-5 h-5" />
                 </div>
                 <span className="text-xs font-medium text-neutral-gray">Visitas à página</span>
               </div>
@@ -78,7 +78,7 @@ export const KpiMetrics = memo<KpiMetricsProps>(
                 <span className="flex items-center gap-1 text-[11px] text-neutral-gray mt-1.5 font-medium">
                   {data.visitsGrowth > 0 ? (
                     <>
-                      <ArrowUp className="w-3.5 h-3.5 text-secondary-green-dark" />
+                      <ArrowUp aria-hidden="true" className="w-3.5 h-3.5 text-secondary-green-dark" />
                       <span className="text-secondary-green-dark font-semibold">
                         +{data.visitsGrowth}%
                       </span>{' '}
@@ -149,7 +149,7 @@ export const KpiMetrics = memo<KpiMetricsProps>(
                 <span className="flex items-center gap-1 text-[11px] text-neutral-gray mt-1.5 font-medium">
                   {data.clicksGrowth > 0 ? (
                     <>
-                      <ArrowUp className="w-3.5 h-3.5 text-secondary-green-dark" />
+                      <ArrowUp aria-hidden="true" className="w-3.5 h-3.5 text-secondary-green-dark" />
                       <span className="text-secondary-green-dark font-semibold">
                         +{data.clicksGrowth}%
                       </span>{' '}
@@ -196,7 +196,7 @@ export const KpiMetrics = memo<KpiMetricsProps>(
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-secondary-teal-light flex items-center justify-center text-secondary-teal">
-                  <Users className="w-5 h-5" />
+                  <Users aria-hidden="true" className="w-5 h-5" />
                 </div>
                 <span className="text-xs font-medium text-neutral-gray">Leads capturados</span>
               </div>
@@ -220,7 +220,7 @@ export const KpiMetrics = memo<KpiMetricsProps>(
                 <span className="flex items-center gap-1 text-[11px] text-neutral-gray mt-1.5 font-medium">
                   {data.leadsGrowth > 0 ? (
                     <>
-                      <ArrowUp className="w-3.5 h-3.5 text-secondary-green-dark" />
+                      <ArrowUp aria-hidden="true" className="w-3.5 h-3.5 text-secondary-green-dark" />
                       <span className="text-secondary-green-dark font-semibold">
                         +{data.leadsGrowth}%
                       </span>{' '}
@@ -267,7 +267,7 @@ export const KpiMetrics = memo<KpiMetricsProps>(
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-primary-orange-light flex items-center justify-center text-primary-orange">
-                  <Target className="w-5 h-5" />
+                  <Target aria-hidden="true" className="w-5 h-5" />
                 </div>
                 <span className="text-xs font-medium text-neutral-gray">Conversões</span>
               </div>
@@ -291,7 +291,7 @@ export const KpiMetrics = memo<KpiMetricsProps>(
                 <span className="flex items-center gap-1 text-[11px] text-neutral-gray mt-1.5 font-medium">
                   {data.conversionsGrowth > 0 ? (
                     <>
-                      <ArrowUp className="w-3.5 h-3.5 text-secondary-green-dark" />
+                      <ArrowUp aria-hidden="true" className="w-3.5 h-3.5 text-secondary-green-dark" />
                       <span className="text-secondary-green-dark font-semibold">
                         +{data.conversionsGrowth}%
                       </span>{' '}

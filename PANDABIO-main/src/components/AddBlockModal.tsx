@@ -104,7 +104,7 @@ export const AddBlockModal: React.FC<AddBlockModalProps> = ({ isOpen, onClose, o
           aria-label="Fechar"
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
         >
-          <X className="w-5 h-5 text-gray-500" />
+          <X aria-hidden="true" className="w-5 h-5 text-gray-500" />
         </button>
       </div>
 

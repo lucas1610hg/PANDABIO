@@ -30,7 +30,7 @@ export const RecentActivityCard = memo<RecentActivityCardProps>(
     return (
       <Card
         id="card-recent-activity"
-        icon={<Clock className="w-4 h-4" />}
+        icon={<Clock aria-hidden="true" className="w-4 h-4" />}
         title="Atividade recente"
         subtitle="Tempo real"
         headerRight={
@@ -41,7 +41,7 @@ export const RecentActivityCard = memo<RecentActivityCardProps>(
               className="flex items-center gap-1 text-[#464555] text-xs font-semibold hover:text-[#131b2e] cursor-pointer"
             >
               <span>{filter}</span>
-              <ChevronDown className="w-3.5 h-3.5" />
+              <ChevronDown aria-hidden="true" className="w-3.5 h-3.5" />
             </button>
 
             {showFilterMenu && (
@@ -72,7 +72,7 @@ export const RecentActivityCard = memo<RecentActivityCardProps>(
               className="inline-flex items-center justify-center gap-1 mt-4 text-xs text-[#3525cd] hover:underline font-bold text-center cursor-pointer"
             >
               <span>Ver todas as atividades</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight aria-hidden="true" className="w-3.5 h-3.5" />
             </button>
           )
         }
