@@ -264,6 +264,7 @@ export default function App() {
                   onOpenCreateItem={() => setIsCreateItemOpen(true)}
                   onOpenPhonePreview={() => setIsPhonePreviewOpen(true)}
                   onUpdateUser={handleUpdateUser}
+                  onLogout={handleLogout}
                 />
               )}
             </main>

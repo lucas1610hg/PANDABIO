@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavSection, BioLink, ProductItem, LeadItem, UserProfile } from '../types';
 import { PageEditor } from './PageEditor';
+import { ProfileSection } from './ProfileSection';
 
 interface SectionViewsProps {
   section: NavSection;
@@ -12,9 +13,15 @@ interface SectionViewsProps {
   onOpenCreateItem?: () => void;
   onOpenPhonePreview?: () => void;
   onUpdateUser?: (u: Partial<UserProfile>) => void;
+  onLogout?: () => void;
 }
 
-export const SectionViews: React.FC<SectionViewsProps> = ({ section, user, onUpdateUser }) => {
+export const SectionViews: React.FC<SectionViewsProps> = ({
+  section,
+  user,
+  onUpdateUser,
+  onLogout,
+}) => {
   // Renderizar PageEditor para a seção 'minha-pagina'
   if (section === 'minha-pagina' && user) {
     return (
@@ -22,6 +29,17 @@ export const SectionViews: React.FC<SectionViewsProps> = ({ section, user, onUpd
         key={user.email || user.username || user.bioUrl || 'anonymous'}
         user={user}
         onUpdateUser={onUpdateUser || (() => {})}
+      />
+    );
+  }
+
+  // Seção de Perfil da conta
+  if (section === 'perfil' && user) {
+    return (
+      <ProfileSection
+        user={user}
+        onUpdateUser={onUpdateUser || (() => {})}
+        onLogout={onLogout}
       />
     );
   }
