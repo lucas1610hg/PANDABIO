@@ -9,6 +9,7 @@ import {
   Package,
   Smartphone,
   Mail,
+  ClipboardList,
   Music,
   MapPin,
 } from 'lucide-react';
@@ -66,6 +67,12 @@ export const AddBlockModal: React.FC<AddBlockModalProps> = ({ isOpen, onClose, o
       icon: Smartphone,
       label: 'Redes sociais',
       description: 'Suas redes sociais',
+    },
+    {
+      type: 'form' as BlockType,
+      icon: ClipboardList,
+      label: 'Formulário',
+      description: 'Capte clientes com campos personalizados',
     },
     {
       type: 'contact' as BlockType,

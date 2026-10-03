@@ -8,8 +8,8 @@ import {
   Package,
   Calendar,
   BarChart3,
-  Palette,
-  Puzzle,
+  UsersRound,
+  ClipboardList,
   Settings,
   Plus,
   PanelLeftClose,
@@ -20,8 +20,6 @@ import {
   ExternalLink,
   LogOut,
   HelpCircle,
-  ArrowLeftRight,
-  Image,
   CreditCard,
   User,
   LucideIcon,
@@ -45,13 +43,12 @@ interface SidebarProps {
   user: UserProfile;
   linksCount: number;
   productsCount?: number;
+  leadsCount?: number;
   onCreateNew: () => void;
   onOpenUpgrade: () => void;
   onLogout: () => void;
   mobileOpen?: boolean;
   onCloseMobile?: () => void;
-  allUsers?: UserProfile[];
-  onSwitchUser?: (email: string) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -62,13 +59,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   user,
   linksCount,
   productsCount = 0,
+  leadsCount = 0,
   onCreateNew,
   onOpenUpgrade,
   onLogout,
   mobileOpen = false,
   onCloseMobile,
-  allUsers = [],
-  onSwitchUser,
 }) => {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
@@ -126,9 +122,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Estatísticas',
       icon: BarChart3,
     },
+    {
+      id: 'leads',
+      label: 'Leads',
+      icon: UsersRound,
+      count: leadsCount,
+    },
+    {
+      id: 'formularios',
+      label: 'Formulários',
+      icon: ClipboardList,
+    },
   ];
 
-  const navItemsConteudo: NavItem[] = [
+  const navItemsGestao: NavItem[] = [
     {
       id: 'links',
       label: 'Links',
@@ -136,28 +143,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       count: linksCount,
     },
     {
-      id: 'conteudo',
-      label: 'Conteúdo',
-      icon: Image,
-    },
-    {
       id: 'produtos',
       label: 'Produtos',
       icon: Package,
       count: productsCount,
-    },
-  ];
-
-  const navItemsPersonalizacao: NavItem[] = [
-    {
-      id: 'aparencia',
-      label: 'Aparência',
-      icon: Palette,
-    },
-    {
-      id: 'integracoes',
-      label: 'Integrações',
-      icon: Puzzle,
     },
   ];
 
@@ -283,7 +272,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20 shrink-0" />
                 <span className="truncate text-zinc-300 font-mono text-[11px]">{user.bioUrl}</span>
               </div>
-              <ExternalLink aria-hidden="true" className="w-3.5 h-3.5 text-sidebar-icon group-hover:text-primary-orange shrink-0 transition-colors" />
+              <ExternalLink
+                aria-hidden="true"
+                className="w-3.5 h-3.5 text-sidebar-icon group-hover:text-primary-orange shrink-0 transition-colors"
+              />
             </a>
           )}
 
@@ -307,7 +299,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   Criar novo
                 </span>
               </div>
-              <ChevronRight aria-hidden="true"
+              <ChevronRight
+                aria-hidden="true"
                 className={`w-4 h-4 text-white/80 group-hover:translate-x-0.5 transition-transform ${
                   collapsed ? 'block lg:hidden' : 'block'
                 }`}
@@ -395,11 +388,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </nav>
           </div>
 
-          {/* Section 2: CONTEÚDO */}
+          {/* Section 2: GESTÃO */}
           <div className="flex flex-col mb-4">
             <div className={`px-2 mb-1.5 flex items-center ${collapsed ? 'lg:hidden' : ''}`}>
               <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-neutral-muted shrink-0">
-                Conteúdo
+                Gestão
               </span>
               <div className="flex-1 h-[1px] bg-sidebar-divider ml-2.5" />
             </div>
@@ -408,86 +401,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
 
             <nav className="flex flex-col gap-1">
-              {navItemsConteudo.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeSection === item.id;
-
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => handleNavClick(item.id)}
-                    className={`group w-full flex items-center justify-between ${
-                      collapsed ? 'lg:justify-center lg:px-0 px-3 py-2' : 'px-3 py-2'
-                    } rounded-xl text-[13.5px] font-medium transition-all duration-150 cursor-pointer ${
-                      isActive
-                        ? 'bg-primary-orange-dark text-white font-semibold shadow-[0_2px_12px_rgba(255,85,0,0.32)] ring-1 ring-white/15'
-                        : 'text-neutral-gray-medium hover:text-zinc-100 hover:bg-white/[0.05]'
-                    }`}
-                    title={item.label}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Icon
-                        className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                          isActive
-                            ? 'text-white'
-                            : 'text-neutral-muted-dark group-hover:text-zinc-200'
-                        }`}
-                        strokeWidth={isActive ? 2.2 : 1.9}
-                      />
-                      <span
-                        className={`whitespace-nowrap truncate ${collapsed ? 'lg:hidden' : ''}`}
-                      >
-                        {item.label}
-                      </span>
-                    </div>
-
-                    {!collapsed && (
-                      <div className="flex items-center">
-                        {item.count !== undefined && (
-                          <span
-                            className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border transition-colors ${
-                              isActive
-                                ? 'bg-white/25 text-white border-white/30'
-                                : 'bg-white/[0.05] text-neutral-muted-dark border-white/[0.06] group-hover:text-zinc-300 group-hover:bg-white/[0.08]'
-                            }`}
-                          >
-                            {item.count}
-                          </span>
-                        )}
-                        {item.badge && (
-                          <span
-                            className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md border ${
-                              isActive
-                                ? 'bg-white/20 text-white border-white/25'
-                                : 'bg-primary-orange-strong/10 text-primary-orange-highlight border-primary-orange-strong/25'
-                            }`}
-                          >
-                            {item.badge}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-
-          {/* Section 3: PERSONALIZAÇÃO */}
-          <div className="flex flex-col mb-4">
-            <div className={`px-2 mb-1.5 flex items-center ${collapsed ? 'lg:hidden' : ''}`}>
-              <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-neutral-muted shrink-0">
-                Personalização
-              </span>
-              <div className="flex-1 h-[1px] bg-sidebar-divider ml-2.5" />
-            </div>
-            {collapsed && (
-              <div className="hidden lg:block w-7 h-[1px] bg-white/[0.08] mx-auto my-2" />
-            )}
-
-            <nav className="flex flex-col gap-1">
-              {navItemsPersonalizacao.map((item) => {
+              {navItemsGestao.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeSection === item.id;
 
@@ -560,7 +474,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           )}
 
-          {/* Section 4: FOOTER ITEMS */}
+          {/* Section 3: FOOTER ITEMS */}
           <div className="flex flex-col">
             <nav className="flex flex-col gap-1">
               {navItemsFooter.map((item) => {
@@ -674,7 +588,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title="Perfil"
           >
             <div className="flex items-center gap-3">
-              <User aria-hidden="true" className="w-[18px] h-[18px] text-neutral-muted-dark group-hover:text-white shrink-0 transition-colors" />
+              <User
+                aria-hidden="true"
+                className="w-[18px] h-[18px] text-neutral-muted-dark group-hover:text-white shrink-0 transition-colors"
+              />
               <span
                 className={`whitespace-nowrap group-hover:text-white ${collapsed ? 'lg:hidden' : ''}`}
               >
@@ -718,7 +635,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
 
               <div className={`flex items-center gap-1 ${collapsed ? 'lg:hidden' : ''}`}>
-                <ChevronRight aria-hidden="true"
+                <ChevronRight
+                  aria-hidden="true"
                   className={`w-4 h-4 text-sidebar-chevron group-hover:text-zinc-200 transition-transform duration-200 ${
                     profileMenuOpen ? '-rotate-90' : 'rotate-90'
                   }`}
@@ -737,41 +655,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <p className="text-[11px] font-medium text-neutral-muted-dark">Conectado como</p>
                   <p className="text-[12.5px] font-semibold text-white truncate">{user.email}</p>
                 </div>
-
-                {/* Multi-account switcher */}
-                {allUsers.length > 1 && onSwitchUser && (
-                  <div className="px-2 py-1.5 bg-black/20 rounded-lg border border-white/[0.04] mb-1">
-                    <div className="flex items-center gap-1.5 px-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-muted-dark">
-                      <ArrowLeftRight aria-hidden="true" className="w-3 h-3 text-primary-orange" />
-                      <span>Alternar Usuário</span>
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      {allUsers.map((acc) => {
-                        const isCurrent = acc.email === user.email;
-                        return (
-                          <button
-                            key={acc.email}
-                            type="button"
-                            onClick={() => {
-                              onSwitchUser(acc.email);
-                              setProfileMenuOpen(false);
-                            }}
-                            className={`flex items-center justify-between w-full px-2 py-1 rounded text-[11.5px] transition-colors cursor-pointer ${
-                              isCurrent
-                                ? 'bg-white/[0.08] text-white font-medium'
-                                : 'text-neutral-muted-light hover:text-white hover:bg-white/[0.04]'
-                            }`}
-                          >
-                            <span className="truncate">{acc.name}</span>
-                            {isCurrent && (
-                              <span className="w-1.5 h-1.5 rounded-full bg-primary-orange-strong" />
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
 
                 <button
                   onClick={handleUpgradeClick}

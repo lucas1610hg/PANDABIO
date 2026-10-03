@@ -414,12 +414,13 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- VIEW PARA PÁGINAS PUBLICADAS
 -- ============================================
 
-CREATE OR REPLACE VIEW public.published_pages AS
+DROP VIEW IF EXISTS public.published_pages;
+
+CREATE VIEW public.published_pages AS
 SELECT 
   p.id,
   p.username,
   p.name,
-  p.email,
   p.bio_url,
   p.page_title,
   p.bio_description,
@@ -427,7 +428,24 @@ SELECT
   p.category,
   p.location,
   p.custom_link,
-  p.page_data,
+  jsonb_build_object(
+    'profile', jsonb_build_object(
+      'name', p.name,
+      'username', p.username,
+      'bioUrl', p.bio_url,
+      'pageTitle', p.page_title,
+      'bioDescription', p.bio_description,
+      'avatarUrl', p.avatar_url,
+      'coverUrl', p.page_data -> 'profile' ->> 'coverUrl',
+      'category', p.category,
+      'location', p.location,
+      'customLink', p.custom_link
+    ),
+    'blocks', COALESCE(p.page_data -> 'blocks', '[]'::jsonb),
+    'theme', COALESCE(p.page_data -> 'theme', '{}'::jsonb),
+    'published', true,
+    'lastUpdated', p.updated_at
+  ) AS page_data,
   p.updated_at
 FROM profiles p
 WHERE p.published = true

@@ -5,7 +5,7 @@ export type UploadFolder = 'avatar' | 'cover' | 'background' | 'gallery' | 'prod
 
 export interface UploadResult {
   success: boolean;
-  /** URL pública (ou dataURL local quando o Supabase não está configurado) */
+  /** URL pública no Supabase Storage */
   url?: string;
   /** Caminho no bucket, quando enviado ao Storage */
   path?: string;
@@ -20,8 +20,6 @@ const PUBLIC_MARKER = `/object/public/${BUCKET}/`;
  *
  * As imagens são comprimidas no cliente e enviadas para
  * `user-assets/<auth.uid()>/<pasta>/<timestamp>-<uuid>.<ext>`.
- * Quando o Supabase não está configurado, devolve o dataURL para
- * manter o funcionamento em modo local.
  */
 export class StorageService {
   static isConfigured(): boolean {
@@ -45,9 +43,8 @@ export class StorageService {
       return { success: false, error: 'Não foi possível processar a imagem' };
     }
 
-    // Modo local: mantém o dataURL como antes.
     if (!this.isConfigured() || !supabase) {
-      return { success: true, url: dataUrl };
+      return { success: false, error: 'Supabase Storage não configurado' };
     }
 
     try {
@@ -55,7 +52,7 @@ export class StorageService {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        return { success: true, url: dataUrl };
+        return { success: false, error: 'Sessão Supabase não encontrada' };
       }
 
       const blob = dataUrlToBlob(dataUrl);
@@ -70,14 +67,42 @@ export class StorageService {
 
       if (error) {
         console.error('Supabase storage upload error:', error);
-        return { success: false, error: error.message || 'Erro ao enviar imagem', url: dataUrl };
+        return { success: false, error: error.message || 'Erro ao enviar imagem' };
       }
 
       const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
       return { success: true, url: data.publicUrl, path };
     } catch (error) {
       console.error('Error uploading image:', error);
-      return { success: false, error: error.message || 'Erro ao enviar imagem', url: dataUrl };
+      return { success: false, error: error.message || 'Erro ao enviar imagem' };
+    }
+  }
+
+  static async listImages(folder: UploadFolder, limit = 30): Promise<string[]> {
+    if (!this.isConfigured() || !supabase) return [];
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data, error } = await supabase.storage.from(BUCKET).list(`${user.id}/${folder}`, {
+        limit,
+        sortBy: { column: 'created_at', order: 'desc' },
+      });
+      if (error) throw error;
+
+      return (data || [])
+        .filter((file) => Boolean(file.name))
+        .map(
+          (file) =>
+            supabase.storage.from(BUCKET).getPublicUrl(`${user.id}/${folder}/${file.name}`).data
+              .publicUrl,
+        );
+    } catch (error) {
+      console.error('Supabase storage list error:', error);
+      return [];
     }
   }
 

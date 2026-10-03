@@ -6,7 +6,7 @@ Crie um arquivo chamado `.env` na raiz do projeto (mesmo nível do package.json)
 
 ```env
 VITE_SUPABASE_URL="https://irtrqccahpaxknidrxwy.supabase.co"
-VITE_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlydHJxY2NhaHBheGtuaWRyeHd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NTYxNjAsImV4cCI6MjEwNTMzMjE2MH0.Ny3rHQsK0ARq2BbTsYBSr--pTvEE0gO49dq5DDCK0Sk"
+VITE_SUPABASE_ANON_KEY="your-anon-key-here"
 ```
 
 ## Passo 2: Configurar Providers OAuth (Opcional - para login social)

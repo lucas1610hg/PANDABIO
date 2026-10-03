@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Eye,
   Copy,
@@ -16,6 +16,7 @@ import {
   Calendar,
   ShoppingBag,
   Mail,
+  ClipboardList,
   Music,
   MapPin,
   Package,
@@ -28,28 +29,50 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion } from 'motion/react';
-import { UserProfile, PageBlock, PageTheme, BlockType } from '../types';
+import {
+  BioLink,
+  BlockType,
+  PageBlock,
+  PageData,
+  PageTheme,
+  ProductItem,
+  UserProfile,
+} from '../types';
 import { AddBlockModal } from './AddBlockModal';
 import { BlockConfigModal } from './BlockConfigModal';
 import { PagePreview } from './PagePreview';
 import { AppearancePanel } from './AppearancePanel';
 import { PageService } from '../supabase/services/pageService';
+import { ProfileService } from '../supabase/services/profileService';
 import { StorageService } from '../supabase/services/storageService';
 import { supabase } from '../supabase/client';
-import { safeStorage } from '../utils/storage';
 import { getPageUrl } from '../utils/pageUrl';
-import { defaultPageTheme } from '../theme/presets';
-
-const LOCAL_PAGE_STORAGE_KEY = 'pandabio_page_data_v1';
+import {
+  PublicAvailabilityService,
+  WorkspaceService,
+} from '../supabase/services/agendamentoService';
+import { PublicBookingAvailability } from '../types_agendamentos';
+import {
+  createDefaultPageData,
+  createDefaultCustomForm,
+  createPageBlock,
+  duplicatePageBlock,
+  movePageBlock,
+  normalizePageData,
+  reorderPageBlocks,
+  touchPageData,
+} from '../utils/pageData';
 
 interface PageEditorProps {
   user: UserProfile;
-  onUpdateUser: (updated: Partial<UserProfile>) => void;
+  links?: BioLink[];
+  products?: ProductItem[];
 }
 
-export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) => {
+export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], products = [] }) => {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [copySuccess, setCopySuccess] = useState(false);
   const [isAddBlockModalOpen, setIsAddBlockModalOpen] = useState(false);
   const [editingBlock, setEditingBlock] = useState<PageBlock | null>(null);
@@ -57,175 +80,217 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const hasLoadedRef = useRef(false);
-  const [pageData, setPageData] = useState({
-    profile: user,
-    blocks: [] as PageBlock[],
-    theme: defaultPageTheme() as PageTheme,
-    published: false,
-    lastUpdated: new Date().toISOString(),
-  });
+  const bookingPreviewLoadedRef = useRef(false);
+  const [pageData, setPageData] = useState<PageData>(() => createDefaultPageData(user));
+  const [bookingAvailability, setBookingAvailability] = useState<PublicBookingAvailability[]>([]);
+  const [isLoadingPage, setIsLoadingPage] = useState(true);
+  const pageDataRef = useRef(pageData);
+  const profileIdRef = useRef<string | null>(null);
+  const saveTimerRef = useRef<number | null>(null);
+  const saveInFlightRef = useRef(false);
+  const queuedPageDataRef = useRef<typeof pageData | null>(null);
+  const flushPageSaveRef = useRef<() => Promise<boolean>>(async () => false);
+  const loadFailedRef = useRef(false);
+  const skipNextSaveRef = useRef(false);
+  const userSnapshotRef = useRef(JSON.stringify(user));
+
+  useEffect(() => {
+    pageDataRef.current = pageData;
+  }, [pageData]);
 
   // Resolve o id da linha do perfil no banco; cria a linha se ainda não existir
   // (fallback caso o trigger handle_new_user não tenha criado o registro).
-  const getOrCreateProfileId = async (): Promise<string | null> => {
+  const getOrCreateProfileId = useCallback(async (): Promise<string | null> => {
     if (!supabase) return null;
 
-    const {
-      data: { user: authUser },
-    } = await supabase.auth.getUser();
-    if (!authUser) return null;
+    if (profileIdRef.current) return profileIdRef.current;
 
-    const selectResult = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('user_id', authUser.id)
-      .maybeSingle();
+    const profileId = await ProfileService.ensureCurrentProfileId(pageDataRef.current.profile);
+    if (profileId) profileIdRef.current = profileId;
+    return profileId;
+  }, []);
 
-    if (selectResult.data?.id) return selectResult.data.id;
+  const flushPageSave = useCallback(async (): Promise<boolean> => {
+    if (!hasLoadedRef.current || loadFailedRef.current || saveInFlightRef.current) return false;
 
-    if (selectResult.error) {
-      console.error('Error looking up profile:', selectResult.error);
-      return null;
+    const dataToSave = queuedPageDataRef.current;
+    if (!dataToSave) return true;
+    queuedPageDataRef.current = null;
+    saveInFlightRef.current = true;
+    setSaveStatus('saving');
+
+    try {
+      const profileId = await getOrCreateProfileId();
+      if (!profileId) {
+        setSaveStatus('error');
+        console.error('Auto-save page data error: perfil não encontrado');
+        return false;
+      }
+
+      const result = await PageService.savePageData(profileId, dataToSave);
+      if (!result.success) {
+        setSaveStatus('error');
+        console.error('Auto-save page data error:', result.error);
+        return false;
+      } else {
+        setSaveStatus('saved');
+        return true;
+      }
+    } catch (error) {
+      setSaveStatus('error');
+      console.error('Auto-save page data error:', error);
+      return false;
+    } finally {
+      saveInFlightRef.current = false;
+      if (queuedPageDataRef.current) {
+        saveTimerRef.current = window.setTimeout(() => {
+          void flushPageSaveRef.current();
+        }, 250);
+      }
     }
+  }, [getOrCreateProfileId]);
 
-    const { data: created, error: insertError } = await supabase
-      .from('profiles')
-      .insert({
-        user_id: authUser.id,
-        email: authUser.email || '',
-        name: (pageData.profile.name || (authUser.user_metadata?.name as string) || '').slice(
-          0,
-          100,
-        ),
-        username: pageData.profile.username || authUser.email?.split('@')[0] || 'usuario',
-        bio_url:
-          pageData.profile.bioUrl || `pandabio.com/${pageData.profile.username || 'usuario'}`,
-        page_title: pageData.profile.pageTitle || 'Minha Página • Bio Oficial',
-      })
-      .select('id')
-      .single();
-
-    if (insertError) {
-      console.error('Error creating profile row:', insertError);
-      // Corrida: outra requisição pode ter criado a linha; tenta buscar de novo.
-      const retry = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', authUser.id)
-        .maybeSingle();
-      return retry.data?.id ?? null;
-    }
-
-    return created?.id ?? null;
-  };
-
-  // Auto-save com debounce (não salva antes do carregamento inicial)
   useEffect(() => {
-    if (!hasLoadedRef.current) return;
+    flushPageSaveRef.current = flushPageSave;
+  }, [flushPageSave]);
 
-    const timer = setTimeout(async () => {
-      if (!supabase) {
-        safeStorage.set(LOCAL_PAGE_STORAGE_KEY, pageData);
-        return;
-      }
-      try {
-        const profileId = await getOrCreateProfileId();
-        if (!profileId) return;
-        const result = await PageService.savePageData(profileId, pageData);
-        if (!result.success) {
-          console.error('Auto-save page data error:', result.error);
-        }
-      } catch (error) {
-        console.error('Auto-save page data error:', error);
-      }
-    }, 2000);
+  // Auto-save com debounce e fila única para impedir updates concorrentes no mesmo perfil.
+  useEffect(() => {
+    if (!hasLoadedRef.current || loadFailedRef.current) return;
+    if (skipNextSaveRef.current) {
+      skipNextSaveRef.current = false;
+      return;
+    }
 
-    return () => clearTimeout(timer);
-  }, [pageData]);
+    queuedPageDataRef.current = pageData;
+    if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = window.setTimeout(() => {
+      void flushPageSave();
+    }, 1200);
+
+    return () => {
+      if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current);
+    };
+  }, [pageData, flushPageSave]);
 
   // Carregar dados da página ao montar
   useEffect(() => {
     const loadPageData = async () => {
       if (hasLoadedRef.current) return;
 
-      if (!supabase) {
-        const stored = safeStorage.get<typeof pageData | null>(LOCAL_PAGE_STORAGE_KEY, null);
-        if (stored) {
-          setPageData(() => ({
-            ...stored,
-            theme: { ...defaultPageTheme(), ...(stored.theme || {}) },
-            profile: { ...user, ...(stored.profile || {}) },
-          }));
+      try {
+        const profileId = await getOrCreateProfileId();
+        if (!profileId) {
+          throw new Error('perfil não encontrado');
         }
+
+        const result = await PageService.loadPageData(profileId);
+        if (!result.success) {
+          throw new Error(result.error || 'erro ao carregar página');
+        }
+
+        if (result.pageData) {
+          skipNextSaveRef.current = true;
+          setPageData(normalizePageData(result.pageData, user));
+        }
+      } catch (error) {
+        loadFailedRef.current = true;
+        setSaveStatus('error');
+        console.error('Load page data error:', error);
+      } finally {
         hasLoadedRef.current = true;
+        setIsLoadingPage(false);
+      }
+    };
+
+    void loadPageData();
+  }, [user, getOrCreateProfileId]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadBookingPreview = async () => {
+      if (
+        bookingPreviewLoadedRef.current ||
+        !pageData.blocks.some((block) => block.type === 'agendamento')
+      ) {
         return;
       }
 
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser();
-      if (authUser) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', authUser.id)
-          .maybeSingle();
+      try {
+        if (!supabase) return;
 
-        if (profile) {
-          const { success, pageData: loadedPageData } = await PageService.loadPageData(profile.id);
-          if (success && loadedPageData) {
-            // Mescla o perfil do banco com o do contexto: campos salvos (cover,
-            // categoria, localização, customLink...) têm prioridade sobre o mock.
-            const savedProfile = (loadedPageData.profile || {}) as Partial<UserProfile>;
-            setPageData(() => ({
-              ...loadedPageData,
-              theme: { ...defaultPageTheme(), ...(loadedPageData.theme || {}) },
-              profile: {
-                ...user,
-                ...Object.fromEntries(
-                  Object.entries(savedProfile).filter(([, v]) => v !== null && v !== undefined),
-                ),
-              } as UserProfile,
-            }));
-          }
-        }
+        const workspace = (await WorkspaceService.getWorkspaces())[0];
+        if (!workspace) return;
+
+        const availability = await PublicAvailabilityService.getPublicAvailability(workspace.slug);
+        if (mounted) setBookingAvailability(availability);
+      } catch (error) {
+        console.error('Booking preview load error:', error);
+      } finally {
+        bookingPreviewLoadedRef.current = true;
       }
-      hasLoadedRef.current = true;
     };
 
-    loadPageData();
-  }, []);
+    void loadBookingPreview();
+    return () => {
+      mounted = false;
+    };
+  }, [pageData.blocks]);
 
   // Sincronizar o perfil editado no pageData (evita salvar perfil desatualizado),
   // preservando campos do banco que ainda não existem no contexto.
   // O usuário (fonte de edição) tem prioridade; campos do banco ainda ausentes
   // no contexto (undefined/null) são mantidos de prev.profile.
   useEffect(() => {
+    const nextUserSnapshot = JSON.stringify(user);
+    const userChanged = nextUserSnapshot !== userSnapshotRef.current;
+    userSnapshotRef.current = nextUserSnapshot;
+
+    if (!hasLoadedRef.current || !userChanged) return;
+
     setPageData((prev) => {
       const editedFields = Object.fromEntries(
         Object.entries(user).filter(([, value]) => value !== undefined && value !== null),
       );
+      const currentProfile = (prev.profile || {}) as Record<string, unknown>;
+      const profileChanged = Object.entries(editedFields).some(
+        ([key, value]) => currentProfile[key] !== value,
+      );
+      if (!profileChanged) return prev;
+
       return {
-        ...prev,
-        profile: {
-          ...(prev.profile || {}),
-          ...editedFields,
-        } as UserProfile,
-        lastUpdated: new Date().toISOString(),
+        ...touchPageData(prev, {
+          profile: {
+            ...(prev.profile || {}),
+            ...editedFields,
+          } as UserProfile,
+        }),
       };
     });
   }, [user]);
 
-  const handleCopyLink = () => {
-    const url = getPageUrl(user.bioUrl, user.username);
-    navigator.clipboard
-      ?.writeText(url)
-      .then(() => {
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
-        toast.success('Link copiado!');
-      })
-      .catch(() => toast.error('Não foi possível copiar o link'));
+  const updatePageProfile = (updates: Partial<UserProfile>) => {
+    setPageData((previous) =>
+      touchPageData(previous, { profile: { ...previous.profile, ...updates } }),
+    );
+  };
+
+  const handleCopyLink = async () => {
+    const url = getPageUrl(pageData.profile.bioUrl, pageData.profile.username);
+    if (!navigator.clipboard?.writeText) {
+      toast.error('Seu navegador não permite copiar o link');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+      toast.success('Link copiado!');
+    } catch {
+      toast.error('Não foi possível copiar o link');
+    }
   };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -235,14 +300,14 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
       toast.error('Selecione um arquivo de imagem válido');
       return;
     }
-    const previousUrl = user.avatarUrl;
+    const previousUrl = pageData.profile.avatarUrl;
     const result = await StorageService.uploadImage(file, 'avatar', { maxDim: 512, quality: 0.85 });
     e.target.value = '';
     if (!result.success || !result.url) {
       toast.error(result.error || 'Não foi possível processar a imagem');
       return;
     }
-    onUpdateUser({ avatarUrl: result.url });
+    updatePageProfile({ avatarUrl: result.url });
     if (result.path) StorageService.deleteByUrl(previousUrl);
     toast.success('Foto de perfil atualizada');
   };
@@ -254,49 +319,42 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
       toast.error('Selecione um arquivo de imagem válido');
       return;
     }
-    const previousUrl = user.coverUrl;
+    const previousUrl = pageData.profile.coverUrl;
     const result = await StorageService.uploadImage(file, 'cover', { maxDim: 1400, quality: 0.82 });
     e.target.value = '';
     if (!result.success || !result.url) {
       toast.error(result.error || 'Não foi possível processar a imagem');
       return;
     }
-    onUpdateUser({ coverUrl: result.url });
+    updatePageProfile({ coverUrl: result.url });
     if (result.path) StorageService.deleteByUrl(previousUrl);
     toast.success('Capa atualizada');
   };
 
   const handleRemoveCover = () => {
-    StorageService.deleteByUrl(user.coverUrl);
-    onUpdateUser({ coverUrl: '' });
+    StorageService.deleteByUrl(pageData.profile.coverUrl);
+    updatePageProfile({ coverUrl: '' });
     toast.success('Capa removida');
   };
 
   const handlePublish = async () => {
     setIsPublishing(true);
     try {
-      if (!supabase) {
-        const publishedData = {
-          ...pageData,
-          published: true,
-          lastUpdated: new Date().toISOString(),
-        };
-        setPageData(publishedData);
-        safeStorage.set(LOCAL_PAGE_STORAGE_KEY, publishedData);
-        toast.success('Página publicada (modo local)');
-        return;
-      }
-
       const profileId = await getOrCreateProfileId();
       if (!profileId) {
         toast.error('Perfil não encontrado');
         return;
       }
 
-      // Salvar as últimas edições antes de publicar
-      const saveResult = await PageService.savePageData(profileId, pageData);
-      if (!saveResult.success) {
-        toast.error(saveResult.error || 'Erro ao salvar antes de publicar');
+      queuedPageDataRef.current = pageData;
+      if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current);
+      while (saveInFlightRef.current) {
+        await new Promise((resolve) => window.setTimeout(resolve, 50));
+      }
+      if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current);
+      const saved = await flushPageSave();
+      if (!saved) {
+        toast.error('Erro ao salvar antes de publicar');
         return;
       }
       const result = await PageService.publishPage(profileId);
@@ -318,105 +376,153 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
     }
   };
 
+  const handleUnpublish = async () => {
+    setIsPublishing(true);
+    try {
+      const profileId = await getOrCreateProfileId();
+      if (!profileId) {
+        toast.error('Perfil não encontrado');
+        return;
+      }
+
+      const result = await PageService.unpublishPage(profileId);
+      if (!result.success) {
+        toast.error(result.error || 'Erro ao retirar página do ar');
+        return;
+      }
+
+      setPageData((previous) => ({
+        ...previous,
+        published: false,
+        lastUpdated: new Date().toISOString(),
+      }));
+      toast.success('Página retirada do ar.');
+    } catch (error) {
+      console.error('Error unpublishing page:', error);
+      toast.error('Erro ao retirar página do ar');
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
   const handleAddBlock = (type: BlockType) => {
     setPageData((prev) => {
-      const newBlock: PageBlock = {
-        id: crypto.randomUUID(),
-        type,
-        order: prev.blocks.length,
-        active: true,
-      };
-      return {
-        ...prev,
-        blocks: [...prev.blocks, newBlock],
-        lastUpdated: new Date().toISOString(),
-      };
+      const nextBlock = createPageBlock(type, prev.blocks.length);
+      let forms = prev.forms || [];
+      if (type === 'form') {
+        const selectedForm = forms[0] || createDefaultCustomForm();
+        if (!forms.some((form) => form.id === selectedForm.id)) forms = [selectedForm, ...forms];
+        nextBlock.formId = selectedForm.id;
+        nextBlock.title = selectedForm?.title || 'Formulário de contato';
+      }
+      return touchPageData(prev, {
+        blocks: [...prev.blocks, nextBlock],
+        forms,
+      });
     });
   };
 
   const handleUpdateBlock = (blockId: string, updates: Partial<PageBlock>) => {
-    setPageData((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) => (block.id === blockId ? { ...block, ...updates } : block)),
-      lastUpdated: new Date().toISOString(),
-    }));
+    setPageData((prev) => {
+      if (!prev.blocks.some((block) => block.id === blockId)) return prev;
+      return touchPageData(prev, {
+        blocks: prev.blocks.map((block) =>
+          block.id === blockId ? { ...block, ...updates } : block,
+        ),
+      });
+    });
   };
 
   const handleDeleteBlock = (blockId: string) => {
-    setPageData((prev) => ({
-      ...prev,
-      blocks: prev.blocks
-        .filter((block) => block.id !== blockId)
-        .map((block, i) => ({ ...block, order: i })),
-      lastUpdated: new Date().toISOString(),
-    }));
+    setPageData((prev) => {
+      if (!prev.blocks.some((block) => block.id === blockId)) return prev;
+      return touchPageData(prev, {
+        blocks: reorderPageBlocks(prev.blocks.filter((block) => block.id !== blockId)),
+      });
+    });
   };
 
   const handleDuplicateBlock = (blockId: string) => {
     setPageData((prev) => {
       const source = prev.blocks.find((b) => b.id === blockId);
       if (!source) return prev;
-      const rest = { ...source };
-      const copy: PageBlock = {
-        ...rest,
-        id: crypto.randomUUID(),
-        order: prev.blocks.length,
-        active: true,
-      };
-      return {
-        ...prev,
-        blocks: [...prev.blocks, copy],
-        lastUpdated: new Date().toISOString(),
-      };
+      return touchPageData(prev, {
+        blocks: [...prev.blocks, duplicatePageBlock(source, prev.blocks.length)],
+      });
     });
   };
 
   const handleToggleBlockActive = (blockId: string) => {
-    setPageData((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === blockId ? { ...block, active: !(block.active ?? true) } : block,
-      ),
-      lastUpdated: new Date().toISOString(),
-    }));
+    setPageData((prev) => {
+      if (!prev.blocks.some((block) => block.id === blockId)) return prev;
+      return touchPageData(prev, {
+        blocks: prev.blocks.map((block) =>
+          block.id === blockId ? { ...block, active: !(block.active ?? true) } : block,
+        ),
+      });
+    });
   };
 
   const handleMoveBlock = (blockId: string, direction: 'up' | 'down') => {
     setPageData((prev) => {
-      const blocks = [...prev.blocks];
-      const index = blocks.findIndex((b) => b.id === blockId);
-
-      if (direction === 'up' && index > 0) {
-        [blocks[index], blocks[index - 1]] = [blocks[index - 1], blocks[index]];
-      } else if (direction === 'down' && index < blocks.length - 1) {
-        [blocks[index], blocks[index + 1]] = [blocks[index + 1], blocks[index]];
-      }
-
-      return {
-        ...prev,
-        blocks: blocks.map((block, i) => ({ ...block, order: i })),
-        lastUpdated: new Date().toISOString(),
-      };
+      const blocks = movePageBlock(prev.blocks, blockId, direction);
+      if (blocks === prev.blocks) return prev;
+      return touchPageData(prev, { blocks });
     });
   };
 
+  const handlePreviewInteraction = (block: PageBlock) => {
+    const labels: Partial<Record<BlockType, string>> = {
+      link: 'link',
+      video: 'vídeo',
+      agendamento: 'agendamento',
+      produto: 'produto',
+      social: 'rede social',
+      contact: 'contato',
+      music: 'música',
+      location: 'localização',
+      form: 'formulário',
+    };
+    const label = labels[block.type] || 'bloco';
+    toast.success(`Teste de ${label} acionado. A página continua em modo de edição.`);
+  };
+
+  const handlePreviewLeadCapture = async (block: PageBlock) => {
+    const label = block.type === 'form' ? 'formulário' : 'captura de contato';
+    toast.success(`Teste de ${label} concluído. Nenhum lead real foi criado.`);
+    return true;
+  };
+
   const handleThemeUpdate = (updates: Partial<PageTheme>) => {
-    setPageData((prev) => ({
-      ...prev,
-      theme: { ...prev.theme, ...updates },
-      lastUpdated: new Date().toISOString(),
-    }));
+    setPageData((prev) => touchPageData(prev, { theme: { ...prev.theme, ...updates } }));
   };
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-9rem)] min-h-[520px] bg-[#F6EFE9]">
+    <div className="relative flex flex-col h-[calc(100dvh-9rem)] min-h-[520px] bg-[#F6EFE9]">
+      {isLoadingPage && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#F6EFE9]/80 backdrop-blur-sm">
+          <div className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-[#464555] shadow-sm">
+            <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin text-[#FF7A00]" />
+            Carregando sua página...
+          </div>
+        </div>
+      )}
       {/* Header do Editor */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-bold text-[#131b2e]">Minha Página</h1>
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <span>Sua página:</span>
-            <span className="font-mono text-[#FF5E00]">pandabio.com/{user.username}</span>
+            <span className="font-mono text-[#FF5E00]">
+              pandabio.com/{pageData.profile.username}
+            </span>
+            <span
+              className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                pageData.published ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+              }`}
+            >
+              {pageData.published ? 'Publicado' : 'Rascunho'}
+            </span>
             <button
               onClick={handleCopyLink}
               className="p-1.5 rounded hover:bg-gray-100 transition-colors"
@@ -442,6 +548,15 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
             <Eye aria-hidden="true" className="w-4 h-4" />
             <span>{isPreviewMode ? 'Editar' : 'Visualizar'}</span>
           </button>
+          {pageData.published && (
+            <button
+              onClick={handleUnpublish}
+              disabled={isPublishing}
+              className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Retirar do ar
+            </button>
+          )}
           <button
             onClick={handlePublish}
             disabled={isPublishing}
@@ -452,8 +567,15 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
             ) : (
               <Check aria-hidden="true" className="w-4 h-4" />
             )}
-            <span>{isPublishing ? 'Publicando...' : 'Publicar'}</span>
+            <span>
+              {isPublishing ? 'Salvando...' : pageData.published ? 'Atualizar' : 'Publicar'}
+            </span>
           </button>
+          <span className="text-[11px] text-gray-500">
+            {saveStatus === 'saving' && 'Salvando alterações...'}
+            {saveStatus === 'saved' && 'Alterações salvas'}
+            {saveStatus === 'error' && 'Falha ao salvar'}
+          </span>
         </div>
       </div>
 
@@ -471,9 +593,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                   {/* Foto de Perfil */}
                   <div className="flex items-center gap-4">
                     <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                      {user.avatarUrl ? (
+                      {pageData.profile.avatarUrl ? (
                         <img
-                          src={user.avatarUrl}
+                          src={pageData.profile.avatarUrl}
                           alt="Avatar"
                           className="w-full h-full object-cover"
                         />
@@ -500,9 +622,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                   {/* Capa da página (opcional) */}
                   <div className="flex items-center gap-4">
                     <div className="w-40 h-16 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden shrink-0">
-                      {user.coverUrl ? (
+                      {pageData.profile.coverUrl ? (
                         <img
-                          src={user.coverUrl}
+                          src={pageData.profile.coverUrl}
                           alt="Capa"
                           className="w-full h-full object-cover"
                         />
@@ -516,9 +638,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                         className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
                       >
                         <Image aria-hidden="true" className="w-4 h-4 text-gray-500" />
-                        {user.coverUrl ? 'Alterar capa' : 'Adicionar capa'}
+                        {pageData.profile.coverUrl ? 'Alterar capa' : 'Adicionar capa'}
                       </button>
-                      {user.coverUrl && (
+                      {pageData.profile.coverUrl && (
                         <button
                           onClick={handleRemoveCover}
                           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
@@ -546,9 +668,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
                     <input
                       type="text"
-                      value={user.name}
+                      value={pageData.profile.name}
                       maxLength={50}
-                      onChange={(e) => onUpdateUser({ name: e.target.value })}
+                      onChange={(e) => updatePageProfile({ name: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent"
                     />
                   </div>
@@ -562,11 +684,12 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                       </span>
                       <input
                         type="text"
-                        value={user.username}
+                        value={pageData.profile.username}
                         maxLength={20}
                         onChange={(e) =>
-                          onUpdateUser({
+                          updatePageProfile({
                             username: e.target.value.replace(/\s+/g, '').toLowerCase(),
+                            bioUrl: `pandabio.com/${e.target.value.replace(/\s+/g, '').toLowerCase()}`,
                           })
                         }
                         className="flex-1 px-4 py-2 outline-none"
@@ -574,7 +697,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                     </div>
                     <p className="text-[11px] text-gray-500 mt-1">
                       Sua página:{' '}
-                      <span className="font-mono text-[#FF5E00]">pandabio.com/{user.username}</span>
+                      <span className="font-mono text-[#FF5E00]">
+                        pandabio.com/{pageData.profile.username}
+                      </span>
                     </p>
                   </div>
 
@@ -583,13 +708,13 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-sm font-medium text-gray-700">Bio</label>
                       <span className="text-[10px] text-gray-500 font-medium">
-                        {(user.bioDescription || '').length}/200
+                        {(pageData.profile.bioDescription || '').length}/200
                       </span>
                     </div>
                     <textarea
-                      value={user.bioDescription}
+                      value={pageData.profile.bioDescription}
                       maxLength={200}
-                      onChange={(e) => onUpdateUser({ bioDescription: e.target.value })}
+                      onChange={(e) => updatePageProfile({ bioDescription: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent resize-none"
                       rows={3}
                       placeholder="Conte um pouco sobre você..."
@@ -602,8 +727,8 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                       Categoria
                     </label>
                     <select
-                      value={user.category || ''}
-                      onChange={(e) => onUpdateUser({ category: e.target.value })}
+                      value={pageData.profile.category || ''}
+                      onChange={(e) => updatePageProfile({ category: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent"
                     >
                       <option value="">Selecione...</option>
@@ -623,9 +748,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                     </label>
                     <input
                       type="text"
-                      value={user.location || ''}
+                      value={pageData.profile.location || ''}
                       maxLength={100}
-                      onChange={(e) => onUpdateUser({ location: e.target.value })}
+                      onChange={(e) => updatePageProfile({ location: e.target.value })}
                       placeholder="São Paulo, Brasil"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent"
                     />
@@ -638,8 +763,8 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                     </label>
                     <input
                       type="text"
-                      value={user.customLink || ''}
-                      onChange={(e) => onUpdateUser({ customLink: e.target.value })}
+                      value={pageData.profile.customLink || ''}
+                      onChange={(e) => updatePageProfile({ customLink: e.target.value })}
                       placeholder="meusite.com"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent"
                     />
@@ -776,7 +901,11 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
               {/* 3. Aparência */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h2 className="text-lg font-bold text-[#131b2e] mb-4">Aparência</h2>
-                <AppearancePanel theme={pageData.theme} onThemeUpdate={handleThemeUpdate} />
+                <AppearancePanel
+                  theme={pageData.theme}
+                  onThemeUpdate={handleThemeUpdate}
+                  hasCover={Boolean(pageData.profile.coverUrl)}
+                />
               </div>
             </div>
           )}
@@ -827,7 +956,13 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                   profile={pageData.profile}
                   theme={pageData.theme}
                   blocks={pageData.blocks}
+                  forms={pageData.forms}
+                  links={links}
                   device={previewDevice}
+                  interactive
+                  onInteractiveClick={handlePreviewInteraction}
+                  onLeadCapture={handlePreviewLeadCapture}
+                  bookingAvailability={bookingAvailability}
                 />
               </motion.div>
             </div>
@@ -837,7 +972,10 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
         {/* Área de Preview (Direita) */}
         <div className="hidden md:flex flex-col w-[420px] shrink-0 bg-gray-100 p-5 min-h-0">
           <div className="flex items-center justify-between mb-3 shrink-0">
-            <h3 className="text-sm font-bold text-[#131b2e]">Visualização ao vivo</h3>
+            <div>
+              <h3 className="text-sm font-bold text-[#131b2e]">Visualização ao vivo</h3>
+              <p className="mt-0.5 text-[10px] text-gray-500">Clique nos botões para testar</p>
+            </div>
             <div className="flex bg-[#f2f3ff] p-0.5 rounded-xl text-xs font-semibold">
               <button
                 onClick={() => setPreviewDevice('mobile')}
@@ -874,7 +1012,13 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
                 profile={pageData.profile}
                 theme={pageData.theme}
                 blocks={pageData.blocks}
+                forms={pageData.forms}
+                links={links}
                 device={previewDevice}
+                interactive
+                onInteractiveClick={handlePreviewInteraction}
+                onLeadCapture={handlePreviewLeadCapture}
+                bookingAvailability={bookingAvailability}
               />
             </motion.div>
           </div>
@@ -894,6 +1038,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, onUpdateUser }) =>
         onClose={() => setEditingBlock(null)}
         onUpdate={handleUpdateBlock}
         onDelete={handleDeleteBlock}
+        links={links}
+        catalogProducts={products}
+        forms={pageData.forms}
       />
     </div>
   );
@@ -909,6 +1056,7 @@ function getBlockIcon(type: BlockType): React.ReactNode {
     produto: <ShoppingBag aria-hidden="true" className="w-5 h-5 text-gray-600" />,
     social: <Smartphone aria-hidden="true" className="w-5 h-5 text-gray-600" />,
     contact: <Mail aria-hidden="true" className="w-5 h-5 text-gray-600" />,
+    form: <ClipboardList aria-hidden="true" className="w-5 h-5 text-gray-600" />,
     music: <Music aria-hidden="true" className="w-5 h-5 text-gray-600" />,
     location: <MapPin aria-hidden="true" className="w-5 h-5 text-gray-600" />,
   };
@@ -925,6 +1073,7 @@ function getBlockPlaceholder(type: BlockType): string {
     produto: 'Meus produtos',
     social: 'Minhas redes sociais',
     contact: 'Entre em contato',
+    form: 'Formulário de contato',
     music: 'Minha música',
     location: 'Minha localização',
   };

@@ -115,7 +115,10 @@ export const DetailedReportModal: React.FC<DetailedReportModalProps> = ({
           </h3>
           <div className="space-y-2">
             <div className="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50 text-emerald-950 text-xs border border-emerald-100">
-              <CheckCircle2 aria-hidden="true" className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              <CheckCircle2
+                aria-hidden="true"
+                className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"
+              />
               <span>
                 Mantenha seu canal de contato principal (como WhatsApp ou direct) entre as primeiras
                 opções do topo.

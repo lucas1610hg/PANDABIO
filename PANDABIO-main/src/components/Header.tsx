@@ -62,7 +62,10 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Search Bar */}
         <div className="relative flex items-center min-w-0">
-          <Search aria-hidden="true" className="w-4 h-4 absolute left-3 text-neutral-gray-light pointer-events-none shrink-0" />
+          <Search
+            aria-hidden="true"
+            className="w-4 h-4 absolute left-3 text-neutral-gray-light pointer-events-none shrink-0"
+          />
           <input
             id="global-search-input"
             type="text"

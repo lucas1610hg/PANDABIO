@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from '../client';
 import { ActivityItem } from '../../types';
+import { ProfileService } from './profileService';
 
 /**
  * Serviço para gerenciamento de atividades
@@ -12,15 +13,13 @@ export class ActivityService {
     if (!isSupabaseConfigured() || !supabase) return [];
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return [];
+      const profileId = await ProfileService.getCurrentProfileId();
+      if (!profileId) return [];
 
       const { data, error } = await supabase
         .from('activities')
         .select('*')
-        .eq('profile_id', user.id)
+        .eq('profile_id', profileId)
         .order('created_at', { ascending: false })
         .limit(limit);
 
@@ -48,13 +47,11 @@ export class ActivityService {
     if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return false;
+      const profileId = await ProfileService.getCurrentProfileId();
+      if (!profileId) return false;
 
       const { error } = await supabase.from('activities').insert({
-        profile_id: user.id,
+        profile_id: profileId,
         title: activity.title,
         subtitle: activity.subtitle,
         time_ago: activity.timeAgo,
@@ -116,10 +113,8 @@ export class ActivityService {
     if (!isSupabaseConfigured() || !supabase) return false;
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return false;
+      const profileId = await ProfileService.getCurrentProfileId();
+      if (!profileId) return false;
 
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
@@ -127,7 +122,7 @@ export class ActivityService {
       const { error } = await supabase
         .from('activities')
         .delete()
-        .eq('profile_id', user.id)
+        .eq('profile_id', profileId)
         .lt('created_at', cutoffDate.toISOString());
 
       if (error) throw error;

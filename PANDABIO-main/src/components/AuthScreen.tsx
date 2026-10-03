@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { PANDABIO_ASSETS } from '../constants/assets';
 import { Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { UserProfile } from '../types';
 import { AuthService } from '../supabase/services/authService';
 import { isSupabaseConfigured } from '../supabase/client';
+import { isValidUsername, normalizeUsername, usernameValidationMessage } from '../utils/username';
 
 interface AuthScreenProps {
-  onLoginSuccess: (user: Partial<UserProfile>) => void;
+  onLoginSuccess: () => void;
 }
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
@@ -33,26 +33,29 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
 
     try {
       if (isRegisterMode) {
+        const normalizedUsername = normalizeUsername(regUsername);
+        if (!isValidUsername(normalizedUsername)) {
+          setErrorMessage(usernameValidationMessage);
+          return;
+        }
+
         // Register mode
         if (isSupabaseConfigured()) {
           const result = await AuthService.signUp(regEmail, regPassword, {
             name: regName,
-            username: regUsername,
+            username: normalizedUsername,
             email: regEmail,
           });
 
-          if (result.success && result.user) {
-            onLoginSuccess(result.user);
+          if (result.success && result.user && !result.needsEmailConfirmation) {
+            onLoginSuccess();
+          } else if (result.success && result.needsEmailConfirmation) {
+            setErrorMessage('Cadastro criado. Confirme seu e-mail para entrar.');
           } else {
             setErrorMessage(result.error || 'Erro ao fazer cadastro');
           }
         } else {
-          // Fallback local mode
-          onLoginSuccess({
-            name: regName || 'Usuário',
-            username: regUsername || (regEmail ? regEmail.split('@')[0] : 'usuario'),
-            email: regEmail || 'usuario@email.com',
-          });
+          setErrorMessage('Sistema de autenticação não configurado.');
         }
       } else {
         // Login mode
@@ -61,20 +64,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
           const result = await AuthService.signIn(email, password);
 
           if (result.success && result.user) {
-            onLoginSuccess(result.user);
+            onLoginSuccess();
           } else {
             setErrorMessage(result.error || 'Erro ao fazer login');
           }
         } else {
-          // Fallback local mode
-          const email = identifier.trim() || 'usuario@email.com';
-          const defaultName = email.includes('@') ? email.split('@')[0] : email;
-          const defaultUsername = email.includes('@') ? email.split('@')[0] : email;
-          onLoginSuccess({
-            name: defaultName,
-            username: defaultUsername,
-            email: email.includes('@') ? email : `${email}@email.com`,
-          });
+          setErrorMessage('Sistema de autenticação não configurado.');
         }
       }
     } catch {
@@ -106,12 +101,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
           setErrorMessage(result.error || `Erro ao fazer login com ${provider}`);
         }
       } else {
-        // Fallback local mode
-        onLoginSuccess({
-          name: `Usuário ${provider}`,
-          username: `user_${provider.toLowerCase()}`,
-          email: `user.${provider.toLowerCase()}@email.com`,
-        });
+        setErrorMessage('Sistema de autenticação não configurado.');
       }
     } catch {
       setErrorMessage('Erro ao fazer login social');
@@ -442,9 +432,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                                 );
                               }
                             } else {
-                              alert(
-                                'Link de redefinição de senha enviado para o e-mail informado!',
-                              );
+                              setErrorMessage('Sistema de autenticação não configurado.');
                             }
                           }}
                           className="text-xs sm:text-sm font-semibold text-[#FF5E00] hover:underline transition duration-150 cursor-pointer"

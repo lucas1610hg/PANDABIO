@@ -9,8 +9,6 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: [
-        'src/store/usePandaBioStore.ts',
-        'src/utils/storage.ts',
         'src/utils/normalizeIp.ts',
         'src/schemas/linkSchema.ts',
       ],

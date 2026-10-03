@@ -78,7 +78,10 @@ export const KpiMetrics = memo<KpiMetricsProps>(
                 <span className="flex items-center gap-1 text-[11px] text-neutral-gray mt-1.5 font-medium">
                   {data.visitsGrowth > 0 ? (
                     <>
-                      <ArrowUp aria-hidden="true" className="w-3.5 h-3.5 text-secondary-green-dark" />
+                      <ArrowUp
+                        aria-hidden="true"
+                        className="w-3.5 h-3.5 text-secondary-green-dark"
+                      />
                       <span className="text-secondary-green-dark font-semibold">
                         +{data.visitsGrowth}%
                       </span>{' '}
@@ -149,7 +152,10 @@ export const KpiMetrics = memo<KpiMetricsProps>(
                 <span className="flex items-center gap-1 text-[11px] text-neutral-gray mt-1.5 font-medium">
                   {data.clicksGrowth > 0 ? (
                     <>
-                      <ArrowUp aria-hidden="true" className="w-3.5 h-3.5 text-secondary-green-dark" />
+                      <ArrowUp
+                        aria-hidden="true"
+                        className="w-3.5 h-3.5 text-secondary-green-dark"
+                      />
                       <span className="text-secondary-green-dark font-semibold">
                         +{data.clicksGrowth}%
                       </span>{' '}
@@ -220,7 +226,10 @@ export const KpiMetrics = memo<KpiMetricsProps>(
                 <span className="flex items-center gap-1 text-[11px] text-neutral-gray mt-1.5 font-medium">
                   {data.leadsGrowth > 0 ? (
                     <>
-                      <ArrowUp aria-hidden="true" className="w-3.5 h-3.5 text-secondary-green-dark" />
+                      <ArrowUp
+                        aria-hidden="true"
+                        className="w-3.5 h-3.5 text-secondary-green-dark"
+                      />
                       <span className="text-secondary-green-dark font-semibold">
                         +{data.leadsGrowth}%
                       </span>{' '}
@@ -291,7 +300,10 @@ export const KpiMetrics = memo<KpiMetricsProps>(
                 <span className="flex items-center gap-1 text-[11px] text-neutral-gray mt-1.5 font-medium">
                   {data.conversionsGrowth > 0 ? (
                     <>
-                      <ArrowUp aria-hidden="true" className="w-3.5 h-3.5 text-secondary-green-dark" />
+                      <ArrowUp
+                        aria-hidden="true"
+                        className="w-3.5 h-3.5 text-secondary-green-dark"
+                      />
                       <span className="text-secondary-green-dark font-semibold">
                         +{data.conversionsGrowth}%
                       </span>{' '}

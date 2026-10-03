@@ -1,56 +1,131 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { LinkService } from '../supabase/services/linkService';
 import { ProductService } from '../supabase/services/productService';
 import { LeadService } from '../supabase/services/leadService';
 import { ActivityService } from '../supabase/services/activityService';
-import { BioLink, ProductItem, LeadItem, ActivityItem, FunnelData } from '../types';
+import { ProfileService } from '../supabase/services/profileService';
+import {
+  BioLink,
+  ProductItem,
+  LeadItem,
+  ActivityItem,
+  FunnelData,
+  UserProfile,
+  LeadStatus,
+} from '../types';
 import { KpiData } from '../components/KpiMetrics';
-import { isSupabaseConfigured } from '../supabase/client';
+import { isSupabaseConfigured, supabase } from '../supabase/client';
+import {
+  PublicAnalyticsService,
+  PublicAnalyticsSummary,
+} from '../supabase/services/publicAnalyticsService';
+
+const emptyPublicAnalytics: PublicAnalyticsSummary = {
+  visits: 0,
+  clicks: 0,
+  uniqueVisitors: 0,
+  events: [],
+  sales: [],
+  salesAvailable: false,
+};
 
 /**
  * Hook customizado para dados do PandaBio com Supabase
- * Substitui o uso de localStorage por banco de dados real
+ * Mantém dados da aplicação sincronizados exclusivamente com Supabase
  */
 export const useSupabaseData = () => {
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [links, setLinks] = useState<BioLink[]>([]);
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [leads, setLeads] = useState<LeadItem[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [publicAnalytics, setPublicAnalytics] =
+    useState<PublicAnalyticsSummary>(emptyPublicAnalytics);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const loadRequestRef = useRef<Promise<void> | null>(null);
 
   // Carregar dados iniciais
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(() => {
     if (!isSupabaseConfigured()) {
       setLoading(false);
-      return;
+      return Promise.resolve();
     }
 
-    try {
-      setLoading(true);
-      setError(null);
+    if (loadRequestRef.current) return loadRequestRef.current;
 
-      const [linksData, productsData, leadsData, activitiesData] = await Promise.all([
-        LinkService.getLinks(),
-        ProductService.getProducts(),
-        LeadService.getLeads(),
-        ActivityService.getActivities(20),
-      ]);
+    const request = (async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      setLinks(linksData);
-      setProducts(productsData);
-      setLeads(leadsData);
-      setActivities(activitiesData);
-    } catch (err) {
-      console.error('Error loading data:', err);
-      setError('Erro ao carregar dados');
-    } finally {
-      setLoading(false);
-    }
+        const {
+          data: { session },
+        } = await supabase!.auth.getSession();
+        if (!session) {
+          setUser(null);
+          setLinks([]);
+          setProducts([]);
+          setLeads([]);
+          setActivities([]);
+          setPublicAnalytics(emptyPublicAnalytics);
+          setLoading(false);
+          return;
+        }
+
+        const [profileData, linksData, productsData, leadsData, activitiesData, analyticsData] =
+          await Promise.all([
+            ProfileService.getCurrentProfile(),
+            LinkService.getLinks(),
+            ProductService.getProducts(),
+            LeadService.getLeads(),
+            ActivityService.getActivities(20),
+            PublicAnalyticsService.getSummary(),
+          ]);
+
+        setUser(profileData);
+        setLinks(linksData);
+        setProducts(productsData);
+        setLeads(leadsData);
+        setActivities(activitiesData);
+        setPublicAnalytics(analyticsData);
+      } catch (err) {
+        console.error('Error loading data:', err);
+        setError('Erro ao carregar dados');
+      } finally {
+        setLoading(false);
+      }
+    })();
+
+    loadRequestRef.current = request;
+    void request.finally(() => {
+      if (loadRequestRef.current === request) loadRequestRef.current = null;
+    });
+    return request;
   }, []);
 
   useEffect(() => {
-    loadData();
+    void loadData();
+
+    if (!isSupabaseConfigured() || !supabase) return;
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        setUser(null);
+        setLinks([]);
+        setProducts([]);
+        setLeads([]);
+        setActivities([]);
+        setPublicAnalytics(emptyPublicAnalytics);
+        setLoading(false);
+        return;
+      }
+      window.setTimeout(() => void loadData(), 0);
+    });
+
+    return () => subscription.unsubscribe();
   }, [loadData]);
 
   // Adicionar link
@@ -98,6 +173,26 @@ export const useSupabaseData = () => {
     }
   }, []);
 
+  // Reordenar links
+  const reorderLinks = useCallback(async (reordered: BioLink[]) => {
+    try {
+      setError(null);
+      const success = await LinkService.reorderLinks(reordered.map((link) => link.id));
+
+      if (success) {
+        setLinks(reordered);
+        return { success: true };
+      }
+
+      setError('Erro ao reordenar links');
+      return { success: false, error: 'Erro ao reordenar links' };
+    } catch (err) {
+      console.error('Error reordering links:', err);
+      setError('Erro ao reordenar links');
+      return { success: false, error: 'Erro ao reordenar links' };
+    }
+  }, []);
+
   // Adicionar produto
   const addProduct = useCallback(
     async (product: Omit<ProductItem, 'id'>) => {
@@ -122,6 +217,98 @@ export const useSupabaseData = () => {
     },
     [loadData],
   );
+
+  // Alternar status de produto
+  const toggleProduct = useCallback(async (id: string, currentStatus: ProductItem['status']) => {
+    try {
+      setError(null);
+      const nextStatus = currentStatus === 'active' ? 'draft' : 'active';
+      const success = await ProductService.updateProduct(id, { status: nextStatus });
+
+      if (success) {
+        setProducts((prev) =>
+          prev.map((product) => (product.id === id ? { ...product, status: nextStatus } : product)),
+        );
+        return { success: true };
+      }
+
+      setError('Erro ao atualizar produto');
+      return { success: false, error: 'Erro ao atualizar produto' };
+    } catch (err) {
+      console.error('Error toggling product:', err);
+      setError('Erro ao atualizar produto');
+      return { success: false, error: 'Erro ao atualizar produto' };
+    }
+  }, []);
+
+  // Atualizar produto
+  const updateProduct = useCallback(async (id: string, updates: Partial<ProductItem>) => {
+    try {
+      setError(null);
+      const success = await ProductService.updateProduct(id, updates);
+
+      if (success) {
+        setProducts((prev) =>
+          prev.map((product) => (product.id === id ? { ...product, ...updates, id } : product)),
+        );
+        return { success: true };
+      }
+
+      setError('Erro ao atualizar produto');
+      return { success: false, error: 'Erro ao atualizar produto' };
+    } catch (err) {
+      console.error('Error updating product:', err);
+      setError('Erro ao atualizar produto');
+      return { success: false, error: 'Erro ao atualizar produto' };
+    }
+  }, []);
+
+  // Atualizar perfil
+  const updateProfile = useCallback(
+    async (updates: Partial<UserProfile>) => {
+      const previousProfile = user;
+      if (previousProfile) {
+        setUser({ ...previousProfile, ...updates });
+      }
+
+      try {
+        setError(null);
+        const updatedProfile = await ProfileService.upsertProfile(updates);
+
+        if (updatedProfile) {
+          setUser(updatedProfile);
+          return { success: true, profile: updatedProfile };
+        }
+
+        if (previousProfile) setUser(previousProfile);
+        setError('Erro ao atualizar perfil');
+        return { success: false, error: 'Erro ao atualizar perfil' };
+      } catch (err) {
+        console.error('Error updating profile:', err);
+        if (previousProfile) setUser(previousProfile);
+        setError('Erro ao atualizar perfil');
+        return { success: false, error: 'Erro ao atualizar perfil' };
+      }
+    },
+    [user],
+  );
+
+  // Atualizar plano
+  const upgradeToPro = useCallback(async () => {
+    try {
+      setError(null);
+      const success = await ProfileService.upgradeToPro();
+
+      if (success) return { success: true };
+
+      setError('Erro ao atualizar plano');
+      return { success: false, error: 'Erro ao atualizar plano' };
+    } catch (err) {
+      console.error('Error upgrading plan:', err);
+      setError('Erro ao atualizar plano');
+      return { success: false, error: 'Erro ao atualizar plano' };
+    }
+  }, []);
 
   // Adicionar lead
   const addLead = useCallback(
@@ -148,18 +335,55 @@ export const useSupabaseData = () => {
     [loadData],
   );
 
+  const updateLeadStatus = useCallback(async (id: string, status: LeadStatus) => {
+    try {
+      setError(null);
+      const updatedLead = await LeadService.updateLead(id, { status });
+      if (!updatedLead) {
+        setError('Erro ao atualizar status do lead');
+        return { success: false, error: 'Erro ao atualizar status do lead' };
+      }
+      setLeads((previous) =>
+        previous.map((lead) => (lead.id === id ? { ...lead, ...updatedLead } : lead)),
+      );
+      return { success: true, lead: updatedLead };
+    } catch (err) {
+      console.error('Error updating lead status:', err);
+      setError('Erro ao atualizar status do lead');
+      return { success: false, error: 'Erro ao atualizar status do lead' };
+    }
+  }, []);
+
+  const deleteLead = useCallback(async (id: string) => {
+    try {
+      setError(null);
+      const success = await LeadService.deleteLead(id);
+      if (!success) {
+        setError('Erro ao excluir lead');
+        return { success: false, error: 'Erro ao excluir lead' };
+      }
+      setLeads((previous) => previous.filter((lead) => lead.id !== id));
+      return { success: true };
+    } catch (err) {
+      console.error('Error deleting lead:', err);
+      setError('Erro ao excluir lead');
+      return { success: false, error: 'Erro ao excluir lead' };
+    }
+  }, []);
+
   // Cálculo de KPIs
   const realKpiData: KpiData = (() => {
-    const totalClicks = links.reduce((sum, l) => sum + (l.clicks || 0), 0);
+    const totalClicks =
+      publicAnalytics.clicks || links.reduce((sum, l) => sum + (l.clicks || 0), 0);
     const totalLeads = leads.length;
     const totalConversions = products.reduce((sum, p) => sum + (p.salesCount || 0), 0);
-    const estimatedVisits = totalClicks > 0 ? totalClicks * 2 : 0;
-    const ctr = estimatedVisits > 0 ? (totalClicks / estimatedVisits) * 100 : 0;
+    const visits = publicAnalytics.visits;
+    const ctr = visits > 0 ? (totalClicks / visits) * 100 : 0;
     const leadRate = totalClicks > 0 ? (totalLeads / totalClicks) * 100 : 0;
     const convRate = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
 
     return {
-      visits: estimatedVisits,
+      visits,
       visitsGrowth: 0,
       ctrGeneral: ctr,
       clicks: totalClicks,
@@ -176,17 +400,18 @@ export const useSupabaseData = () => {
 
   // Cálculo de Funil
   const funnelData: FunnelData = (() => {
-    const totalClicks = links.reduce((sum, l) => sum + (l.clicks || 0), 0);
+    const totalClicks =
+      publicAnalytics.clicks || links.reduce((sum, l) => sum + (l.clicks || 0), 0);
     const totalLeads = leads.length;
     const totalConversions = products.reduce((sum, p) => sum + (p.salesCount || 0), 0);
-    const estimatedVisits = totalClicks > 0 ? totalClicks * 2 : 0;
+    const visits = publicAnalytics.visits;
 
     return {
-      visits: estimatedVisits,
+      visits,
       clicks: totalClicks,
       leads: totalLeads,
       conversions: totalConversions,
-      ctr: estimatedVisits > 0 ? (totalClicks / estimatedVisits) * 100 : 0,
+      ctr: visits > 0 ? (totalClicks / visits) * 100 : 0,
       leadRate: totalClicks > 0 ? (totalLeads / totalClicks) * 100 : 0,
       conversionRate: totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0,
       leadToConversionRate: totalLeads > 0 ? (totalConversions / totalLeads) * 100 : 0,
@@ -194,17 +419,26 @@ export const useSupabaseData = () => {
   })();
 
   return {
+    user,
     links,
     products,
     leads,
     activities,
+    publicAnalytics,
     loading,
     error,
     isSupabaseConfigured,
     addLink,
     toggleLink,
+    reorderLinks,
     addProduct,
+    toggleProduct,
+    updateProduct,
     addLead,
+    updateLeadStatus,
+    deleteLead,
+    updateProfile,
+    upgradeToPro,
     realKpiData,
     funnelData,
     refreshData: loadData,

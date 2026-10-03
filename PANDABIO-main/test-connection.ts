@@ -1,9 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
+import 'dotenv/config';
 
-// Credenciais fornecidas
-const supabaseUrl = 'https://irtrqccahpaxknidrxwy.supabase.co';
-const supabaseAnonKey =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlydHJxY2NhaHBheGtuaWRyeHd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NTYxNjAsImV4cCI6MjEwNTMzMjE2MH0.Ny3rHQsK0ARq2BbTsYBSr--pTvEE0gO49dq5DDCK0Sk';
+const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no arquivo .env.');
+  process.exit(1);
+}
 
 console.log('Testando conexão com Supabase...');
 console.log('URL:', supabaseUrl ? 'Configurada' : 'Não configurada');

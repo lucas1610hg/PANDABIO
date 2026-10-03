@@ -114,7 +114,12 @@ export const LinksManagerCard = memo<LinksManagerCardProps>(
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    {reorderMode && <GripVertical aria-hidden="true" className="w-4 h-4 text-[#c7c4d8] shrink-0" />}
+                    {reorderMode && (
+                      <GripVertical
+                        aria-hidden="true"
+                        className="w-4 h-4 text-[#c7c4d8] shrink-0"
+                      />
+                    )}
                     <div
                       className={`w-7 h-7 rounded-lg ${getLinkIconBg(
                         link.type,

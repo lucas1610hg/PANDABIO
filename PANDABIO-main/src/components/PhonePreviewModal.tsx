@@ -66,7 +66,11 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(
               className="p-1.5 text-xs text-[#3525cd] hover:bg-[#eaedff] rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
               title="Copiar link"
             >
-              {copied ? <Check aria-hidden="true" className="w-3.5 h-3.5" /> : <Copy aria-hidden="true" className="w-3.5 h-3.5" />}
+              {copied ? (
+                <Check aria-hidden="true" className="w-3.5 h-3.5" />
+              ) : (
+                <Copy aria-hidden="true" className="w-3.5 h-3.5" />
+              )}
               <span>{copied ? 'Copiado!' : 'Copiar'}</span>
             </button>
             <button
@@ -203,7 +207,10 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(
                       </span>
                       <span className="truncate">{link.title}</span>
                     </div>
-                    <ExternalLink aria-hidden="true" className="w-3 h-3 opacity-50 group-hover:opacity-100 shrink-0 ml-1" />
+                    <ExternalLink
+                      aria-hidden="true"
+                      className="w-3 h-3 opacity-50 group-hover:opacity-100 shrink-0 ml-1"
+                    />
                   </a>
                 ))
               ) : (

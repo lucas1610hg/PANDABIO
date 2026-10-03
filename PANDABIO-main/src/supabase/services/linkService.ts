@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from '../client';
 import { BioLink } from '../../types';
+import { ProfileService } from './profileService';
 
 /**
  * Serviço para gerenciamento de links
@@ -12,15 +13,13 @@ export class LinkService {
     if (!isSupabaseConfigured() || !supabase) return [];
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return [];
+      const profileId = await ProfileService.getCurrentProfileId();
+      if (!profileId) return [];
 
       const { data, error } = await supabase
         .from('links')
         .select('*')
-        .eq('profile_id', user.id)
+        .eq('profile_id', profileId)
         .order('link_order', { ascending: true });
 
       if (error) throw error;
@@ -49,16 +48,14 @@ export class LinkService {
     if (!isSupabaseConfigured() || !supabase) return null;
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return null;
+      const profileId = await ProfileService.getCurrentProfileId();
+      if (!profileId) return null;
 
       // Obter o maior link_order atual
       const { data: existingLinks } = await supabase
         .from('links')
         .select('link_order')
-        .eq('profile_id', user.id)
+        .eq('profile_id', profileId)
         .order('link_order', { ascending: false })
         .limit(1);
 
@@ -68,7 +65,7 @@ export class LinkService {
       const { data, error } = await supabase
         .from('links')
         .insert({
-          profile_id: user.id,
+          profile_id: profileId,
           title: link.title,
           url: link.url,
           clicks: link.clicks,
@@ -236,12 +233,10 @@ export class LinkService {
       }
 
       // Registrar evento de analytics
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
+      const profileId = await ProfileService.getCurrentProfileId();
+      if (profileId) {
         await supabase.from('analytics').insert({
-          profile_id: user.id,
+          profile_id: profileId,
           link_id: linkId,
           event_type: 'click',
           device_type: this.getDeviceType(),

@@ -16,7 +16,7 @@ import { isSupabaseConfigured } from './client';
  */
 export async function authExample() {
   if (!isSupabaseConfigured()) {
-    console.log('Supabase não configurado - usando modo local');
+    console.error('Supabase não configurado.');
     return;
   }
 
@@ -207,7 +207,7 @@ export async function activitiesExample() {
  */
 export async function completeIntegrationExample() {
   if (!isSupabaseConfigured()) {
-    console.log(' Supabase não configurado - executando em modo local');
+    console.error('Supabase não configurado.');
     return;
   }
 

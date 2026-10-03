@@ -158,7 +158,11 @@ export const LinksSection: React.FC<LinksSectionProps> = memo(
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                {f === 'all' ? `Todos (${links.length})` : f === 'active' ? `Ativos (${activeCount})` : `Inativos (${links.length - activeCount})`}
+                {f === 'all'
+                  ? `Todos (${links.length})`
+                  : f === 'active'
+                    ? `Ativos (${activeCount})`
+                    : `Inativos (${links.length - activeCount})`}
               </button>
             ))}
 

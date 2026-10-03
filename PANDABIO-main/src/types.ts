@@ -5,11 +5,10 @@ export type NavSection =
   | 'minha-pagina'
   | 'agendamentos'
   | 'estatisticas'
+  | 'leads'
+  | 'formularios'
   | 'links'
-  | 'conteudo'
   | 'produtos'
-  | 'aparencia'
-  | 'integracoes'
   | 'configuracoes'
   | 'plano'
   | 'ajuda'
@@ -22,6 +21,7 @@ export type BlockType =
   | 'video'
   | 'agendamento'
   | 'produto'
+  | 'form'
   | 'social'
   | 'contact'
   | 'music'
@@ -105,14 +105,21 @@ export interface ProductItem {
   salesCount: number;
   status: 'active' | 'draft';
   image?: string;
+  description?: string;
+  sourceUrl?: string;
+  purchaseUrl?: string;
+  purchaseType?: 'sales' | 'whatsapp';
 }
 
 export interface BlockProduct {
   id: string;
+  productId?: string;
   name: string;
   price?: number;
+  description?: string;
   imageUrl?: string;
   link?: string;
+  purchaseType?: 'sales' | 'whatsapp';
 }
 
 export type SocialPlatform =
@@ -143,7 +150,71 @@ export interface LeadItem {
   phone: string;
   channel: string;
   createdAt: string;
+  status?: LeadStatus;
+  source?: string;
+  medium?: string;
+  campaign?: string;
+  referrer?: string;
+  landingPage?: string;
+  device?: 'mobile' | 'desktop' | 'tablet';
+  country?: string;
+  city?: string;
+  score?: number;
+  interest?: LeadInterestLevel;
+  firstAccessAt?: string;
+  lastAccessAt?: string;
+  relatedType?: 'product' | 'service' | 'link';
+  relatedName?: string;
+  linkId?: string;
+  consentAt?: string;
+  visitorId?: string;
+  metadata?: Record<string, string>;
 }
+
+export type CustomFormFieldType = 'text' | 'email' | 'phone' | 'textarea';
+
+export interface CustomFormField {
+  id: string;
+  label: string;
+  type: CustomFormFieldType;
+  placeholder?: string;
+  required: boolean;
+}
+
+export interface CustomForm {
+  id: string;
+  name: string;
+  title: string;
+  description?: string;
+  buttonLabel: string;
+  successMessage: string;
+  consentText: string;
+  fields: CustomFormField[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type LeadStatus = 'new' | 'contacted' | 'interested' | 'converted' | 'lost';
+
+export type LeadInterestLevel = 'low' | 'medium' | 'high';
+
+export type TrackingEventType =
+  | 'view'
+  | 'click'
+  | 'page_view'
+  | 'link_click'
+  | 'product_view'
+  | 'product_click'
+  | 'service_view'
+  | 'booking_start'
+  | 'booking_completed'
+  | 'form_view'
+  | 'form_submit'
+  | 'whatsapp_click'
+  | 'phone_click'
+  | 'email_click'
+  | 'social_click'
+  | 'conversion';
 
 export interface UserProfile {
   name: string;
@@ -158,6 +229,8 @@ export interface UserProfile {
   category?: string;
   location?: string;
   customLink?: string;
+  customDomain?: string;
+  customDomainVerified?: boolean;
 }
 
 export interface PageBlock {
@@ -167,6 +240,7 @@ export interface PageBlock {
   title?: string;
   content?: string;
   url?: string;
+  linkIds?: string[];
   imageUrl?: string;
   videoUrl?: string;
   thumbnailUrl?: string;
@@ -176,6 +250,7 @@ export interface PageBlock {
   // Agendamento específico
   appointmentTitle?: string;
   appointmentDescription?: string;
+  serviceId?: string;
   service?: string;
   price?: number;
   duration?: number;
@@ -191,7 +266,16 @@ export interface PageBlock {
   // Música específica
   musicProvider?: MusicProvider;
   // Contato específico
-  contact?: { whatsapp?: string; email?: string };
+  contact?: {
+    whatsapp?: string;
+    email?: string;
+    captureEnabled?: boolean;
+    captureTitle?: string;
+    captureButtonLabel?: string;
+    captureConsentText?: string;
+  };
+  formId?: string;
+  form?: CustomForm;
   // Localização específica
   address?: string;
   mapUrl?: string;
@@ -256,9 +340,12 @@ export interface FunnelData {
 export interface PageData {
   profile: UserProfile;
   blocks: PageBlock[];
+  forms?: CustomForm[];
+  links?: BioLink[];
   theme: PageTheme;
   published: boolean;
   lastUpdated: string;
+  bookingWorkspaceSlug?: string;
 }
 
 export interface UserAccountData {

@@ -39,6 +39,8 @@ CREATE TABLE IF NOT EXISTS profiles (
   display_name VARCHAR(100),
   is_verified BOOLEAN DEFAULT FALSE,
   website_url TEXT,
+  custom_domain TEXT,
+  custom_domain_verified BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   CONSTRAINT username_length CHECK (char_length(username) >= 3 AND char_length(username) <= 20)
@@ -71,6 +73,9 @@ CREATE TABLE IF NOT EXISTS products (
   status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'draft')),
   image TEXT,
   description TEXT,
+  source_url TEXT,
+  purchase_url TEXT,
+  purchase_type VARCHAR(20) CHECK (purchase_type IN ('sales', 'whatsapp')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   CONSTRAINT name_length CHECK (char_length(name) >= 3 AND char_length(name) <= 100),
@@ -292,7 +297,24 @@ SELECT
   category,
   location,
   custom_link,
-  page_data,
+  jsonb_build_object(
+    'profile', jsonb_build_object(
+      'name', name,
+      'username', username,
+      'bioUrl', bio_url,
+      'pageTitle', page_title,
+      'bioDescription', bio_description,
+      'avatarUrl', avatar_url,
+      'coverUrl', page_data -> 'profile' ->> 'coverUrl',
+      'category', category,
+      'location', location,
+      'customLink', custom_link
+    ),
+    'blocks', COALESCE(page_data -> 'blocks', '[]'::jsonb),
+    'theme', COALESCE(page_data -> 'theme', '{}'::jsonb),
+    'published', true,
+    'lastUpdated', updated_at
+  ) AS page_data,
   updated_at
 FROM profiles
 WHERE published = true
@@ -491,3 +513,4 @@ BEGIN
   RAISE NOTICE '✓ Triggers: on_auth_user_created, trg_analytics_anon_ip';
   RAISE NOTICE '═══════════════════════════════════════════════════';
 END $$;
+

@@ -20,6 +20,8 @@ export interface Database {
           avatar_url: string;
           created_at: string;
           updated_at: string;
+          custom_domain?: string | null;
+          custom_domain_verified: boolean;
         };
         Insert: {
           id?: string;
@@ -34,6 +36,8 @@ export interface Database {
           avatar_url?: string;
           created_at?: string;
           updated_at?: string;
+          custom_domain?: string | null;
+          custom_domain_verified?: boolean;
         };
         Update: {
           id?: string;
@@ -47,6 +51,8 @@ export interface Database {
           bio_description?: string;
           avatar_url?: string;
           updated_at?: string;
+          custom_domain?: string | null;
+          custom_domain_verified?: boolean;
         };
       };
       links: {
@@ -102,6 +108,9 @@ export interface Database {
           status: 'active' | 'draft';
           image?: string;
           description?: string;
+          source_url?: string;
+          purchase_url?: string;
+          purchase_type?: 'sales' | 'whatsapp';
           created_at: string;
           updated_at: string;
         };
@@ -114,6 +123,9 @@ export interface Database {
           status?: 'active' | 'draft';
           image?: string;
           description?: string;
+          source_url?: string;
+          purchase_url?: string;
+          purchase_type?: 'sales' | 'whatsapp';
           created_at?: string;
           updated_at?: string;
         };
@@ -126,6 +138,9 @@ export interface Database {
           status?: 'active' | 'draft';
           image?: string;
           description?: string;
+          source_url?: string;
+          purchase_url?: string;
+          purchase_type?: 'sales' | 'whatsapp';
           updated_at?: string;
         };
       };
@@ -138,6 +153,23 @@ export interface Database {
           phone?: string;
           channel: string;
           link_id?: string;
+          status?: 'new' | 'contacted' | 'interested' | 'converted' | 'lost';
+          source?: string;
+          medium?: string;
+          campaign?: string;
+          referrer?: string;
+          landing_page?: string;
+          device?: 'mobile' | 'desktop' | 'tablet';
+          country?: string;
+          city?: string;
+          score?: number;
+          interest?: 'low' | 'medium' | 'high';
+          first_access_at?: string;
+          last_access_at?: string;
+          related_type?: 'product' | 'service' | 'link';
+          related_name?: string;
+          consent_at?: string;
+          visitor_id?: string;
           created_at: string;
         };
         Insert: {
@@ -148,6 +180,23 @@ export interface Database {
           phone?: string;
           channel: string;
           link_id?: string;
+          status?: 'new' | 'contacted' | 'interested' | 'converted' | 'lost';
+          source?: string;
+          medium?: string;
+          campaign?: string;
+          referrer?: string;
+          landing_page?: string;
+          device?: 'mobile' | 'desktop' | 'tablet';
+          country?: string;
+          city?: string;
+          score?: number;
+          interest?: 'low' | 'medium' | 'high';
+          first_access_at?: string;
+          last_access_at?: string;
+          related_type?: 'product' | 'service' | 'link';
+          related_name?: string;
+          consent_at?: string;
+          visitor_id?: string;
           created_at?: string;
         };
         Update: {
@@ -158,6 +207,23 @@ export interface Database {
           phone?: string;
           channel?: string;
           link_id?: string;
+          status?: 'new' | 'contacted' | 'interested' | 'converted' | 'lost';
+          source?: string;
+          medium?: string;
+          campaign?: string;
+          referrer?: string;
+          landing_page?: string;
+          device?: 'mobile' | 'desktop' | 'tablet';
+          country?: string;
+          city?: string;
+          score?: number;
+          interest?: 'low' | 'medium' | 'high';
+          first_access_at?: string;
+          last_access_at?: string;
+          related_type?: 'product' | 'service' | 'link';
+          related_name?: string;
+          consent_at?: string;
+          visitor_id?: string;
         };
       };
       activities: {

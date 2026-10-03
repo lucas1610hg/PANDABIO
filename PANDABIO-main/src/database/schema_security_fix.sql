@@ -37,7 +37,24 @@ SELECT
   category,
   location,
   custom_link,
-  page_data,
+  jsonb_build_object(
+    'profile', jsonb_build_object(
+      'name', name,
+      'username', username,
+      'bioUrl', bio_url,
+      'pageTitle', page_title,
+      'bioDescription', bio_description,
+      'avatarUrl', avatar_url,
+      'coverUrl', page_data -> 'profile' ->> 'coverUrl',
+      'category', category,
+      'location', location,
+      'customLink', custom_link
+    ),
+    'blocks', COALESCE(page_data -> 'blocks', '[]'::jsonb),
+    'theme', COALESCE(page_data -> 'theme', '{}'::jsonb),
+    'published', true,
+    'lastUpdated', updated_at
+  ) AS page_data,
   updated_at
 FROM profiles
 WHERE published = true

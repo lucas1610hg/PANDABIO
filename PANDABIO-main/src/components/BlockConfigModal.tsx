@@ -6,6 +6,9 @@ import {
   SocialPlatform,
   GalleryLayout,
   BlockImage,
+  BioLink,
+  ProductItem,
+  CustomForm,
 } from '../types';
 import {
   Plus,
@@ -15,29 +18,10 @@ import {
   Wand2,
   Upload,
   Loader2,
-  X,
 } from 'lucide-react';
 import { Instagram, Facebook, Music2, Linkedin, Pin, Youtube, Play, AtSign } from 'lucide-react';
 import { Modal } from './Modal';
 import { StorageService } from '../supabase/services/storageService';
-
-const GALLERY_KEY = 'pandabio_gallery';
-
-function getGallery(): string[] {
-  try {
-    const raw = localStorage.getItem(GALLERY_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter((u) => typeof u === 'string') : [];
-  } catch {
-    return [];
-  }
-}
-
-function addToGallery(imageUrl: string) {
-  const current = getGallery().filter((u) => u !== imageUrl);
-  localStorage.setItem(GALLERY_KEY, JSON.stringify([imageUrl, ...current].slice(0, 30)));
-}
 
 function fetchWithTimeout(url: string, ms = 15000): Promise<Response> {
   return new Promise((resolve, reject) => {
@@ -300,6 +284,9 @@ interface BlockConfigModalProps {
   onClose: () => void;
   onUpdate: (blockId: string, updates: Partial<PageBlock>) => void;
   onDelete: (blockId: string) => void;
+  links?: BioLink[];
+  catalogProducts?: ProductItem[];
+  forms?: CustomForm[];
 }
 
 const BLOCK_NAMES: Record<BlockType, string> = {
@@ -311,6 +298,7 @@ const BLOCK_NAMES: Record<BlockType, string> = {
   produto: 'Produto',
   social: 'Redes sociais',
   contact: 'Contato',
+  form: 'Formulário',
   music: 'Música',
   location: 'Localização',
 };
@@ -347,6 +335,9 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
   onClose,
   onUpdate,
   onDelete,
+  links = [],
+  catalogProducts = [],
+  forms = [],
 }) => {
   const [form, setForm] = useState<Partial<PageBlock>>({});
   const [gallery, setGallery] = useState<string[]>([]);
@@ -357,7 +348,7 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
 
   useEffect(() => {
     if (block) setForm({ ...block });
-    setGallery(getGallery());
+    void StorageService.listImages('product').then(setGallery);
     setFetchingProductId(null);
     setGalleryOpenFor(null);
   }, [block]);
@@ -366,6 +357,16 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
 
   const set = <K extends keyof PageBlock>(key: K, value: PageBlock[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const defaultLinkIds = links.filter((link) => link.active).map((link) => link.id);
+  const selectedLinkIds = form.linkIds ?? defaultLinkIds;
+
+  const toggleLinkSelection = (linkId: string, checked: boolean) => {
+    const next = new Set(selectedLinkIds);
+    if (checked) next.add(linkId);
+    else next.delete(linkId);
+    set('linkIds', Array.from(next));
   };
 
   const updateProduct = (productId: string, patch: Partial<BlockProduct>) => {
@@ -390,8 +391,7 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
       setLinkError(result.error || 'Não foi possível processar a imagem');
       return;
     }
-    addToGallery(result.url);
-    setGallery(getGallery());
+    setGallery((current) => [result.url as string, ...current.filter((url) => url !== result.url)]);
     updateProduct(productId, { imageUrl: result.url });
   };
 
@@ -457,22 +457,65 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
       case 'link':
         return (
           <>
-            <Field label="Título do link">
-              <input
-                className={inputClass}
-                value={form.title || ''}
-                onChange={(e) => set('title', e.target.value)}
-                placeholder="Ex: Meu Instagram"
-              />
+            <Field label="Link cadastrado na seção Links">
+              {links.length > 0 ? (
+                <>
+                  <div className="max-h-52 space-y-2 overflow-y-auto rounded-xl bg-[#f2f3ff] p-2">
+                    {links.map((link) => (
+                      <label
+                        key={link.id}
+                        className={`flex items-start gap-2 rounded-lg px-2.5 py-2 text-xs ${
+                          link.active ? 'cursor-pointer hover:bg-white' : 'opacity-50'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="mt-0.5 accent-[#FF7A00]"
+                          checked={selectedLinkIds.includes(link.id)}
+                          disabled={!link.active}
+                          onChange={(e) => toggleLinkSelection(link.id, e.target.checked)}
+                        />
+                        <span className="min-w-0">
+                          <span className="block break-words font-semibold text-gray-800">
+                            {link.title} {link.active ? '' : '(inativo)'}
+                          </span>
+                          <span className="block break-all text-[11px] text-gray-500">
+                            {link.url}
+                          </span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="mt-1 text-[11px] text-gray-500">
+                    Selecione um ou mais links. Links ativos ficam selecionados por padrão.
+                  </p>
+                </>
+              ) : (
+                <p className="rounded-xl bg-amber-50 px-3.5 py-2.5 text-xs text-amber-700">
+                  Cadastre links na seção Links para selecioná-los aqui.
+                </p>
+              )}
             </Field>
-            <Field label="URL de destino">
-              <input
-                className={inputClass}
-                value={form.url || ''}
-                onChange={(e) => set('url', e.target.value)}
-                placeholder="https://instagram.com/..."
-              />
-            </Field>
+            {selectedLinkIds.length === 0 && (
+              <>
+                <Field label="Título personalizado">
+                  <input
+                    className={inputClass}
+                    value={form.title || ''}
+                    onChange={(e) => set('title', e.target.value)}
+                    placeholder="Usado quando não houver link cadastrado"
+                  />
+                </Field>
+                <Field label="URL personalizada">
+                  <input
+                    className={inputClass}
+                    value={form.url || ''}
+                    onChange={(e) => set('url', e.target.value)}
+                    placeholder="https://exemplo.com/..."
+                  />
+                </Field>
+              </>
+            )}
           </>
         );
       case 'text':
@@ -537,20 +580,6 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                     alt={`Imagem ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      StorageService.deleteByUrl(img.url);
-                      set('gallery', {
-                        images: (form.gallery?.images || []).filter((i) => i.id !== img.id),
-                        layout: form.gallery?.layout || 'grid',
-                      });
-                    }}
-                    aria-label={`Remover imagem ${index + 1}`}
-                    className="absolute top-1 right-1 p-1 bg-black/60 text-white rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-500 transition-all cursor-pointer"
-                  >
-                    <X aria-hidden="true" className="w-3 h-3" />
-                  </button>
                 </div>
               ))}
               {(form.gallery?.images.length || 0) < 10 && (
@@ -588,7 +617,7 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
             </div>
             {form.gallery?.images && form.gallery.images.length > 0 && (
               <p className="text-[11px] text-gray-500">
-                A galeria salva as imagens localmente. Até 10 imagens.
+                A galeria salva imagens no Supabase Storage. Até 10 imagens por bloco.
               </p>
             )}
             {!form.gallery?.images?.length && (
@@ -666,69 +695,16 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                 placeholder="Escolha o melhor horário para você"
               />
             </Field>
-            <Field label="Serviço">
-              <select
-                className={inputClass}
-                value={form.service || ''}
-                onChange={(e) => set('service', e.target.value)}
-              >
-                <option value="">Selecione um serviço</option>
-                <option>Corte de cabelo</option>
-                <option>Barbearia</option>
-                <option>Consultoria</option>
-                <option>Aula particular</option>
-                <option>Sessão fotográfica</option>
-                <option>Outro</option>
-              </select>
-            </Field>
-            <div className="flex gap-4">
-              <Field label="Preço (R$)">
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  className={`${inputClass} w-32`}
-                  value={form.price ?? ''}
-                  onChange={(e) =>
-                    set(
-                      'price',
-                      e.target.value === ''
-                        ? undefined
-                        : Number.isFinite(parseFloat(e.target.value))
-                          ? parseFloat(e.target.value)
-                          : undefined,
-                    )
-                  }
-                  placeholder="R$ 80,00"
-                />
-              </Field>
-              <Field label="Duração (min)">
-                <input
-                  type="number"
-                  min="5"
-                  step="5"
-                  className={`${inputClass} w-32`}
-                  value={form.duration ?? ''}
-                  onChange={(e) =>
-                    set(
-                      'duration',
-                      e.target.value === ''
-                        ? undefined
-                        : Number.isFinite(parseInt(e.target.value, 10))
-                          ? parseInt(e.target.value, 10)
-                          : undefined,
-                    )
-                  }
-                  placeholder="30"
-                />
-              </Field>
+            <div className="rounded-xl border border-[#FF7A00]/20 bg-[#FF7A00]/5 p-3 text-xs text-gray-600">
+              Serviços, profissionais, dias e horários são carregados automaticamente da seção
+              Agendamentos.
             </div>
             <Field label="Texto do botão">
               <input
                 className={inputClass}
                 value={form.content || ''}
                 onChange={(e) => set('content', e.target.value)}
-                placeholder="Agendar agora"
+                placeholder="Ver agenda e horários"
               />
             </Field>
             <div className="flex gap-4">
@@ -769,24 +745,60 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                 <label className="block text-xs font-semibold text-gray-700">
                   Produtos ({form.products?.length ?? 0})
                 </label>
-                <button
-                  type="button"
-                  onClick={() =>
-                    set('products', [
-                      ...(form.products || []),
-                      {
-                        id: crypto.randomUUID(),
-                        name: '',
-                        price: undefined,
-                        imageUrl: '',
-                        link: '',
-                      },
-                    ])
-                  }
-                  className="flex items-center gap-1 text-xs font-bold text-[#FF7A00] hover:bg-[#FF7A00]/10 rounded-lg px-2.5 py-1.5 transition-colors cursor-pointer"
-                >
-                  <Plus aria-hidden="true" className="w-3.5 h-3.5" /> Adicionar produto
-                </button>
+                <div className="flex items-center gap-2">
+                  {catalogProducts.length > 0 && (
+                    <select
+                      defaultValue=""
+                      aria-label="Adicionar produto do catálogo"
+                      onChange={(event) => {
+                        const selected = catalogProducts.find(
+                          (product) => product.id === event.target.value,
+                        );
+                        if (!selected) return;
+                        set('products', [
+                          ...(form.products || []),
+                          {
+                            id: crypto.randomUUID(),
+                            productId: selected.id,
+                            name: selected.name,
+                            price: selected.price,
+                            description: selected.description,
+                            imageUrl: selected.image,
+                            link: selected.purchaseUrl || selected.sourceUrl || '',
+                            purchaseType: selected.purchaseType || 'sales',
+                          },
+                        ]);
+                        event.target.value = '';
+                      }}
+                      className="max-w-[180px] rounded-lg border border-[#ffcfaa] bg-[#fffaf5] px-2 py-1.5 text-[11px] font-semibold text-[#ff7a00] outline-none"
+                    >
+                      <option value="">Adicionar do catálogo</option>
+                      {catalogProducts.map((product) => (
+                        <option key={product.id} value={product.id}>
+                          {product.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      set('products', [
+                        ...(form.products || []),
+                        {
+                          id: crypto.randomUUID(),
+                          name: '',
+                          price: undefined,
+                          imageUrl: '',
+                          link: '',
+                        },
+                      ])
+                    }
+                    className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#ff7a00] transition-colors hover:bg-[#ff7a00]/10"
+                  >
+                    <Plus aria-hidden="true" className="h-3.5 w-3.5" /> Manual
+                  </button>
+                </div>
               </div>
               {(!form.products || form.products.length === 0) && (
                 <p className="text-xs text-gray-500 text-center py-3 border border-dashed border-gray-300 rounded-xl">
@@ -864,6 +876,15 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                             placeholder="URL da imagem"
                           />
                         </div>
+                        <textarea
+                          rows={2}
+                          className={`${inputClass} resize-none`}
+                          value={product.description || ''}
+                          onChange={(e) =>
+                            updateProduct(product.id, { description: e.target.value })
+                          }
+                          placeholder="Descrição do produto"
+                        />
                       </div>
                     </div>
                     <div>
@@ -1062,8 +1083,106 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                 placeholder="Fale comigo"
               />
             </Field>
+            <label className="flex items-start gap-3 rounded-xl border border-[#eaedff] bg-[#faf8ff] p-3">
+              <input
+                type="checkbox"
+                checked={form.contact?.captureEnabled === true}
+                onChange={(event) =>
+                  set('contact', {
+                    ...(form.contact || {}),
+                    captureEnabled: event.target.checked,
+                  })
+                }
+                className="mt-0.5 h-4 w-4 accent-[#FF7A00]"
+              />
+              <span>
+                <span className="block text-xs font-bold text-[#131b2e]">
+                  Ativar captura de lead
+                </span>
+                <span className="mt-1 block text-[11px] leading-5 text-gray-500">
+                  Exibe formulário público neste bloco e exige consentimento.
+                </span>
+              </span>
+            </label>
+            {form.contact?.captureEnabled && (
+              <>
+                <Field label="Título da captura">
+                  <input
+                    className={inputClass}
+                    value={form.contact?.captureTitle || ''}
+                    onChange={(e) =>
+                      set('contact', { ...(form.contact || {}), captureTitle: e.target.value })
+                    }
+                    placeholder="Receba 10% de desconto"
+                  />
+                </Field>
+                <Field label="Texto do botão da captura">
+                  <input
+                    className={inputClass}
+                    value={form.contact?.captureButtonLabel || ''}
+                    onChange={(e) =>
+                      set('contact', {
+                        ...(form.contact || {}),
+                        captureButtonLabel: e.target.value,
+                      })
+                    }
+                    placeholder="Quero receber"
+                  />
+                </Field>
+                <Field label="Texto de consentimento">
+                  <input
+                    className={inputClass}
+                    value={form.contact?.captureConsentText || ''}
+                    onChange={(e) =>
+                      set('contact', {
+                        ...(form.contact || {}),
+                        captureConsentText: e.target.value,
+                      })
+                    }
+                    placeholder="Aceito receber contato sobre esta oferta."
+                  />
+                </Field>
+              </>
+            )}
           </>
         );
+      case 'form': {
+        const selectedForm = forms.find((item) => item.id === form.formId);
+        return (
+          <>
+            <Field label="Formulário salvo">
+              {forms.length > 0 ? (
+                <select
+                  className={inputClass}
+                  value={form.formId || ''}
+                  onChange={(event) => {
+                    const nextForm = forms.find((item) => item.id === event.target.value);
+                    set('formId', event.target.value || undefined);
+                    if (nextForm) set('title', nextForm.title);
+                  }}
+                >
+                  <option value="">Selecione um formulário</option>
+                  {forms.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <p className="rounded-xl bg-amber-50 p-3 text-xs leading-5 text-amber-800">
+                  Crie um formulário na seção Formulários antes de publicar este bloco.
+                </p>
+              )}
+            </Field>
+            {selectedForm && (
+              <div className="rounded-xl border border-[#eaedff] bg-[#faf8ff] p-3 text-xs text-gray-600">
+                <p className="font-bold text-[#131b2e]">{selectedForm.title}</p>
+                <p className="mt-1">{selectedForm.fields.length} campos · consentimento ativo</p>
+              </div>
+            )}
+          </>
+        );
+      }
       case 'music':
         return (
           <>

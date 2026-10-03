@@ -29,6 +29,38 @@ As seguintes tabelas devem ser criadas:
 - `leads` - Leads capturados
 - `activities` - Atividades do usuário
 - `analytics` - Analytics de eventos
+- `public_page_events` - Visitas e cliques da página pública
+
+### 2.3 Ativar Analytics da Página Pública
+
+Execute no SQL Editor o arquivo `src/database/2026093002_public_analytics_bootstrap.sql`.
+Essa migration cria tabela, índices, RLS e RPC usados pela página pública. Sem ela, o painel
+continua carregando, mas métricas públicas ficam vazias.
+
+### 2.4 Publicar links da seção Links na bio
+
+Execute no SQL Editor o arquivo `src/database/2026093003_public_profile_links.sql`.
+Essa migration atualiza a view pública para retornar somente links ativos cadastrados na seção
+`Links`, mantendo estatísticas internas fora da página pública.
+
+### 2.5 Ativar Leads, CRM e captura pública
+
+Execute as migrations na ordem abaixo:
+
+1. `src/database/2026100102_leads_crm.sql` — status, origem, UTM, score, consentimento e RLS
+   de atualização/exclusão.
+2. `src/database/2026100103_central_event_tracking.sql` — eventos centralizados e contexto de
+   origem.
+3. `src/database/2026100104_public_lead_capture.sql` — RPC público `capture_public_lead`, com
+   validação de consentimento e inserção segura de leads.
+4. `src/database/2026100105_custom_form_lead_metadata.sql` — respostas dos campos personalizados
+   em `leads.metadata`.
+5. `src/database/2026100106_public_forms.sql` — disponibiliza definições de formulários na página
+   pública para blocos `Formulário`.
+
+Depois, crie um formulário em `Formulários`, adicione o bloco `Formulário` em `Minha Página` e
+publique a página. O bloco `Contato` com `Captura de lead` continua suportado. A origem registrada
+usa UTM/referrer; ela não identifica perfil individual de rede social.
 
 ## Passo 3: Configurar Autenticação
 
@@ -87,14 +119,13 @@ A aplicação deve:
 
 - Carregar sem erros
 - Detectar se Supabase está configurado
-- Usar localStorage como fallback se não configurado
+- Exigir Supabase configurado para autenticação e dados
 
 ## Passo 6: Integrar com Autenticação
 
 ### 6.1 Atualizar AuthScreen
 
-O componente `AuthScreen.tsx` já tem suporte para autenticação local.
-Para usar Supabase, você pode:
+O componente `AuthScreen.tsx` usa somente autenticação Supabase.
 
 1. Importar o hook `useSupabaseAuth`
 2. Substituir a lógica de autenticação local
@@ -108,34 +139,13 @@ import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
 export const AuthScreen = () => {
   const { signIn, signUp, isSupabaseConfigured } = useSupabaseAuth();
 
-  if (!isSupabaseConfigured) {
-    // Usar autenticação local (fallback)
-    return <LocalAuthScreen />;
-  }
-
-  // Usar autenticação Supabase
   return <SupabaseAuthScreen />;
 };
 ```
 
-## Passo 7: Migrar Dados Existentes
+## Passo 7: Dados Existentes
 
-### 7.1 Script de Migração
-
-Crie um script para migrar dados do localStorage para Supabase:
-
-```typescript
-// scripts/migrate-to-supabase.ts
-import { migrateLocalStorageToSupabase } from '../src/utils/migration';
-
-migrateLocalStorageToSupabase();
-```
-
-### 7.2 Executar Migração
-
-```bash
-npm run migrate:supabase
-```
+Dados da aplicação devem existir no Supabase. O projeto não usa banco local nem migração automática a partir de armazenamento local.
 
 ## Passo 8: Configurar Row Level Security (RLS)
 

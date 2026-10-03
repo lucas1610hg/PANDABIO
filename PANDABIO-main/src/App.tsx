@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ScreenView, NavSection, BioLink, ProductItem, UserProfile } from './types';
+import { ScreenView, NavSection, BioLink, ProductItem, UserProfile, LeadStatus } from './types';
 import { AuthScreen } from './components/AuthScreen';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
@@ -18,84 +18,143 @@ import { DetailedReportModal } from './components/DetailedReportModal';
 import { UpgradeModal } from './components/UpgradeModal';
 import { SectionViews } from './components/SectionViews';
 import { ExternalLink, Waves } from 'lucide-react';
-import { usePandaBioStore } from './store/usePandaBioStore';
-import { usePandaBioData } from './hooks/usePandaBioData';
+import { useSupabaseData } from './hooks/useSupabaseData';
 import { AuthService } from './supabase/services/authService';
 import { supabase } from './supabase/client';
+import { PublicProfilePage } from './components/PublicProfilePage';
+import { getPublicProfileSlug } from './utils/publicRoute';
 
-export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<ScreenView>('dashboard');
+function AdminApp() {
+  const [currentScreen, setCurrentScreen] = useState<ScreenView>('auth');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<NavSection>('dashboard');
+  const [visitedSections, setVisitedSections] = useState<Set<NavSection>>(
+    () => new Set<NavSection>(['dashboard']),
+  );
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modals state
   const [isPhonePreviewOpen, setIsPhonePreviewOpen] = useState(false);
   const [isCreateItemOpen, setIsCreateItemOpen] = useState(false);
+  const [createItemInitialTab, setCreateItemInitialTab] = useState<'link' | 'product'>('link');
+  const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [supabaseSessionActive, setSupabaseSessionActive] = useState<boolean | null>(
+    supabase ? null : false,
+  );
 
-  // Store hooks
-  const {
-    authenticate,
-    logout,
-    switchUser,
-    toggleLink,
-    addLink,
-    reorderLinks,
-    toggleProduct,
-    addProduct,
-    updateUserProfile,
-    upgradeToPro,
-    getAllAccountsList,
-  } = usePandaBioStore();
-  const { user, links, products, leads, activities, realKpiData, funnelData } = usePandaBioData();
-  const allUsersList = getAllAccountsList();
+  const remoteData = useSupabaseData();
+  const { refreshData: refreshRemoteData } = remoteData;
+  const isUsingSupabaseData = supabaseSessionActive === true;
+  const user = remoteData.user;
+  const links = remoteData.links;
+  const products = remoteData.products;
+  const leads = remoteData.leads;
+  const activities = remoteData.activities;
+  const realKpiData = remoteData.realKpiData;
+  const funnelData = remoteData.funnelData;
 
   // Handle OAuth callback
   useEffect(() => {
-    const handleOAuthCallback = async () => {
-      if (supabase) {
-        const { data } = await supabase.auth.getSession();
-        if (data.session) {
-          const profile = await AuthService.getCurrentUser();
-          if (profile.user) {
-            authenticate(profile.user.email || '', profile.user);
-            setCurrentScreen('dashboard');
-            setActiveSection('dashboard');
-          }
-        }
+    if (!supabase) return;
+
+    const client = supabase;
+    let mounted = true;
+
+    const loadSession = async () => {
+      const { data } = await client.auth.getSession();
+      if (!mounted) return;
+
+      const sessionActive = Boolean(data.session);
+      setSupabaseSessionActive(sessionActive);
+
+      if (!sessionActive) {
+        setCurrentScreen('auth');
+        setActiveSection('dashboard');
+        setVisitedSections(new Set<NavSection>(['dashboard']));
+        return;
       }
+
+      const profile = await AuthService.getCurrentUser();
+      if (!mounted) return;
+
+      if (profile.user) {
+        setCurrentScreen('dashboard');
+        setActiveSection('dashboard');
+        setVisitedSections(new Set<NavSection>(['dashboard']));
+      } else {
+        setCurrentScreen('auth');
+      }
+      await refreshRemoteData();
     };
 
-    handleOAuthCallback();
-  }, []);
+    void loadSession();
 
-  // Switch between existing users
-  const handleSwitchUser = (email: string) => {
-    switchUser(email);
-    setActiveSection('dashboard');
-  };
+    const {
+      data: { subscription },
+    } = client.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+
+      const sessionActive = Boolean(session);
+      setSupabaseSessionActive(sessionActive);
+
+      if (!sessionActive) {
+        setCurrentScreen('auth');
+        setActiveSection('dashboard');
+        setVisitedSections(new Set<NavSection>(['dashboard']));
+        return;
+      }
+
+      if (event === 'SIGNED_IN') {
+        setCurrentScreen('dashboard');
+        setActiveSection('dashboard');
+        setVisitedSections(new Set<NavSection>(['dashboard']));
+      }
+
+      window.setTimeout(() => {
+        if (mounted) void refreshRemoteData();
+      }, 0);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [refreshRemoteData]);
 
   // Auth successful login
-  const handleLoginSuccess = (userData: Partial<UserProfile>) => {
-    const targetEmail = userData.email || 'usuario@email.com';
-    authenticate(targetEmail, userData);
+  const handleLoginSuccess = () => {
     setCurrentScreen('dashboard');
     setActiveSection('dashboard');
+    setVisitedSections(new Set<NavSection>(['dashboard']));
+
+    if (supabase) {
+      void supabase.auth.getSession().then(({ data }) => {
+        const sessionActive = Boolean(data.session);
+        setSupabaseSessionActive(sessionActive);
+        if (sessionActive) void refreshRemoteData();
+      });
+    }
   };
 
   // Logout
-  const handleLogout = () => {
-    logout();
-    setCurrentScreen('auth');
-    setMobileMenuOpen(false);
+  const handleLogout = async () => {
+    try {
+      await AuthService.signOut();
+    } finally {
+      setSupabaseSessionActive(false);
+      setCurrentScreen('auth');
+      setActiveSection('dashboard');
+      setVisitedSections(new Set<NavSection>(['dashboard']));
+      setMobileMenuOpen(false);
+    }
   };
 
   // Upgrade to PRO
   const handleUpgradeSuccess = () => {
-    upgradeToPro();
+    void remoteData.upgradeToPro();
   };
 
   // Filter links by search query
@@ -105,30 +164,95 @@ export default function App() {
       l.url.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  // Handler functions using store methods
+  // Handler functions using Supabase services
   const handleToggleLink = (id: string) => {
-    toggleLink(id);
+    void remoteData.toggleLink(id);
   };
 
   const handleAddLink = (newLink: BioLink) => {
-    addLink(newLink);
+    const { id: _id, ...linkData } = newLink;
+    void remoteData.addLink(linkData);
   };
 
   const handleReorderLinks = (reordered: BioLink[]) => {
-    reorderLinks(reordered);
+    void remoteData.reorderLinks(reordered);
   };
 
   const handleToggleProduct = (id: string) => {
-    toggleProduct(id);
+    const product = products.find((item) => item.id === id);
+    if (product) void remoteData.toggleProduct(id, product.status);
   };
 
   const handleAddProduct = (newProd: ProductItem) => {
-    addProduct(newProd);
+    const { id: _id, ...productData } = newProd;
+    void remoteData.addProduct(productData);
+  };
+
+  const handleEditProduct = (product: ProductItem) => {
+    setEditingProduct(product);
+    setCreateItemInitialTab('product');
+    setIsCreateItemOpen(true);
+  };
+
+  const handleUpdateProduct = (updatedProduct: ProductItem) => {
+    const { id, ...updates } = updatedProduct;
+    void remoteData.updateProduct(id, updates);
   };
 
   const handleUpdateUser = (updated: Partial<UserProfile>) => {
-    updateUserProfile(updated);
+    return remoteData.updateProfile(updated);
   };
+
+  const handleUpdateLeadStatus = (id: string, status: LeadStatus) => {
+    return remoteData.updateLeadStatus(id, status);
+  };
+
+  const handleDeleteLead = (id: string) => {
+    return remoteData.deleteLead(id);
+  };
+
+  if (supabase && supabaseSessionActive === null) {
+    return (
+      <div className="min-h-screen bg-[#F6EFE9] flex items-center justify-center text-[#464555]">
+        <div className="flex items-center gap-3 text-sm font-semibold">
+          <span className="h-5 w-5 rounded-full border-2 border-[#FF7A00] border-t-transparent animate-spin" />
+          Carregando sua conta...
+        </div>
+      </div>
+    );
+  }
+
+  if (isUsingSupabaseData && !remoteData.loading && !user) {
+    return (
+      <div className="min-h-screen bg-[#F6EFE9] flex items-center justify-center px-5 text-center text-[#464555]">
+        <div className="max-w-md rounded-2xl bg-white p-8 shadow-lg">
+          <h1 className="text-xl font-extrabold text-[#131b2e]">Perfil não encontrado</h1>
+          <p className="mt-2 text-sm">
+            Sua sessão existe, mas seu perfil ainda não foi criado. Saia e entre novamente ou
+            confira a configuração do banco.
+          </p>
+          <button
+            type="button"
+            onClick={() => void handleLogout()}
+            className="mt-5 rounded-xl bg-[#131b2e] px-4 py-2.5 text-sm font-bold text-white"
+          >
+            Sair
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentScreen !== 'auth' && !user) {
+    return (
+      <div className="min-h-screen bg-[#F6EFE9] flex items-center justify-center text-[#464555]">
+        <div className="flex items-center gap-3 text-sm font-semibold">
+          <span className="h-5 w-5 rounded-full border-2 border-[#FF7A00] border-t-transparent animate-spin" />
+          Carregando sua conta...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AnimatePresence mode="wait">
@@ -150,14 +274,20 @@ export default function App() {
             onCloseMobile={() => setMobileMenuOpen(false)}
             activeSection={activeSection}
             onSelectSection={(section) => {
+              setVisitedSections((previous) => {
+                if (previous.has(section)) return previous;
+
+                const next = new Set(previous);
+                next.add(section);
+                return next;
+              });
               setActiveSection(section);
               setMobileMenuOpen(false);
             }}
             user={user}
             linksCount={links.length}
             productsCount={products.length}
-            allUsers={allUsersList}
-            onSwitchUser={handleSwitchUser}
+            leadsCount={leads.length}
             onCreateNew={() => {
               setIsCreateItemOpen(true);
               setMobileMenuOpen(false);
@@ -191,7 +321,7 @@ export default function App() {
             {/* Dashboard Canvas */}
             <main className="relative pt-20 px-3.5 sm:px-6 md:px-8 pb-16 max-w-[1600px] w-full mx-auto min-w-0">
               {/* Section: Dashboard (The Primary Dashboard Screen) */}
-              {activeSection === 'dashboard' ? (
+              <div hidden={activeSection !== 'dashboard'}>
                 <div className="flex flex-col w-full gap-6">
                   {/* Welcome Header */}
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-1">
@@ -257,23 +387,44 @@ export default function App() {
                     />
                   </div>
                 </div>
-              ) : (
-                /* Sub-sections */
-                <SectionViews
-                  section={activeSection}
-                  links={links}
-                  products={products}
-                  leads={leads}
-                  user={user}
-                  onToggleLink={handleToggleLink}
-                  onToggleProduct={handleToggleProduct}
-                  onOpenCreateItem={() => setIsCreateItemOpen(true)}
-                  onOpenPhonePreview={() => setIsPhonePreviewOpen(true)}
-                  onUpdateUser={handleUpdateUser}
-                  onLogout={handleLogout}
-                  onReorderLinks={handleReorderLinks}
-                />
-              )}
+              </div>
+
+              {Array.from(visitedSections)
+                .filter((section) => section !== 'dashboard')
+                .map((section) => (
+                  <div key={section} hidden={activeSection !== section}>
+                    <SectionViews
+                      section={section}
+                      links={links}
+                      products={products}
+                      leads={leads}
+                      activities={activities}
+                      analytics={remoteData.publicAnalytics}
+                      kpiData={realKpiData}
+                      user={user}
+                      onToggleLink={handleToggleLink}
+                      onToggleProduct={handleToggleProduct}
+                      onAddProduct={handleAddProduct}
+                      onEditProduct={handleEditProduct}
+                      onOpenCreateItem={() => {
+                        setCreateItemInitialTab('link');
+                        setEditingProduct(null);
+                        setIsCreateItemOpen(true);
+                      }}
+                      onOpenCreateProduct={() => {
+                        setCreateItemInitialTab('product');
+                        setEditingProduct(null);
+                        setIsCreateItemOpen(true);
+                      }}
+                      onOpenPhonePreview={() => setIsPhonePreviewOpen(true)}
+                      onUpdateUser={handleUpdateUser}
+                      onLogout={handleLogout}
+                      onReorderLinks={handleReorderLinks}
+                      onUpdateLeadStatus={handleUpdateLeadStatus}
+                      onDeleteLead={handleDeleteLead}
+                    />
+                  </div>
+                ))}
             </main>
           </div>
 
@@ -288,9 +439,15 @@ export default function App() {
           {/* Create Item Modal */}
           <CreateItemModal
             isOpen={isCreateItemOpen}
-            onClose={() => setIsCreateItemOpen(false)}
+            onClose={() => {
+              setIsCreateItemOpen(false);
+              setEditingProduct(null);
+            }}
+            initialTab={createItemInitialTab}
             onAddLink={handleAddLink}
             onAddProduct={handleAddProduct}
+            onUpdateProduct={handleUpdateProduct}
+            editingProduct={editingProduct}
           />
 
           {/* Detailed Report Modal */}
@@ -311,4 +468,14 @@ export default function App() {
       )}
     </AnimatePresence>
   );
+}
+
+export default function App() {
+  const publicProfileSlug = getPublicProfileSlug();
+
+  if (publicProfileSlug) {
+    return <PublicProfilePage username={publicProfileSlug} />;
+  }
+
+  return <AdminApp />;
 }

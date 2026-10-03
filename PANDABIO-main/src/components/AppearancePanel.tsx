@@ -21,10 +21,13 @@ import {
 import { loadGoogleFont } from '../theme/loadFont';
 import { StorageService } from '../supabase/services/storageService';
 import { buttonFxColors } from '../theme/effectColors';
+import { isHexColor, normalizeHexColor } from '../utils/color';
+import { getSafeImageUrl } from '../utils/externalUrl';
 
 interface AppearancePanelProps {
   theme: PageTheme;
   onThemeUpdate: (updates: Partial<PageTheme>) => void;
+  hasCover?: boolean;
 }
 
 const SECTION_TITLE = 'block text-sm font-semibold text-gray-700 mb-2';
@@ -52,58 +55,81 @@ const ColorRow: React.FC<{
   value: string | undefined;
   placeholder?: string;
   onChange: (v: string) => void;
-}> = ({ label, value, placeholder, onChange }) => (
-  <div>
-    <span id={`label-${label.replace(/\W+/g, '-')}`} className={FIELD_LABEL}>
-      {label}
-    </span>
-    <div className="flex items-center gap-2">
-      <input
-        type="color"
-        aria-label={label}
-        value={value || placeholder || '#000000'}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-10 h-9 rounded cursor-pointer border border-gray-200 shrink-0"
-      />
-      <input
-        type="text"
-        aria-labelledby={`label-${label.replace(/\W+/g, '-')}`}
-        value={value || ''}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className={INPUT_BASE}
-      />
+}> = ({ label, value, placeholder, onChange }) => {
+  const fallback = normalizeHexColor(placeholder, '#000000');
+  const normalizedValue = isHexColor(value) ? normalizeHexColor(value, fallback) : null;
+  const labelId = `label-${label.replace(/\W+/g, '-')}`;
+
+  return (
+    <div>
+      <span id={labelId} className={FIELD_LABEL}>
+        {label}
+      </span>
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          aria-label={label}
+          value={normalizedValue || fallback}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-10 h-9 rounded cursor-pointer border border-gray-200 shrink-0"
+        />
+        <input
+          key={normalizedValue || fallback}
+          type="text"
+          aria-labelledby={labelId}
+          defaultValue={normalizedValue || fallback}
+          onChange={(e) => {
+            const valid = isHexColor(e.target.value);
+            e.currentTarget.setAttribute('aria-invalid', String(!valid));
+            if (valid) onChange(normalizeHexColor(e.target.value, fallback));
+          }}
+          onBlur={(e) => {
+            if (isHexColor(e.currentTarget.value)) {
+              e.currentTarget.value = normalizeHexColor(e.currentTarget.value, fallback);
+              e.currentTarget.setAttribute('aria-invalid', 'false');
+              return;
+            }
+            e.currentTarget.value = normalizedValue || fallback;
+            e.currentTarget.setAttribute('aria-invalid', 'false');
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur();
+          }}
+          placeholder={placeholder}
+          className={INPUT_BASE}
+        />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const Toggle: React.FC<{
   label: string;
   checked: boolean;
   onChange: (v: boolean) => void;
-}> = ({ label, checked, onChange }) => (
-  <label className="flex items-center justify-between gap-2 px-3.5 py-2.5 border border-gray-200 rounded-xl bg-white cursor-pointer">
-    <span className="text-sm text-gray-700">{label}</span>
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={() => onChange(!checked)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onChange(!checked);
-        }
-      }}
-      className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors cursor-pointer ${checked ? 'bg-[#FF5E00]' : 'bg-gray-300'}`}
-    >
-      <span
-        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-[18px]' : 'translate-x-0.5'}`}
-      />
-    </button>
-  </label>
-);
+}> = ({ label, checked, onChange }) => {
+  const labelId = `toggle-label-${label.replace(/\W+/g, '-')}`;
+
+  return (
+    <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 border border-gray-200 rounded-xl bg-white">
+      <span id={labelId} className="text-sm text-gray-700">
+        {label}
+      </span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-labelledby={labelId}
+        onClick={() => onChange(!checked)}
+        className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF5E00]/40 ${checked ? 'bg-[#FF5E00]' : 'bg-gray-300'}`}
+      >
+        <span
+          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-[18px]' : 'translate-x-0.5'}`}
+        />
+      </button>
+    </div>
+  );
+};
 
 const Segmented: React.FC<{
   value: string | undefined;
@@ -127,32 +153,60 @@ const Segmented: React.FC<{
   </div>
 );
 
-export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onThemeUpdate }) => {
+export const AppearancePanel: React.FC<AppearancePanelProps> = ({
+  theme,
+  onThemeUpdate,
+  hasCover = false,
+}) => {
   const [editMode, setEditMode] = useState<'claro' | 'escuro'>(
     theme.theme === 'dark' ? 'escuro' : 'claro',
   );
-
-  // Mantém a aba de edição sincronizada com o modo selecionado/preset aplicado
-  useEffect(() => {
-    setEditMode(theme.theme === 'dark' ? 'escuro' : 'claro');
-  }, [theme.theme]);
 
   useEffect(() => {
     loadGoogleFont(theme.fontFamily);
   }, [theme.fontFamily]);
 
   const applyPreset = (id: CategoryPresetId) => {
-    onThemeUpdate(applyCategoryPreset(theme, id));
+    const nextTheme = applyCategoryPreset(theme, id);
+    onThemeUpdate(nextTheme);
+    setEditMode(nextTheme.theme === 'dark' ? 'escuro' : 'claro');
   };
 
-  const gradientFrom = theme.customGradientFrom || theme.backgroundColorGradient?.from || '#FF7A00';
-  const gradientTo = theme.customGradientTo || theme.backgroundColorGradient?.to || '#FF2E63';
-  // Fonte única para o gradiente personalizado (evita o ângulo/cores "sumirem"
-  // ao editar apenas um lado).
-  const gradientBase = theme.backgroundColorGradient || {
-    from: gradientFrom,
-    to: gradientTo,
+  const restoreDefault = () => {
+    const nextTheme = { ...defaultPageTheme(), ...resetResidualFields() };
+    onThemeUpdate(nextTheme);
+    setEditMode('claro');
+  };
+
+  const lightGradientBase = theme.backgroundColorGradient || {
+    from: '#FF7A00',
+    to: '#FF2E63',
     angle: 135,
+  };
+  const darkGradientBase = theme.backgroundColorGradientDark || {
+    from: theme.backgroundColorDark || '#0f172a',
+    to: '#1f2937',
+    angle: 135,
+  };
+  const gradientBase = editMode === 'escuro' ? darkGradientBase : lightGradientBase;
+  const gradientFrom =
+    editMode === 'escuro' ? gradientBase.from : theme.customGradientFrom || lightGradientBase.from;
+  const gradientTo =
+    editMode === 'escuro' ? gradientBase.to : theme.customGradientTo || lightGradientBase.to;
+
+  const updateGradient = (updates: Partial<PageTheme['backgroundColorGradient']>) => {
+    if (editMode === 'escuro') {
+      onThemeUpdate({
+        backgroundColorGradientDark: { ...darkGradientBase, ...updates },
+      });
+      return;
+    }
+
+    onThemeUpdate({
+      customGradientFrom: undefined,
+      customGradientTo: undefined,
+      backgroundColorGradient: { ...lightGradientBase, ...updates },
+    });
   };
 
   const effectFx = buttonFxColors('#ffffff', theme.customButtonColor || '#FF5E00');
@@ -169,7 +223,7 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
         <div className="flex items-center justify-between mb-2">
           <h3 className={SECTION_TITLE + ' mb-0'}>Modelo por categoria</h3>
           <button
-            onClick={() => onThemeUpdate({ ...defaultPageTheme(), ...resetResidualFields() })}
+            onClick={restoreDefault}
             title="Restaurar configuração padrão"
             className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#FF5E00] transition-colors cursor-pointer"
           >
@@ -221,7 +275,10 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
             { id: 'dark', label: 'Escuro' },
             { id: 'auto', label: 'Auto' },
           ]}
-          onSelect={(id) => onThemeUpdate({ theme: id as ThemeType })}
+          onSelect={(id) => {
+            onThemeUpdate({ theme: id as ThemeType });
+            if (id !== 'auto') setEditMode(id === 'dark' ? 'escuro' : 'claro');
+          }}
         />
         <p className="text-[11px] text-gray-500 mt-1.5">
           Em cores personalizadas, o modo define qual conjunto de cores (claras ou escuras) é
@@ -296,17 +353,7 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
                   return (
                     <button
                       key={g.key}
-                      onClick={() =>
-                        onThemeUpdate({
-                          customGradientFrom: undefined,
-                          customGradientTo: undefined,
-                          backgroundColorGradient: {
-                            from: g.from,
-                            to: g.to,
-                            angle: gradientBase.angle,
-                          },
-                        })
-                      }
+                      onClick={() => updateGradient({ from: g.from, to: g.to })}
                       title={g.label}
                       className={`h-11 rounded-xl border-2 transition-all cursor-pointer ${isSelected ? 'border-[#FF5E00] scale-[0.97]' : 'border-transparent hover:scale-[0.96]'}`}
                       style={{ background: `linear-gradient(135deg, ${g.from}, ${g.to})` }}
@@ -322,24 +369,12 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
                 <ColorRow
                   label="Cor inicial"
                   value={gradientFrom}
-                  onChange={(v) =>
-                    onThemeUpdate({
-                      customGradientFrom: undefined,
-                      customGradientTo: undefined,
-                      backgroundColorGradient: { ...gradientBase, from: v },
-                    })
-                  }
+                  onChange={(v) => updateGradient({ from: v })}
                 />
                 <ColorRow
                   label="Cor final"
                   value={gradientTo}
-                  onChange={(v) =>
-                    onThemeUpdate({
-                      customGradientFrom: undefined,
-                      customGradientTo: undefined,
-                      backgroundColorGradient: { ...gradientBase, to: v },
-                    })
-                  }
+                  onChange={(v) => updateGradient({ to: v })}
                 />
               </div>
             </div>
@@ -352,13 +387,7 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
                 min={0}
                 max={360}
                 value={gradientBase.angle ?? 135}
-                onChange={(e) =>
-                  onThemeUpdate({
-                    customGradientFrom: undefined,
-                    customGradientTo: undefined,
-                    backgroundColorGradient: { ...gradientBase, angle: Number(e.target.value) },
-                  })
-                }
+                onChange={(e) => updateGradient({ angle: Number(e.target.value) })}
                 className="w-full accent-[#FF5E00]"
               />
             </div>
@@ -383,9 +412,24 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
         {theme.backgroundType === 'image' && (
           <div className="space-y-2">
             <input
+              key={theme.backgroundImage || 'empty-background'}
               type="text"
-              value={theme.backgroundImage || ''}
-              onChange={(e) => onThemeUpdate({ backgroundImage: e.target.value })}
+              defaultValue={theme.backgroundImage || ''}
+              onChange={(e) => {
+                const nextValue = e.target.value;
+                if (!nextValue.trim()) {
+                  onThemeUpdate({ backgroundImage: undefined });
+                  return;
+                }
+                const safeUrl = getSafeImageUrl(nextValue);
+                if (safeUrl) onThemeUpdate({ backgroundImage: safeUrl });
+              }}
+              onBlur={(e) => {
+                if (e.currentTarget.value.trim() && !getSafeImageUrl(e.currentTarget.value)) {
+                  e.currentTarget.value = theme.backgroundImage || '';
+                  toast.error('Use URL de imagem HTTP ou HTTPS');
+                }
+              }}
               placeholder="Colar URL de uma imagem de fundo"
               className={INPUT_BASE}
             />
@@ -451,10 +495,13 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
               aria-valuetext={`${Math.max(128, Math.min(340, theme.coverHeight ?? 200))} pixels`}
               value={Math.max(128, Math.min(340, theme.coverHeight ?? 200))}
               onChange={(e) => onThemeUpdate({ coverHeight: Number(e.target.value) })}
-              className="w-full accent-[#FF5E00] cursor-pointer"
+              disabled={!hasCover}
+              className="w-full accent-[#FF5E00] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
             />
             <p className={SECTION_HINT + ' mt-1'}>
-              A capa vira o fundo do cabeçalho, com foto e informações por cima.
+              {hasCover
+                ? 'A capa vira o fundo do cabeçalho, com foto e informações por cima.'
+                : 'Adicione uma capa no Perfil para ativar estes controles.'}
             </p>
           </div>
           <div>
@@ -473,7 +520,8 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({ theme, onTheme
               aria-valuetext={`${Math.max(0, Math.min(100, theme.coverFadeIntensity ?? 60))} por cento`}
               value={Math.max(0, Math.min(100, theme.coverFadeIntensity ?? 60))}
               onChange={(e) => onThemeUpdate({ coverFadeIntensity: Number(e.target.value) })}
-              className="w-full accent-[#FF5E00] cursor-pointer"
+              disabled={!hasCover}
+              className="w-full accent-[#FF5E00] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
             />
             <p className={SECTION_HINT + ' mt-1'}>
               Controla o escurecimento e a fusão da capa com o fundo da página.
