@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { AuthService } from '../supabase/services/authService';
 import { isSupabaseConfigured } from '../supabase/client';
 import { isValidUsername, normalizeUsername, usernameValidationMessage } from '../utils/username';
+import { getPublicOrigin } from '../utils/pageUrl';
 
 interface AuthScreenProps {
   onLoginSuccess: () => void;
@@ -597,7 +598,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                         </label>
                         <div className="flex items-center w-full px-3 py-2.5 bg-[#F1F3F6] rounded-2xl focus-within:bg-white focus-within:ring-2 focus-within:ring-[#FF5E00] transition duration-150">
                           <span className="text-xs sm:text-sm font-medium text-gray-500 select-none pl-1">
-                            panda.bio/
+                            {getPublicOrigin().replace(/^https?:\/\//, '')}/
                           </span>
                           <input
                             id="reg-username"

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { PANDABIO_ASSETS } from '../constants/assets';
 import sidebarLogoImg from '../assets/images/regenerated_image_1789761089362.png';
+import { getPageUrl } from '../utils/pageUrl';
 import {
   Home,
   Smartphone,
@@ -262,7 +263,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Quick Domain Pill (Visible when expanded) */}
           {!collapsed && (
             <a
-              href={`https://${user.bioUrl}`}
+              href={getPageUrl(user.bioUrl, user.username)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-between px-3 py-1.5 mb-4 rounded-lg bg-sidebar-card hover:bg-sidebar-card-hover border border-sidebar-border-light hover:border-primary-orange-strong/40 text-neutral-muted-light hover:text-zinc-200 transition-all text-[11.5px] font-medium group"
@@ -270,7 +271,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <div className="flex items-center gap-2 truncate">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20 shrink-0" />
-                <span className="truncate text-zinc-300 font-mono text-[11px]">{user.bioUrl}</span>
+                <span className="truncate text-zinc-300 font-mono text-[11px]">
+                  {getPageUrl(user.bioUrl, user.username)}
+                </span>
               </div>
               <ExternalLink
                 aria-hidden="true"

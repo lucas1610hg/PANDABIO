@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Menu, Search, Bell, ExternalLink, Lock, CheckCircle, X } from 'lucide-react';
 import { UserProfile } from '../types';
+import { getPageUrl } from '../utils/pageUrl';
 
 interface HeaderProps {
   collapsed: boolean;
@@ -96,7 +97,9 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="w-2 h-2 rounded-full bg-secondary-green animate-pulse" />
           <span className="text-secondary-green font-semibold">Página Online</span>
           <span className="text-neutral-border">•</span>
-          <span className="text-primary-orange font-bold">{user.bioUrl}</span>
+          <span className="text-primary-orange font-bold">
+            {getPageUrl(user.bioUrl, user.username)}
+          </span>
         </div>
 
         {/* Open public page / phone preview button */}

@@ -31,6 +31,7 @@ import toast from 'react-hot-toast';
 import { UserProfile } from '../types';
 import { AuthService } from '../supabase/services/authService';
 import { isSupabaseConfigured } from '../supabase/client';
+import { getPageUrl } from '../utils/pageUrl';
 
 type SettingsTab =
   'geral' | 'dominio' | 'seguranca' | 'notificacoes' | 'preferencias' | 'privacidade' | 'avancado';
@@ -577,7 +578,7 @@ export const SettingsSection: React.FC<{
                       </div>
                       <div>
                         <p className="text-sm font-bold text-[#131b2e]">
-                          {domainInput || 'pandabio.com/' + user.username}
+                          {domainInput || getPageUrl(undefined, user.username)}
                         </p>
                         <p className="mt-0.5 text-xs text-[#777587]">
                           Status: {getDomainStatusLabel(domainStatus)}
@@ -708,7 +709,7 @@ export const SettingsSection: React.FC<{
                   checked={settings.redirectToCustomDomain}
                   onChange={(checked) => updateSetting('redirectToCustomDomain', checked)}
                   label="Redirecionar endereço PandaBio"
-                  description="Envia visitantes de pandabio.com para seu domínio personalizado quando ativo."
+                  description="Envia visitantes da URL padrão PandaBio para seu domínio personalizado quando ativo."
                 />
               </SectionCard>
             </div>

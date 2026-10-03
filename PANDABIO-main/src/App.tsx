@@ -23,6 +23,7 @@ import { AuthService } from './supabase/services/authService';
 import { supabase } from './supabase/client';
 import { PublicProfilePage } from './components/PublicProfilePage';
 import { getPublicProfileSlug } from './utils/publicRoute';
+import { getPageUrl } from './utils/pageUrl';
 
 function AdminApp() {
   const [currentScreen, setCurrentScreen] = useState<ScreenView>('auth');
@@ -343,7 +344,9 @@ function AdminApp() {
                         <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
                         <span className="text-[#10B981] font-semibold">Página Online</span>
                         <span className="text-[#c7c4d8]">•</span>
-                        <span className="text-[#FF7A00] font-bold">{user.bioUrl}</span>
+                        <span className="text-[#FF7A00] font-bold">
+                          {getPageUrl(user.bioUrl, user.username)}
+                        </span>
                       </div>
 
                       <button

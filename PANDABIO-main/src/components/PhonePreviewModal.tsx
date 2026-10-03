@@ -57,7 +57,7 @@ export const PhonePreviewModal = memo<PhonePreviewModalProps>(
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse" />
             <span id="preview-modal-title" className="text-xs font-bold text-[#131b2e]">
-              Prévia: {user.bioUrl}
+              Prévia: {getPageUrl(user.bioUrl, user.username)}
             </span>
           </div>
           <div className="flex items-center gap-1.5">

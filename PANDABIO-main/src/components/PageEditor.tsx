@@ -514,7 +514,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <span>Sua página:</span>
             <span className="font-mono text-[#FF5E00]">
-              pandabio.com/{pageData.profile.username}
+              {getPageUrl(undefined, pageData.profile.username)}
             </span>
             <span
               className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
@@ -686,19 +686,20 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
                         type="text"
                         value={pageData.profile.username}
                         maxLength={20}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const username = e.target.value.replace(/\s+/g, '').toLowerCase();
                           updatePageProfile({
-                            username: e.target.value.replace(/\s+/g, '').toLowerCase(),
-                            bioUrl: `pandabio.com/${e.target.value.replace(/\s+/g, '').toLowerCase()}`,
-                          })
-                        }
+                            username,
+                            bioUrl: `pandabio.com/${username}`,
+                          });
+                        }}
                         className="flex-1 px-4 py-2 outline-none"
                       />
                     </div>
                     <p className="text-[11px] text-gray-500 mt-1">
                       Sua página:{' '}
                       <span className="font-mono text-[#FF5E00]">
-                        pandabio.com/{pageData.profile.username}
+                        {getPageUrl(undefined, pageData.profile.username)}
                       </span>
                     </p>
                   </div>
