@@ -17,7 +17,38 @@ export const isViewEvent = (event: PublicAnalyticsEvent) =>
   event.eventType === 'view' || event.eventType === 'page_view';
 
 export const isClickEvent = (event: PublicAnalyticsEvent) =>
-  event.eventType === 'click' || event.eventType === 'link_click';
+  [
+    'click',
+    'link_click',
+    'product_click',
+    'booking_start',
+    'whatsapp_click',
+    'phone_click',
+    'email_click',
+    'social_click',
+    'location_click',
+  ].includes(event.eventType);
+
+export const countEventsByType = (
+  events: PublicAnalyticsEvent[],
+  eventTypes: PublicAnalyticsEvent['eventType'][] | PublicAnalyticsEvent['eventType'],
+): number => {
+  const types = new Set(Array.isArray(eventTypes) ? eventTypes : [eventTypes]);
+  return events.filter((event) => types.has(event.eventType)).length;
+};
+
+export const countEventsByTarget = (
+  events: PublicAnalyticsEvent[],
+  eventTypes: PublicAnalyticsEvent['eventType'][] | PublicAnalyticsEvent['eventType'],
+): Map<string, number> => {
+  const types = new Set(Array.isArray(eventTypes) ? eventTypes : [eventTypes]);
+  return events.reduce((counts, event) => {
+    if (types.has(event.eventType) && event.targetId) {
+      counts.set(event.targetId, (counts.get(event.targetId) ?? 0) + 1);
+    }
+    return counts;
+  }, new Map<string, number>());
+};
 
 const DAY_IN_MS = 86400000;
 

@@ -208,6 +208,7 @@ export type TrackingEventType =
   | 'service_view'
   | 'booking_start'
   | 'booking_completed'
+  | 'location_click'
   | 'form_view'
   | 'form_submit'
   | 'whatsapp_click'

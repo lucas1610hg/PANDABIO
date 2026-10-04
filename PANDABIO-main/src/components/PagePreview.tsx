@@ -51,7 +51,7 @@ interface PagePreviewProps {
   links?: BioLink[];
   device: PreviewDevice;
   interactive?: boolean;
-  onInteractiveClick?: (block: PageBlock) => void;
+  onInteractiveClick?: (block: PageBlock, targetId?: string) => void;
   onLeadCapture?: (
     block: PageBlock,
     input: {
@@ -809,8 +809,8 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                           href={getSafeExternalUrl(product.link) || undefined}
                           rel="noopener noreferrer"
                           target="_blank"
-                          onClick={() => onInteractiveClick?.(block)}
-                          className={`block w-full mt-1.5 py-1.5 text-[10px] font-bold text-center ${buttonRadius} ${animation}`}
+                           onClick={() => onInteractiveClick?.(block, product.id)}
+                           className={`block w-full mt-1.5 py-1.5 text-[10px] font-bold text-center ${buttonRadius} ${animation}`}
                           style={{ ...fxVars(accent), backgroundColor: accent, color: accentText }}
                         >
                           {product.purchaseType === 'whatsapp' ? 'Falar no WhatsApp' : 'Comprar'}
@@ -818,8 +818,8 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                       ) : (
                         <button
                           type="button"
-                          onClick={() => interactive && onInteractiveClick?.(block)}
-                          className={`block w-full mt-1.5 py-1.5 text-[10px] font-bold text-center ${buttonRadius} ${animation}`}
+                           onClick={() => interactive && onInteractiveClick?.(block, product.id)}
+                           className={`block w-full mt-1.5 py-1.5 text-[10px] font-bold text-center ${buttonRadius} ${animation}`}
                           style={{ ...fxVars(accent), backgroundColor: accent, color: accentText }}
                         >
                           {product.purchaseType === 'whatsapp' ? 'Falar no WhatsApp' : 'Comprar'}

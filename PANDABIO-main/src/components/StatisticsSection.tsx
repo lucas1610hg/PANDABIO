@@ -16,8 +16,9 @@ import {
   Lightbulb,
   Link2,
   MousePointerClick,
-  Smartphone,
-  Tablet,
+   ShoppingBag,
+   Smartphone,
+   Tablet,
   Target,
   TrendingUp,
   Users,
@@ -27,6 +28,8 @@ import { KpiData } from './KpiMetrics';
 import { PublicAnalyticsSummary } from '../supabase/services/publicAnalyticsService';
 import {
   buildStatisticsChart,
+  countEventsByTarget,
+  countEventsByType,
   countUniqueVisitors,
   filterStatisticsEvents,
   filterStatisticsItems,
@@ -244,6 +247,46 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
       .sort((first, second) => second.periodClicks - first.periodClicks)
       .slice(0, 5);
   }, [events, hasEventHistory, links]);
+
+  const detailedMetrics = useMemo(() => {
+    const productClicks = countEventsByTarget(events, 'product_click');
+    const bookingStarts = countEventsByType(events, 'booking_start');
+    const bookingCompleted = countEventsByType(events, 'booking_completed');
+    const locationClicks = countEventsByType(events, 'location_click');
+    const contactClicks = countEventsByType(events, ['whatsapp_click', 'phone_click', 'email_click', 'form_submit']);
+    const socialClicks = countEventsByType(events, 'social_click');
+    return {
+      productClicks,
+      bookingStarts,
+      bookingCompleted,
+      locationClicks,
+      contactClicks,
+      socialClicks,
+    };
+  }, [events]);
+
+  const productAnalytics = useMemo(() => {
+    const views = countEventsByTarget(events, 'product_view');
+    const clicks = countEventsByTarget(events, 'product_click');
+    const salesByProduct = new Map<string, number>();
+    filterStatisticsItems(allSales, (sale) => sale.createdAt, currentWindow).forEach((sale) => {
+      salesByProduct.set(sale.productId, (salesByProduct.get(sale.productId) ?? 0) + Math.max(sale.quantity, 0));
+    });
+    return products
+      .map((product) => {
+        const productViews = views.get(product.id) ?? 0;
+        const productClicks = clicks.get(product.id) ?? 0;
+        const sold = salesByProduct.get(product.id) ?? 0;
+        return {
+          ...product,
+          views: productViews,
+          clicks: productClicks,
+          sold,
+          ctr: productViews > 0 ? (productClicks / productViews) * 100 : 0,
+        };
+      })
+      .sort((first, second) => second.clicks - first.clicks || second.sold - first.sold);
+  }, [allSales, currentWindow, events, products]);
 
   const sources = useMemo(() => {
     const counts = new Map<string, number>();
@@ -815,6 +858,78 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
               </span>
             </div>
           )}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-[#eaedff] bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.04)] sm:p-5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <ShoppingBag className="h-4 w-4 text-[#ff7a00]" />
+              <h2 className="text-sm font-extrabold text-[#131b2e]">Analytics de produtos</h2>
+            </div>
+            <p className="mt-1 text-[11px] text-[#777587]">Desempenho individual dos seus produtos</p>
+          </div>
+          <span className="rounded-full bg-[#fff3e6] px-2 py-1 text-[10px] font-bold text-[#ff7a00]">
+            {productAnalytics[0]?.name || 'Sem dados'}
+          </span>
+        </div>
+        {productAnalytics.length > 0 ? (
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[620px] text-left text-xs">
+              <thead className="border-b border-[#eaedff] text-[10px] uppercase tracking-wider text-[#969cb0]">
+                <tr>
+                  <th className="pb-2 font-extrabold">Produto</th>
+                  <th className="pb-2 text-right font-extrabold">Visualizações</th>
+                  <th className="pb-2 text-right font-extrabold">Comprar</th>
+                  <th className="pb-2 text-right font-extrabold">Vendas</th>
+                  <th className="pb-2 text-right font-extrabold">CTR</th>
+                </tr>
+              </thead>
+              <tbody>
+                {productAnalytics.map((product) => (
+                  <tr key={product.id} className="border-b border-[#f1f2f8] last:border-0">
+                    <td className="max-w-[180px] truncate py-3 font-bold text-[#464555]">{product.name}</td>
+                    <td className="py-3 text-right font-semibold text-[#777587]">{formatNumber(product.views)}</td>
+                    <td className="py-3 text-right font-extrabold text-[#131b2e]">{formatNumber(product.clicks)}</td>
+                    <td className="py-3 text-right font-extrabold text-[#059669]">{formatNumber(product.sold)}</td>
+                    <td className="py-3 text-right font-semibold text-[#3525cd]">{formatPercent(product.ctr)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <EmptyChart message="Adicione produtos à sua página para acompanhar o desempenho." />
+        )}
+      </div>
+
+      <div className="rounded-2xl border border-[#eaedff] bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.04)] sm:p-5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <Target className="h-4 w-4 text-[#3525cd]" />
+              <h2 className="text-sm font-extrabold text-[#131b2e]">Detalhamento de interações</h2>
+            </div>
+            <p className="mt-1 text-[11px] text-[#777587]">Cliques por tipo no período selecionado</p>
+          </div>
+          <span className="rounded-full bg-[#efedff] px-2 py-1 text-[10px] font-bold text-[#3525cd]">Dados reais</span>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-6">
+          {[
+            ['Produtos', [...detailedMetrics.productClicks.values()].reduce((sum, value) => sum + value, 0)],
+            ['Agendamentos', detailedMetrics.bookingStarts],
+            ['Concluídos', detailedMetrics.bookingCompleted],
+            ['Localização', detailedMetrics.locationClicks],
+            ['Contato', detailedMetrics.contactClicks],
+            ['Redes sociais', detailedMetrics.socialClicks],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-xl bg-[#faf8ff] p-3">
+              <p className="text-[10px] font-bold text-[#777587]">{label}</p>
+              <p className="mt-1 text-xl font-extrabold text-[#131b2e]">{formatNumber(value as number)}</p>
+              <p className="mt-1 text-[10px] text-[#969cb0]">cliques</p>
+            </div>
+          ))}
         </div>
       </div>
 

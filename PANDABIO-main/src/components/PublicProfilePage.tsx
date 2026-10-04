@@ -36,7 +36,14 @@ export function PublicProfilePage({ username }: PublicProfilePageProps) {
         .forEach((block) => {
           void PublicAnalyticsService.track(username, 'form_view', block.id);
         });
-      const hasBookingBlock = result.pageData.blocks.some((block) => block.type === 'agendamento');
+       result.pageData.blocks
+         .filter((block) => block.type === 'produto')
+         .forEach((block) => {
+           block.products?.forEach((product) => {
+             void PublicAnalyticsService.track(username, 'product_view', product.id);
+           });
+         });
+       const hasBookingBlock = result.pageData.blocks.some((block) => block.type === 'agendamento');
       if (result.pageData.bookingWorkspaceSlug && hasBookingBlock) {
         void PublicAvailabilityService.getPublicAvailability(
           result.pageData.bookingWorkspaceSlug,
@@ -119,7 +126,7 @@ export function PublicProfilePage({ username }: PublicProfilePageProps) {
           device="desktop"
           interactive
           bookingAvailability={bookingAvailability}
-          onInteractiveClick={(block) => {
+          onInteractiveClick={(block, targetId) => {
             const eventType =
               block.type === 'produto'
                 ? 'product_click'
@@ -127,10 +134,16 @@ export function PublicProfilePage({ username }: PublicProfilePageProps) {
                   ? 'booking_start'
                   : block.type === 'contact'
                     ? 'whatsapp_click'
-                    : block.type === 'social'
+                : block.type === 'social'
                       ? 'social_click'
-                      : 'link_click';
-            void PublicAnalyticsService.track(username, eventType, block.id);
+                      : block.type === 'location'
+                        ? 'location_click'
+                       : 'link_click';
+             void PublicAnalyticsService.track(
+               username,
+               eventType,
+               targetId || block.id,
+             );
             if (block.type === 'agendamento') setBookingBlock(block);
           }}
           onLeadCapture={async (block, input) => {
