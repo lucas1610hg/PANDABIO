@@ -268,25 +268,18 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
   const productAnalytics = useMemo(() => {
     const views = countEventsByTarget(events, 'product_view');
     const clicks = countEventsByTarget(events, 'product_click');
-    const salesByProduct = new Map<string, number>();
-    filterStatisticsItems(allSales, (sale) => sale.createdAt, currentWindow).forEach((sale) => {
-      salesByProduct.set(sale.productId, (salesByProduct.get(sale.productId) ?? 0) + Math.max(sale.quantity, 0));
-    });
     return products
       .map((product) => {
         const productViews = views.get(product.id) ?? 0;
         const productClicks = clicks.get(product.id) ?? 0;
-        const sold = salesByProduct.get(product.id) ?? 0;
         return {
           ...product,
           views: productViews,
           clicks: productClicks,
-          sold,
-          ctr: productViews > 0 ? (productClicks / productViews) * 100 : 0,
         };
       })
-      .sort((first, second) => second.clicks - first.clicks || second.sold - first.sold);
-  }, [allSales, currentWindow, events, products]);
+      .sort((first, second) => second.clicks - first.clicks || second.views - first.views);
+  }, [events, products]);
 
   const sources = useMemo(() => {
     const counts = new Map<string, number>();
@@ -871,7 +864,7 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
             <p className="mt-1 text-[11px] text-[#777587]">Desempenho individual dos seus produtos</p>
           </div>
           <span className="rounded-full bg-[#fff3e6] px-2 py-1 text-[10px] font-bold text-[#ff7a00]">
-            {productAnalytics[0]?.name || 'Sem dados'}
+            Mais clicado
           </span>
         </div>
         {productAnalytics.length > 0 ? (
@@ -881,9 +874,8 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
                 <tr>
                   <th className="pb-2 font-extrabold">Produto</th>
                   <th className="pb-2 text-right font-extrabold">Visualizações</th>
-                  <th className="pb-2 text-right font-extrabold">Comprar</th>
-                  <th className="pb-2 text-right font-extrabold">Vendas</th>
-                  <th className="pb-2 text-right font-extrabold">CTR</th>
+                  <th className="pb-2 text-right font-extrabold">Cliques</th>
+                  <th className="pb-2 text-right font-extrabold">Participação</th>
                 </tr>
               </thead>
               <tbody>
@@ -892,8 +884,13 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
                     <td className="max-w-[180px] truncate py-3 font-bold text-[#464555]">{product.name}</td>
                     <td className="py-3 text-right font-semibold text-[#777587]">{formatNumber(product.views)}</td>
                     <td className="py-3 text-right font-extrabold text-[#131b2e]">{formatNumber(product.clicks)}</td>
-                    <td className="py-3 text-right font-extrabold text-[#059669]">{formatNumber(product.sold)}</td>
-                    <td className="py-3 text-right font-semibold text-[#3525cd]">{formatPercent(product.ctr)}</td>
+                    <td className="py-3 text-right font-semibold text-[#3525cd]">
+                      {formatPercent(
+                        productAnalytics.reduce((sum, item) => sum + item.clicks, 0) > 0
+                          ? (product.clicks / productAnalytics.reduce((sum, item) => sum + item.clicks, 0)) * 100
+                          : 0,
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
