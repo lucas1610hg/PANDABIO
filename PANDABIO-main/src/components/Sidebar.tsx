@@ -85,7 +85,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const handleUpgradeClick = () => {
-    onOpenUpgrade();
+    onSelectSection('plano');
     setProfileMenuOpen(false);
     if (onCloseMobile) {
       onCloseMobile();
@@ -547,29 +547,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           {/* Sleek PRO Upgrade Card (When user is on free plan & expanded) */}
-          {!collapsed && user.plan === 'Gratuito' && (
-            <div className="mt-1 mb-3 p-3 rounded-xl bg-gradient-to-b from-sidebar-gradient-top to-sidebar-deep border border-sidebar-card-border relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-primary-orange-strong/10 rounded-full blur-xl pointer-events-none" />
-              <div className="relative z-10 flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-[11px] font-bold text-white uppercase tracking-wider">
-                    <Sparkles aria-hidden="true" className="w-3.5 h-3.5 text-primary-orange" />
-                    PandaBio PRO
-                  </span>
-                  <span className="text-[10px] font-semibold text-primary-orange bg-primary-orange-strong/15 px-1.5 py-0.5 rounded-full border border-primary-orange-strong/30">
-                    -30% OFF
-                  </span>
+          {!collapsed && (
+            <div className="group relative mb-3 mt-1 overflow-hidden rounded-2xl border border-primary-orange-strong/30 bg-gradient-to-br from-[#21182a] via-sidebar-gradient-top to-[#11131f] p-3 shadow-[0_8px_24px_rgba(255,122,0,0.12)]">
+              <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-primary-orange-strong/20 blur-2xl transition-transform duration-500 group-hover:scale-125" />
+              <div className="pointer-events-none absolute -bottom-12 -left-8 h-24 w-24 rounded-full bg-[#3525cd]/20 blur-2xl" />
+              <div className="relative z-10 flex gap-2.5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.08]">
+                  <img src={PANDABIO_ASSETS.logoMini} alt="" aria-hidden="true" className="h-8 w-8 object-contain transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6" />
                 </div>
-                <p className="text-[11.5px] text-neutral-muted-light leading-snug">
-                  Domínio próprio, 0% de taxas e métricas detalhadas.
-                </p>
-                <button
-                  onClick={handleUpgradeClick}
-                  className="mt-1 w-full py-1.5 px-2.5 rounded-lg bg-white/[0.08] hover:bg-primary-orange-strong text-zinc-200 hover:text-white text-[11.5px] font-semibold transition-all duration-200 text-center border border-white/[0.1] hover:border-transparent cursor-pointer shadow-xs"
-                >
-                  Conhecer planos
-                </button>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.12em] text-white">
+                      <Sparkles aria-hidden="true" className="h-3 w-3 text-primary-orange" />
+                      Planos PandaBio
+                    </span>
+                    <span className="shrink-0 rounded-full border border-primary-orange-strong/30 bg-primary-orange-strong/15 px-1.5 py-0.5 text-[9px] font-bold text-primary-orange">
+                      PRO
+                    </span>
+                  </div>
+                  <p className="mt-1.5 text-[11px] leading-snug text-neutral-muted-light">
+                    Mais alcance, métricas e recursos para sua bio crescer.
+                  </p>
+                </div>
               </div>
+              <button
+                type="button"
+                onClick={handleUpgradeClick}
+                className="relative z-10 mt-3 w-full rounded-xl border border-primary-orange-strong/40 bg-primary-orange-strong px-2.5 py-2 text-[11px] font-extrabold text-white shadow-[0_4px_12px_rgba(255,122,0,0.2)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-orange hover:shadow-[0_6px_16px_rgba(255,122,0,0.35)]"
+              >
+                Ver planos e limites
+              </button>
             </div>
           )}
         </div>

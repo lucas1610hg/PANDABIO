@@ -257,7 +257,9 @@ export const AgendamentosReservas: React.FC<AgendamentosReservasProps> = ({ work
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-[#131b2e]">Reservas</h2>
-          <p className="text-sm text-gray-500 mt-1">{appointments.length} reserva(s)</p>
+           <p className="text-sm text-gray-500 mt-1">
+             {filteredAppointments.length} de {appointments.length} reserva(s)
+           </p>
         </div>
         <button
           type="button"
@@ -344,8 +346,9 @@ export const AgendamentosReservas: React.FC<AgendamentosReservasProps> = ({ work
               <option value="in_progress">Em Atendimento</option>
               <option value="completed">Concluído</option>
               <option value="cancelled">Cancelado</option>
-              <option value="no_show">Não Compareceu</option>
-            </select>
+               <option value="no_show">Não Compareceu</option>
+               <option value="expired">Expirado</option>
+             </select>
           </div>
 
           <div className="grid grid-cols-2 gap-2">

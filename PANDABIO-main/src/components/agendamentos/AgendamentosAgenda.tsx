@@ -272,6 +272,13 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
   };
 
   const timeSlots = generateTimeSlots();
+  const dayAppointments = groupedAppointments[toDateKey(currentDate)] || [];
+  const getAppointmentAtTime = (time: string) =>
+    dayAppointments.find((appointment) => {
+      const start = appointment.start_time.slice(0, 5);
+      const end = appointment.end_time.slice(0, 5);
+      return start <= time && time < end;
+    });
 
   if (loading) {
     return (
@@ -298,13 +305,21 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-[#131b2e]">Agenda</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {appointments.length} agendamento(s) no período
-          </p>
+           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+             <span className="rounded-full bg-[#f2f3ff] px-2.5 py-1 font-bold text-[#3525cd]">
+               {appointments.length} no período
+             </span>
+             <span className="rounded-full bg-amber-50 px-2.5 py-1 font-bold text-amber-700">
+               {appointments.filter((appointment) => appointment.status === 'pending').length} pendentes
+             </span>
+             <span className="rounded-full bg-emerald-50 px-2.5 py-1 font-bold text-emerald-700">
+               {appointments.filter((appointment) => appointment.status === 'confirmed').length} confirmados
+             </span>
+           </div>
         </div>
         <button
           type="button"
-          onClick={() => handleOpenBookingModal(currentDate.toISOString().split('T')[0], '09:00')}
+           onClick={() => handleOpenBookingModal(toDateKey(currentDate), '09:00')}
           className="flex items-center gap-2 px-4 py-2 bg-[#FF7A00] text-white rounded-lg text-sm font-semibold"
         >
           <Plus className="w-4 h-4" />
@@ -401,12 +416,23 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
                 <option value="in_progress">Em Atendimento</option>
                 <option value="completed">Concluído</option>
                 <option value="cancelled">Cancelado</option>
-                <option value="no_show">Não Compareceu</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      )}
+                 <option value="no_show">Não Compareceu</option>
+                 <option value="expired">Expirado</option>
+               </select>
+             </div>
+             <button
+               type="button"
+               onClick={() => {
+                 setSelectedProfessional(null);
+                 setSelectedStatus(null);
+               }}
+               className="text-xs font-bold text-[#3525cd] hover:underline"
+             >
+               Limpar filtros
+             </button>
+           </div>
+         </div>
+       )}
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -441,11 +467,12 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
               </div>
 
               {timeSlots.map((time) => {
-                const slotAppointments = (
-                  groupedAppointments[currentDate.toISOString().split('T')[0]] || []
-                ).filter((apt) => apt.start_time === time);
+                 const slotAppointments = dayAppointments.filter(
+                   (appointment) => appointment.start_time.slice(0, 5) === time,
+                 );
+                 const occupiedAppointment = getAppointmentAtTime(time);
 
-                return (
+                 return (
                   <div key={time} className="h-16 border-b border-gray-100 relative">
                     {slotAppointments.length > 0 ? (
                       <div className="absolute inset-0 p-1 space-y-1 overflow-auto">
@@ -535,17 +562,19 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
                           </div>
                         ))}
                       </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleOpenBookingModal(currentDate.toISOString().split('T')[0], time)
-                        }
-                        className="w-full h-full hover:bg-gray-50 flex items-center justify-center transition-colors"
-                      >
-                        <Plus className="w-4 h-4 text-gray-300" />
-                      </button>
-                    )}
+                     ) : occupiedAppointment ? (
+                       <div className="flex h-full items-center justify-center bg-red-50/40 text-[11px] font-semibold text-red-400">
+                         Horário ocupado
+                       </div>
+                     ) : (
+                       <button
+                         type="button"
+                         onClick={() => handleOpenBookingModal(toDateKey(currentDate), time)}
+                         className="w-full h-full hover:bg-gray-50 flex items-center justify-center transition-colors"
+                       >
+                         <Plus className="w-4 h-4 text-gray-300" />
+                       </button>
+                     )}
                   </div>
                 );
               })}
@@ -849,34 +878,41 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
   );
 };
 
+function toDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function getStartDate(date: Date, viewType: ViewType): string {
   const d = new Date(date);
   if (viewType === 'day') {
-    return d.toISOString().split('T')[0];
+     return toDateKey(d);
   } else if (viewType === 'week') {
     const day = d.getDay();
     const diff = d.getDate() - day + (day === 0 ? -6 : 1);
     d.setDate(diff);
-    return d.toISOString().split('T')[0];
+     return toDateKey(d);
   } else {
     d.setDate(1);
-    return d.toISOString().split('T')[0];
+     return toDateKey(d);
   }
 }
 
 function getEndDate(date: Date, viewType: ViewType): string {
   const d = new Date(date);
   if (viewType === 'day') {
-    return d.toISOString().split('T')[0];
+     return toDateKey(d);
   } else if (viewType === 'week') {
     const day = d.getDay();
     const diff = d.getDate() - day + (day === 0 ? -6 : 1) + 6;
     d.setDate(diff);
-    return d.toISOString().split('T')[0];
+     return toDateKey(d);
   } else {
     d.setMonth(d.getMonth() + 1);
     d.setDate(0);
-    return d.toISOString().split('T')[0];
+     return toDateKey(d);
   }
 }
 

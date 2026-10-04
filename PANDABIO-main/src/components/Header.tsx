@@ -46,7 +46,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header
       id="main-header"
-      className={`fixed top-0 right-0 h-16 bg-neutral-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-30 flex items-center justify-between px-3 sm:px-6 transition-all duration-300 left-0 ${
+      className={`fixed top-0 right-0 h-16 border-b border-neutral-lighter/80 bg-neutral-background/85 backdrop-blur-xl shadow-[0_4px_18px_rgba(19,27,46,0.04)] z-30 flex items-center justify-between px-3 sm:px-6 transition-all duration-300 left-0 ${
         collapsed ? 'lg:left-20' : 'lg:left-64'
       }`}
     >

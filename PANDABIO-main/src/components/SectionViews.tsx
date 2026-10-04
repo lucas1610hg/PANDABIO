@@ -9,6 +9,8 @@ import { StatisticsSection } from './StatisticsSection';
 import { LeadsSection } from './LeadsSection';
 import { FormsSection } from './FormsSection';
 import { SettingsSection } from './SettingsSection';
+import { PlanSection } from './PlanSection';
+import { HelpSection } from './HelpSection';
 import { ActivityItem } from '../types';
 import { KpiData } from './KpiMetrics';
 import { PublicAnalyticsSummary } from '../supabase/services/publicAnalyticsService';
@@ -142,6 +144,14 @@ export const SectionViews: React.FC<SectionViewsProps> = ({
   // Seção de Agendamentos
   if (section === 'agendamentos') {
     return <AgendamentosSection />;
+  }
+
+  if (section === 'plano') {
+    return <PlanSection user={user} />;
+  }
+
+  if (section === 'ajuda') {
+    return <HelpSection />;
   }
 
   // Outras seções mantidas vazias por enquanto

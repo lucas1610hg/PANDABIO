@@ -129,7 +129,7 @@ export const AgendamentosVisaoGeral: React.FC<AgendamentosVisaoGeralProps> = ({
             <span className="text-xs font-semibold text-gray-500">Total</span>
           </div>
           <p className="text-2xl font-extrabold text-[#131b2e]">{stats.total_appointments}</p>
-          <p className="text-xs text-gray-500 mt-1">Agendamentos</p>
+           <p className="text-xs text-gray-500 mt-1">Total histórico</p>
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-200 p-5">
@@ -148,13 +148,13 @@ export const AgendamentosVisaoGeral: React.FC<AgendamentosVisaoGeralProps> = ({
             <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
               <DollarSign className="w-5 h-5 text-[#FF7A00]" />
             </div>
-            <span className="text-xs font-semibold text-gray-500">Receita</span>
+             <span className="text-xs font-semibold text-gray-500">Receita recebida</span>
           </div>
           <p className="text-2xl font-extrabold text-[#131b2e]">
             R$ {stats.total_revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            Média: R$ {averageBookingValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+             Média por registro pago: R$ {averageBookingValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </p>
         </div>
 
@@ -166,11 +166,11 @@ export const AgendamentosVisaoGeral: React.FC<AgendamentosVisaoGeralProps> = ({
             <span className="text-xs font-semibold text-gray-500">Ocupação</span>
           </div>
           <p className="text-2xl font-extrabold text-[#131b2e]">
-            {stats.occupancy_rate.toFixed(1)}%
-          </p>
-          <p className="text-xs text-gray-500 mt-1">
-            Taxa de cancelamento: {stats.cancellation_rate.toFixed(1)}%
-          </p>
+             {stats.occupancy_rate > 0 ? `${stats.occupancy_rate.toFixed(1)}%` : 'Não calculada'}
+           </p>
+           <p className="text-xs text-gray-500 mt-1">
+             Cancelamento: {stats.cancellation_rate.toFixed(1)}%
+           </p>
         </div>
       </div>
 
@@ -206,15 +206,27 @@ export const AgendamentosVisaoGeral: React.FC<AgendamentosVisaoGeralProps> = ({
                 {stats.completed_appointments}
               </span>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500" />
-                <span className="text-sm text-gray-600">Cancelados</span>
-              </div>
-              <span className="text-sm font-semibold text-[#131b2e]">
-                {stats.cancelled_appointments}
-              </span>
-            </div>
+             <div className="flex items-center justify-between">
+               <div className="flex items-center gap-2">
+                 <div className="w-3 h-3 rounded-full bg-red-500" />
+                 <span className="text-sm text-gray-600">Cancelados</span>
+               </div>
+               <span className="text-sm font-semibold text-[#131b2e]">{stats.cancelled_appointments}</span>
+             </div>
+             <div className="flex items-center justify-between">
+               <div className="flex items-center gap-2">
+                 <div className="w-3 h-3 rounded-full bg-blue-500" />
+                 <span className="text-sm text-gray-600">Em atendimento</span>
+               </div>
+               <span className="text-sm font-semibold text-[#131b2e]">{stats.in_progress_appointments}</span>
+             </div>
+             <div className="flex items-center justify-between">
+               <div className="flex items-center gap-2">
+                 <div className="w-3 h-3 rounded-full bg-gray-400" />
+                 <span className="text-sm text-gray-600">Expirados</span>
+               </div>
+               <span className="text-sm font-semibold text-[#131b2e]">{stats.expired_appointments}</span>
+             </div>
           </div>
         </div>
 

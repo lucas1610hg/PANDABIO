@@ -21,8 +21,8 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
     'Links e botões ilimitados com animação de destaque',
     'Pixel do Meta (Facebook & Instagram) e Google Analytics integrados',
     'Captura de leads com exportação automática para CRM e WhatsApp',
-    'Zero taxas adicionais em vendas de produtos e serviços',
-    'Mascote 3D e temas VIP exclusivos PandaBio',
+    'Analytics detalhado de produtos e cliques',
+    'Mascote 3D e temas exclusivos PandaBio',
   ];
 
   return (

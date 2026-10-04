@@ -145,7 +145,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
         >
           {/* Top-right decorative orange circle */}
           <motion.div
-            className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-[#FF5E00] z-0 opacity-95 pointer-events-none"
+            className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-[#FF7A00] z-0 opacity-95 pointer-events-none"
             animate={{
               scale: isRegisterMode ? [1, 1.15, 1] : [1, 1.05, 1],
               rotate: isRegisterMode ? 90 : 0,
@@ -177,7 +177,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight">
                   Sua bio. Seu mundo.
                   <br />
-                  <span className="text-[#FF5E00]">Um só link.</span>
+                  <span className="text-[#FF7A00]">Um só link.</span>
                 </h1>
                 <p className="text-gray-300 text-xs sm:text-sm lg:text-base font-normal pt-1 sm:pt-1.5 max-w-sm leading-relaxed">
                   {isRegisterMode
@@ -223,7 +223,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
           }`}
         >
           {/* Decorative subtle dot */}
-          <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-[#FF5E00]/10 pointer-events-none hidden sm:block" />
+          <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-[#FF7A00]/10 pointer-events-none hidden sm:block" />
 
           <div className="w-full max-w-md mx-auto space-y-6">
             {/* Pill Tab Switcher with smooth sliding motion */}
@@ -364,7 +364,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                           value={identifier}
                           onChange={(e) => setIdentifier(e.target.value)}
                           placeholder="seu@email.com ou @usuario"
-                          className="w-full px-4 py-3 bg-[#F1F3F6] border-0 rounded-2xl text-gray-800 text-sm placeholder-gray-400 focus:bg-white focus:ring-2 focus:ring-[#FF5E00] transition duration-150 outline-none"
+                          className="w-full px-4 py-3 bg-[#F1F3F6] border-0 rounded-2xl text-gray-800 text-sm placeholder-gray-400 focus:bg-white focus:ring-2 focus:ring-[#FF7A00] transition duration-150 outline-none"
                         />
                       </div>
 
@@ -383,7 +383,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="••••••••••••"
-                            className="w-full px-4 py-3 bg-[#F1F3F6] border-0 rounded-2xl text-gray-800 text-sm placeholder-gray-400 focus:bg-white focus:ring-2 focus:ring-[#FF5E00] transition duration-150 outline-none pr-11"
+                            className="w-full px-4 py-3 bg-[#F1F3F6] border-0 rounded-2xl text-gray-800 text-sm placeholder-gray-400 focus:bg-white focus:ring-2 focus:ring-[#FF7A00] transition duration-150 outline-none pr-11"
                           />
                           <button
                             type="button"
@@ -406,7 +406,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                             type="checkbox"
                             checked={rememberMe}
                             onChange={(e) => setRememberMe(e.target.checked)}
-                            className="w-4 h-4 rounded text-[#FF5E00] focus:ring-[#FF5E00] border-gray-300 transition duration-150 cursor-pointer"
+                            className="w-4 h-4 rounded text-[#FF7A00] focus:ring-[#FF7A00] border-gray-300 transition duration-150 cursor-pointer"
                           />
                           <span className="text-xs sm:text-sm text-gray-600 font-medium">
                             Lembrar de mim
@@ -436,7 +436,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                               setErrorMessage('Sistema de autenticação não configurado.');
                             }
                           }}
-                          className="text-xs sm:text-sm font-semibold text-[#FF5E00] hover:underline transition duration-150 cursor-pointer"
+                          className="text-xs sm:text-sm font-semibold text-[#FF7A00] hover:underline transition duration-150 cursor-pointer"
                         >
                           Esqueceu sua senha?
                         </button>
@@ -446,7 +446,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                         type="submit"
                         id="btn-submit-login"
                         disabled={isLoading}
-                        className="w-full py-3.5 px-6 bg-[#FF5E00] hover:bg-[#E55300] active:scale-[0.99] text-white text-base font-bold rounded-2xl shadow-md hover:shadow-lg transition-all duration-150 mt-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full py-3.5 px-6 bg-[#FF7A00] hover:bg-[#FF5500] active:scale-[0.99] text-white text-base font-bold rounded-2xl shadow-md hover:shadow-lg transition-all duration-150 mt-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
                         {isLoading ? (
                           <>
@@ -465,7 +465,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                       <button
                         type="button"
                         onClick={() => setIsRegisterMode(true)}
-                        className="font-bold text-[#FF5E00] hover:underline ml-1 cursor-pointer"
+                        className="font-bold text-[#FF7A00] hover:underline ml-1 cursor-pointer"
                       >
                         Cadastre-se
                       </button>
@@ -567,7 +567,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                           value={regName}
                           onChange={(e) => setRegName(e.target.value)}
                           placeholder="Como podemos te chamar?"
-                          className="w-full px-4 py-2.5 bg-[#F1F3F6] border-0 rounded-2xl text-gray-800 text-sm placeholder-gray-400 focus:bg-white focus:ring-2 focus:ring-[#FF5E00] transition duration-150 outline-none"
+                          className="w-full px-4 py-2.5 bg-[#F1F3F6] border-0 rounded-2xl text-gray-800 text-sm placeholder-gray-400 focus:bg-white focus:ring-2 focus:ring-[#FF7A00] transition duration-150 outline-none"
                         />
                       </div>
 
@@ -585,7 +585,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                           value={regEmail}
                           onChange={(e) => setRegEmail(e.target.value)}
                           placeholder="seu@email.com"
-                          className="w-full px-4 py-2.5 bg-[#F1F3F6] border-0 rounded-2xl text-gray-800 text-sm placeholder-gray-400 focus:bg-white focus:ring-2 focus:ring-[#FF5E00] transition duration-150 outline-none"
+                          className="w-full px-4 py-2.5 bg-[#F1F3F6] border-0 rounded-2xl text-gray-800 text-sm placeholder-gray-400 focus:bg-white focus:ring-2 focus:ring-[#FF7A00] transition duration-150 outline-none"
                         />
                       </div>
 
@@ -596,7 +596,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                         >
                           Nome de usuário
                         </label>
-                        <div className="flex items-center w-full px-3 py-2.5 bg-[#F1F3F6] rounded-2xl focus-within:bg-white focus-within:ring-2 focus-within:ring-[#FF5E00] transition duration-150">
+                        <div className="flex items-center w-full px-3 py-2.5 bg-[#F1F3F6] rounded-2xl focus-within:bg-white focus-within:ring-2 focus-within:ring-[#FF7A00] transition duration-150">
                           <span className="text-xs sm:text-sm font-medium text-gray-500 select-none pl-1">
                             {getPublicOrigin().replace(/^https?:\/\//, '')}/
                           </span>
@@ -627,7 +627,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                             value={regPassword}
                             onChange={(e) => setRegPassword(e.target.value)}
                             placeholder="Mínimo de 8 caracteres"
-                            className="w-full px-4 py-2.5 bg-[#F1F3F6] border-0 rounded-2xl text-gray-800 text-sm placeholder-gray-400 focus:bg-white focus:ring-2 focus:ring-[#FF5E00] transition duration-150 outline-none pr-11"
+                            className="w-full px-4 py-2.5 bg-[#F1F3F6] border-0 rounded-2xl text-gray-800 text-sm placeholder-gray-400 focus:bg-white focus:ring-2 focus:ring-[#FF7A00] transition duration-150 outline-none pr-11"
                           />
                           <button
                             type="button"
@@ -651,18 +651,18 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                           required
                           checked={termsAccepted}
                           onChange={(e) => setTermsAccepted(e.target.checked)}
-                          className="w-4 h-4 rounded text-[#FF5E00] focus:ring-[#FF5E00] border-gray-300 transition duration-150 cursor-pointer"
+                          className="w-4 h-4 rounded text-[#FF7A00] focus:ring-[#FF7A00] border-gray-300 transition duration-150 cursor-pointer"
                         />
                         <label
                           htmlFor="terms-check"
                           className="text-xs text-gray-600 font-medium cursor-pointer select-none"
                         >
                           Aceito os{' '}
-                          <span className="text-[#FF5E00] hover:underline font-semibold">
+                          <span className="text-[#FF7A00] hover:underline font-semibold">
                             termos de uso
                           </span>{' '}
                           e a{' '}
-                          <span className="text-[#FF5E00] hover:underline font-semibold">
+                          <span className="text-[#FF7A00] hover:underline font-semibold">
                             política de privacidade
                           </span>
                         </label>
@@ -672,7 +672,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                         type="submit"
                         id="btn-submit-register"
                         disabled={isLoading}
-                        className="w-full py-3.5 px-6 bg-[#FF5E00] hover:bg-[#E55300] active:scale-[0.99] text-white text-base font-bold rounded-2xl shadow-md hover:shadow-lg transition-all duration-150 mt-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full py-3.5 px-6 bg-[#FF7A00] hover:bg-[#FF5500] active:scale-[0.99] text-white text-base font-bold rounded-2xl shadow-md hover:shadow-lg transition-all duration-150 mt-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
                         {isLoading ? (
                           <>
@@ -691,7 +691,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                       <button
                         type="button"
                         onClick={() => setIsRegisterMode(false)}
-                        className="font-bold text-[#FF5E00] hover:underline ml-1 cursor-pointer"
+                        className="font-bold text-[#FF7A00] hover:underline ml-1 cursor-pointer"
                       >
                         Entrar
                       </button>

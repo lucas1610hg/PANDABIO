@@ -256,6 +256,8 @@ export interface BookingStats {
   completed_appointments: number;
   cancelled_appointments: number;
   no_show_appointments: number;
+  in_progress_appointments: number;
+  expired_appointments: number;
   total_clients: number;
   total_revenue: number;
   active_services: number;

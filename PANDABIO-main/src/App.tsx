@@ -29,9 +29,26 @@ function AdminApp() {
   const [currentScreen, setCurrentScreen] = useState<ScreenView>('auth');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<NavSection>('dashboard');
+  const [activeSection, setActiveSection] = useState<NavSection>(() => {
+    const savedSection = window.localStorage.getItem('pandabio-active-section');
+    const sections: NavSection[] = [
+      'dashboard',
+      'minha-pagina',
+      'agendamentos',
+      'estatisticas',
+      'leads',
+      'formularios',
+      'links',
+      'produtos',
+      'configuracoes',
+      'plano',
+      'ajuda',
+      'perfil',
+    ];
+    return sections.includes(savedSection as NavSection) ? (savedSection as NavSection) : 'dashboard';
+  });
   const [visitedSections, setVisitedSections] = useState<Set<NavSection>>(
-    () => new Set<NavSection>(['dashboard']),
+    () => new Set<NavSection>(['dashboard', activeSection]),
   );
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -81,11 +98,13 @@ function AdminApp() {
       const profile = await AuthService.getCurrentUser();
       if (!mounted) return;
 
-      if (profile.user) {
-        setCurrentScreen('dashboard');
-        setActiveSection('dashboard');
-        setVisitedSections(new Set<NavSection>(['dashboard']));
-      } else {
+       if (profile.user) {
+         const savedSection = window.localStorage.getItem('pandabio-active-section') as NavSection | null;
+         const restoredSection = savedSection || 'dashboard';
+         setCurrentScreen('dashboard');
+         setActiveSection(restoredSection);
+         setVisitedSections(new Set<NavSection>(['dashboard', restoredSection]));
+       } else {
         setCurrentScreen('auth');
       }
       await refreshRemoteData();
@@ -108,11 +127,13 @@ function AdminApp() {
         return;
       }
 
-      if (event === 'SIGNED_IN') {
-        setCurrentScreen('dashboard');
-        setActiveSection('dashboard');
-        setVisitedSections(new Set<NavSection>(['dashboard']));
-      }
+       if (event === 'SIGNED_IN') {
+         const savedSection = window.localStorage.getItem('pandabio-active-section') as NavSection | null;
+         const restoredSection = savedSection || 'dashboard';
+         setCurrentScreen('dashboard');
+         setActiveSection(restoredSection);
+         setVisitedSections(new Set<NavSection>(['dashboard', restoredSection]));
+       }
 
       window.setTimeout(() => {
         if (mounted) void refreshRemoteData();
@@ -142,6 +163,7 @@ function AdminApp() {
 
   // Logout
   const handleLogout = async () => {
+    window.localStorage.removeItem('pandabio-active-section');
     try {
       await AuthService.signOut();
     } finally {
@@ -153,9 +175,11 @@ function AdminApp() {
     }
   };
 
-  // Upgrade to PRO
   const handleUpgradeSuccess = () => {
-    void remoteData.upgradeToPro();
+    setActiveSection('plano');
+    window.localStorage.setItem('pandabio-active-section', 'plano');
+    setVisitedSections((previous) => new Set(previous).add('plano'));
+    setIsUpgradeModalOpen(false);
   };
 
   // Filter links by search query
@@ -265,7 +289,7 @@ function AdminApp() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="min-h-screen bg-[#F6EFE9] text-[#131b2e] flex flex-col font-sans"
+          className="min-h-screen bg-neutral-background text-neutral-dark flex flex-col font-sans"
         >
           {/* Main Navigation Sidebar */}
           <Sidebar
@@ -283,6 +307,7 @@ function AdminApp() {
                 return next;
               });
               setActiveSection(section);
+              window.localStorage.setItem('pandabio-active-section', section);
               setMobileMenuOpen(false);
             }}
             user={user}
@@ -328,7 +353,7 @@ function AdminApp() {
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-1">
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
-                        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#131b2e] tracking-tight">
+                        <h1 className="text-2xl sm:text-3xl font-extrabold text-neutral-dark tracking-tight">
                           Olá, {user.name.split(' ')[0]}!
                         </h1>
                         <Waves aria-hidden="true" className="w-7 h-7 text-[#FF7A00] select-none" />

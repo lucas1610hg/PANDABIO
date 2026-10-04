@@ -60,14 +60,65 @@
 }
 
 @layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--color-neutral-lighter);
+  }
+
+  ::selection {
+    background: rgba(255, 122, 0, 0.22);
+    color: var(--color-neutral-dark);
+  }
+
   body {
     font-family: 'Plus Jakarta Sans', 'Geist', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: var(--color-neutral-surface);
+    background:
+      radial-gradient(circle at 88% 8%, rgba(255, 122, 0, 0.08), transparent 24rem),
+      radial-gradient(circle at 8% 92%, rgba(53, 37, 205, 0.06), transparent 28rem),
+      var(--color-neutral-background);
     color: var(--color-neutral-dark);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  .pb-card {
+    border: 1px solid var(--color-neutral-lighter);
+    border-radius: 1rem;
+    background: var(--color-neutral-white);
+    box-shadow: 0 8px 24px rgba(19, 27, 46, 0.045);
+  }
+
+  .pb-card-hover {
+    transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  }
+
+  .pb-card-hover:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 122, 0, 0.28);
+    box-shadow: 0 14px 30px rgba(19, 27, 46, 0.09);
+  }
+
+  .pb-button-primary {
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, var(--color-primary-orange), var(--color-primary-orange-dark));
+    color: white;
+    font-weight: 800;
+    transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
+  }
+
+  .pb-button-primary:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+    box-shadow: 0 8px 18px rgba(255, 122, 0, 0.22);
+  }
+
+  .pb-brand-gradient {
+    background: linear-gradient(135deg, #131b2e 0%, #21182a 52%, #3525cd 100%);
   }
 }
 
