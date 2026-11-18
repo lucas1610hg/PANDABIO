@@ -1098,12 +1098,24 @@ export class StatsService {
 
     const request = (async () => {
       try {
-        const [appointmentsResult, servicesResult, professionalsResult, clientsResult] = await Promise.all([
-          supabase.from('booking_appointments').select('status, service_price, payment_amount, payment_status').eq('workspace_id', workspaceId),
-          supabase.from('booking_services').select('id').eq('workspace_id', workspaceId).eq('active', true),
-          supabase.from('booking_professionals').select('id').eq('workspace_id', workspaceId).eq('active', true),
-          supabase.from('booking_clients').select('id').eq('workspace_id', workspaceId),
-        ]);
+        const [appointmentsResult, servicesResult, professionalsResult, clientsResult] =
+          await Promise.all([
+            supabase
+              .from('booking_appointments')
+              .select('status, service_price, payment_amount, payment_status')
+              .eq('workspace_id', workspaceId),
+            supabase
+              .from('booking_services')
+              .select('id')
+              .eq('workspace_id', workspaceId)
+              .eq('active', true),
+            supabase
+              .from('booking_professionals')
+              .select('id')
+              .eq('workspace_id', workspaceId)
+              .eq('active', true),
+            supabase.from('booking_clients').select('id').eq('workspace_id', workspaceId),
+          ]);
         if (appointmentsResult.error) throw appointmentsResult.error;
         if (servicesResult.error) throw servicesResult.error;
         if (professionalsResult.error) throw professionalsResult.error;
@@ -1116,24 +1128,38 @@ export class StatsService {
           completed_appointments: appointments.filter((item) => item.status === 'completed').length,
           cancelled_appointments: appointments.filter((item) => item.status === 'cancelled').length,
           no_show_appointments: appointments.filter((item) => item.status === 'no_show').length,
-          in_progress_appointments: appointments.filter((item) => item.status === 'in_progress').length,
+          in_progress_appointments: appointments.filter((item) => item.status === 'in_progress')
+            .length,
           expired_appointments: appointments.filter((item) => item.status === 'expired').length,
           total_clients: clientsResult.data?.length || 0,
           total_revenue: appointments.reduce(
-            (sum, item) => sum + (item.payment_status === 'paid'
-              ? item.payment_amount == null
-                ? Number(item.service_price) || 0
-                : Number(item.payment_amount) || 0
-              : 0),
+            (sum, item) =>
+              sum +
+              (item.payment_status === 'paid'
+                ? item.payment_amount == null
+                  ? Number(item.service_price) || 0
+                  : Number(item.payment_amount) || 0
+                : 0),
             0,
           ),
           active_services: servicesResult.data?.length || 0,
           active_professionals: professionalsResult.data?.length || 0,
           occupancy_rate: 0,
-          cancellation_rate: appointments.length ? (appointments.filter((item) => item.status === 'cancelled').length / appointments.length) * 100 : 0,
-          no_show_rate: appointments.length ? (appointments.filter((item) => item.status === 'no_show').length / appointments.length) * 100 : 0,
+          cancellation_rate: appointments.length
+            ? (appointments.filter((item) => item.status === 'cancelled').length /
+                appointments.length) *
+              100
+            : 0,
+          no_show_rate: appointments.length
+            ? (appointments.filter((item) => item.status === 'no_show').length /
+                appointments.length) *
+              100
+            : 0,
         };
-        statsCache.set(workspaceId, { data: fallbackData, expiresAt: Date.now() + catalogCacheTtl });
+        statsCache.set(workspaceId, {
+          data: fallbackData,
+          expiresAt: Date.now() + catalogCacheTtl,
+        });
         return fallbackData;
       } catch (error) {
         console.error('Error fetching workspace stats:', error);

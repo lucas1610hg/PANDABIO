@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Settings, Save, RefreshCw } from 'lucide-react';
 import { SettingsService } from '../../supabase/services/agendamentoService';
-import { BookingSettings, BookingWorkspace } from '../../types_agendamentos';
+import { BookingWorkspace } from '../../types_agendamentos';
 
 interface AgendamentosConfiguracoesProps {
   workspace: BookingWorkspace | null;
 }
 
-export const AgendamentosConfiguracoes: React.FC<AgendamentosConfiguracoesProps> = ({ workspace }) => {
-  const [settings, setSettings] = useState<BookingSettings | null>(null);
+export const AgendamentosConfiguracoes: React.FC<AgendamentosConfiguracoesProps> = ({
+  workspace,
+}) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +44,6 @@ export const AgendamentosConfiguracoes: React.FC<AgendamentosConfiguracoesProps>
       setError(null);
 
       if (!workspace) {
-        setSettings(null);
         setLoading(false);
         return;
       }
@@ -51,7 +51,6 @@ export const AgendamentosConfiguracoes: React.FC<AgendamentosConfiguracoesProps>
       // Buscar configurações
       const settingsData = await SettingsService.getSettings(workspace.id);
       if (settingsData) {
-        setSettings(settingsData);
         setFormData({
           default_slot_duration: settingsData.default_slot_duration,
           min_advance_booking: settingsData.min_advance_booking,
@@ -143,7 +142,9 @@ export const AgendamentosConfiguracoes: React.FC<AgendamentosConfiguracoesProps>
       <div className="flex flex-col items-center justify-center py-16 gap-4">
         <Settings className="w-12 h-12 text-gray-400" />
         <p className="text-sm text-gray-600">Nenhum workspace configurado</p>
-        <p className="text-xs text-gray-400">Execute os dados de teste para criar um workspace automaticamente</p>
+        <p className="text-xs text-gray-400">
+          Execute os dados de teste para criar um workspace automaticamente
+        </p>
       </div>
     );
   }
@@ -154,9 +155,7 @@ export const AgendamentosConfiguracoes: React.FC<AgendamentosConfiguracoesProps>
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-[#131b2e]">Configurações</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Configure políticas e regras do sistema
-          </p>
+          <p className="text-sm text-gray-500 mt-1">Configure políticas e regras do sistema</p>
         </div>
         <button
           type="button"
@@ -189,46 +188,62 @@ export const AgendamentosConfiguracoes: React.FC<AgendamentosConfiguracoesProps>
           <h3 className="text-sm font-bold text-[#131b2e] mb-4">Agendamento</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Duração Padrão (min)</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Duração Padrão (min)
+              </label>
               <input
                 type="number"
                 min="5"
                 step="5"
                 value={formData.default_slot_duration}
-                onChange={(e) => setFormData({ ...formData, default_slot_duration: parseInt(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setFormData({ ...formData, default_slot_duration: parseInt(e.target.value) || 0 })
+                }
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Antecedência Mínima (dias)</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Antecedência Mínima (dias)
+              </label>
               <input
                 type="number"
                 min="0"
                 value={formData.min_advance_booking}
-                onChange={(e) => setFormData({ ...formData, min_advance_booking: parseInt(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setFormData({ ...formData, min_advance_booking: parseInt(e.target.value) || 0 })
+                }
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Antecedência Máxima (dias)</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Antecedência Máxima (dias)
+              </label>
               <input
                 type="number"
                 min="0"
                 value={formData.max_advance_booking}
-                onChange={(e) => setFormData({ ...formData, max_advance_booking: parseInt(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setFormData({ ...formData, max_advance_booking: parseInt(e.target.value) || 0 })
+                }
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Tempo de Buffer (min)</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Tempo de Buffer (min)
+              </label>
               <input
                 type="number"
                 min="0"
                 value={formData.buffer_time}
-                onChange={(e) => setFormData({ ...formData, buffer_time: parseInt(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setFormData({ ...formData, buffer_time: parseInt(e.target.value) || 0 })
+                }
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
               />
             </div>
@@ -239,7 +254,12 @@ export const AgendamentosConfiguracoes: React.FC<AgendamentosConfiguracoesProps>
                 type="number"
                 min="0"
                 value={formData.max_daily_bookings || ''}
-                onChange={(e) => setFormData({ ...formData, max_daily_bookings: e.target.value ? parseInt(e.target.value) : null })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    max_daily_bookings: e.target.value ? parseInt(e.target.value) : null,
+                  })
+                }
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
                 placeholder="Ilimitado"
               />
@@ -251,7 +271,12 @@ export const AgendamentosConfiguracoes: React.FC<AgendamentosConfiguracoesProps>
                 type="number"
                 min="0"
                 value={formData.max_weekly_bookings || ''}
-                onChange={(e) => setFormData({ ...formData, max_weekly_bookings: e.target.value ? parseInt(e.target.value) : null })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    max_weekly_bookings: e.target.value ? parseInt(e.target.value) : null,
+                  })
+                }
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
                 placeholder="Ilimitado"
               />
@@ -267,7 +292,9 @@ export const AgendamentosConfiguracoes: React.FC<AgendamentosConfiguracoesProps>
               <label className="text-sm font-medium text-[#131b2e]">Permitir Cancelamentos</label>
               <button
                 type="button"
-                onClick={() => setFormData({ ...formData, allow_cancellations: !formData.allow_cancellations })}
+                onClick={() =>
+                  setFormData({ ...formData, allow_cancellations: !formData.allow_cancellations })
+                }
                 className={`w-12 h-6 rounded-full relative transition-colors ${
                   formData.allow_cancellations ? 'bg-[#FF7A00]' : 'bg-gray-200'
                 }`}
@@ -283,21 +310,32 @@ export const AgendamentosConfiguracoes: React.FC<AgendamentosConfiguracoesProps>
             {formData.allow_cancellations && (
               <>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Horas de Antecedência</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                    Horas de Antecedência
+                  </label>
                   <input
                     type="number"
                     min="0"
                     value={formData.cancellation_hours}
-                    onChange={(e) => setFormData({ ...formData, cancellation_hours: parseInt(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        cancellation_hours: parseInt(e.target.value) || 0,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Política de Cancelamento</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                    Política de Cancelamento
+                  </label>
                   <textarea
                     value={formData.cancellation_policy}
-                    onChange={(e) => setFormData({ ...formData, cancellation_policy: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, cancellation_policy: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00] resize-none"
                     rows={3}
                     placeholder="Descreva a política de cancelamento"
@@ -316,7 +354,9 @@ export const AgendamentosConfiguracoes: React.FC<AgendamentosConfiguracoesProps>
               <label className="text-sm font-medium text-[#131b2e]">Requerir Depósito</label>
               <button
                 type="button"
-                onClick={() => setFormData({ ...formData, require_deposit: !formData.require_deposit })}
+                onClick={() =>
+                  setFormData({ ...formData, require_deposit: !formData.require_deposit })
+                }
                 className={`w-12 h-6 rounded-full relative transition-colors ${
                   formData.require_deposit ? 'bg-[#FF7A00]' : 'bg-gray-200'
                 }`}
@@ -332,25 +372,39 @@ export const AgendamentosConfiguracoes: React.FC<AgendamentosConfiguracoesProps>
             {formData.require_deposit && (
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Porcentagem (%)</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                    Porcentagem (%)
+                  </label>
                   <input
                     type="number"
                     min="0"
                     max="100"
                     value={formData.deposit_percentage}
-                    onChange={(e) => setFormData({ ...formData, deposit_percentage: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        deposit_percentage: parseFloat(e.target.value) || 0,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Valor Fixo (R$)</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                    Valor Fixo (R$)
+                  </label>
                   <input
                     type="number"
                     min="0"
                     step="0.01"
                     value={formData.deposit_fixed_amount}
-                    onChange={(e) => setFormData({ ...formData, deposit_fixed_amount: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        deposit_fixed_amount: parseFloat(e.target.value) || 0,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
                   />
                 </div>
@@ -431,7 +485,9 @@ export const AgendamentosConfiguracoes: React.FC<AgendamentosConfiguracoesProps>
               <label className="text-sm font-medium text-[#131b2e]">Habilitar Lembretes</label>
               <button
                 type="button"
-                onClick={() => setFormData({ ...formData, enable_reminders: !formData.enable_reminders })}
+                onClick={() =>
+                  setFormData({ ...formData, enable_reminders: !formData.enable_reminders })
+                }
                 className={`w-12 h-6 rounded-full relative transition-colors ${
                   formData.enable_reminders ? 'bg-[#FF7A00]' : 'bg-gray-200'
                 }`}
@@ -447,7 +503,9 @@ export const AgendamentosConfiguracoes: React.FC<AgendamentosConfiguracoesProps>
             {formData.enable_reminders && (
               <>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-2">Horas Antes do Agendamento</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-2">
+                    Horas Antes do Agendamento
+                  </label>
                   <div className="flex flex-wrap gap-2">
                     {[1, 2, 4, 8, 12, 24, 48].map((hours) => (
                       <button
@@ -467,10 +525,14 @@ export const AgendamentosConfiguracoes: React.FC<AgendamentosConfiguracoesProps>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Template de Mensagem</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                    Template de Mensagem
+                  </label>
                   <textarea
                     value={formData.reminder_template}
-                    onChange={(e) => setFormData({ ...formData, reminder_template: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, reminder_template: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00] resize-none"
                     rows={3}
                     placeholder="Template para mensagem de lembrete"
@@ -488,7 +550,9 @@ export const AgendamentosConfiguracoes: React.FC<AgendamentosConfiguracoesProps>
             <label className="text-sm font-medium text-[#131b2e]">Confirmar Automaticamente</label>
             <button
               type="button"
-              onClick={() => setFormData({ ...formData, enable_auto_confirm: !formData.enable_auto_confirm })}
+              onClick={() =>
+                setFormData({ ...formData, enable_auto_confirm: !formData.enable_auto_confirm })
+              }
               className={`w-12 h-6 rounded-full relative transition-colors ${
                 formData.enable_auto_confirm ? 'bg-[#FF7A00]' : 'bg-gray-200'
               }`}
@@ -506,12 +570,16 @@ export const AgendamentosConfiguracoes: React.FC<AgendamentosConfiguracoesProps>
         <div className="bg-white rounded-2xl border border-gray-200 p-6">
           <h3 className="text-sm font-bold text-[#131b2e] mb-4">Limite de No-Show</h3>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Número Máximo Antes de Bloquear</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">
+              Número Máximo Antes de Bloquear
+            </label>
             <input
               type="number"
               min="0"
               value={formData.no_show_limit}
-              onChange={(e) => setFormData({ ...formData, no_show_limit: parseInt(e.target.value) || 0 })}
+              onChange={(e) =>
+                setFormData({ ...formData, no_show_limit: parseInt(e.target.value) || 0 })
+              }
               className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
             />
           </div>

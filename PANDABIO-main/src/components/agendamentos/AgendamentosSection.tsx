@@ -153,16 +153,24 @@ export const AgendamentosSection: React.FC = () => {
       <div className="relative mb-6 overflow-hidden rounded-3xl bg-gradient-to-br from-[#131b2e] via-[#21182a] to-[#3525cd] p-5 text-white shadow-[0_14px_45px_rgba(53,37,205,0.15)] sm:p-7">
         <div className="flex items-center justify-between gap-5">
           <div>
-            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#ffb37a]"><CalendarDays className="h-4 w-4 text-[#ff7a00]" /> PandaBio Agenda</div>
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#ffb37a]">
+              <CalendarDays className="h-4 w-4 text-[#ff7a00]" /> PandaBio Agenda
+            </div>
             <h1 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">Agendamentos</h1>
-            <p className="mt-2 max-w-xl text-sm text-white/65">Organize sua agenda, equipe, serviços e clientes em um só lugar.</p>
+            <p className="mt-2 max-w-xl text-sm text-white/65">
+              Organize sua agenda, equipe, serviços e clientes em um só lugar.
+            </p>
           </div>
-          <img src={PANDABIO_ASSETS.mascot3D} alt="Mascote PandaBio" className="hidden h-24 object-contain drop-shadow-2xl sm:block" />
+          <img
+            src={PANDABIO_ASSETS.mascot3D}
+            alt="Mascote PandaBio"
+            className="hidden h-24 object-contain drop-shadow-2xl sm:block"
+          />
         </div>
       </div>
 
       {/* Sub-navigation */}
-       <div className="relative rounded-2xl border border-[#eaedff] bg-white/95 p-2 mb-6 shadow-[0_8px_24px_rgba(19,27,46,0.06)]">
+      <div className="relative rounded-2xl border border-[#eaedff] bg-white/95 p-2 mb-6 shadow-[0_8px_24px_rgba(19,27,46,0.06)]">
         <nav
           className="grid grid-cols-2 gap-1 sm:grid-cols-4 lg:grid-cols-8"
           aria-label="Seções de agendamentos"
@@ -178,8 +186,8 @@ export const AgendamentosSection: React.FC = () => {
                 aria-current={activeSubSection === item.id ? 'page' : undefined}
                 className={`group flex min-h-[68px] items-center gap-2 rounded-xl px-3 py-2 text-left transition-colors ${
                   activeSubSection === item.id
-                     ? 'bg-gradient-to-r from-[#ff7a00] to-[#ff5500] text-white shadow-[0_5px_14px_rgba(255,122,0,0.22)]'
-                     : 'text-[#777587] hover:bg-[#fff3e6] hover:text-[#ff7a00]'
+                    ? 'bg-gradient-to-r from-[#ff7a00] to-[#ff5500] text-white shadow-[0_5px_14px_rgba(255,122,0,0.22)]'
+                    : 'text-[#777587] hover:bg-[#fff3e6] hover:text-[#ff7a00]'
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" />

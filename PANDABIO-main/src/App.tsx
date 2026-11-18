@@ -45,7 +45,9 @@ function AdminApp() {
       'ajuda',
       'perfil',
     ];
-    return sections.includes(savedSection as NavSection) ? (savedSection as NavSection) : 'dashboard';
+    return sections.includes(savedSection as NavSection)
+      ? (savedSection as NavSection)
+      : 'dashboard';
   });
   const [visitedSections, setVisitedSections] = useState<Set<NavSection>>(
     () => new Set<NavSection>(['dashboard', activeSection]),
@@ -98,13 +100,15 @@ function AdminApp() {
       const profile = await AuthService.getCurrentUser();
       if (!mounted) return;
 
-       if (profile.user) {
-         const savedSection = window.localStorage.getItem('pandabio-active-section') as NavSection | null;
-         const restoredSection = savedSection || 'dashboard';
-         setCurrentScreen('dashboard');
-         setActiveSection(restoredSection);
-         setVisitedSections(new Set<NavSection>(['dashboard', restoredSection]));
-       } else {
+      if (profile.user) {
+        const savedSection = window.localStorage.getItem(
+          'pandabio-active-section',
+        ) as NavSection | null;
+        const restoredSection = savedSection || 'dashboard';
+        setCurrentScreen('dashboard');
+        setActiveSection(restoredSection);
+        setVisitedSections(new Set<NavSection>(['dashboard', restoredSection]));
+      } else {
         setCurrentScreen('auth');
       }
       await refreshRemoteData();
@@ -127,13 +131,15 @@ function AdminApp() {
         return;
       }
 
-       if (event === 'SIGNED_IN') {
-         const savedSection = window.localStorage.getItem('pandabio-active-section') as NavSection | null;
-         const restoredSection = savedSection || 'dashboard';
-         setCurrentScreen('dashboard');
-         setActiveSection(restoredSection);
-         setVisitedSections(new Set<NavSection>(['dashboard', restoredSection]));
-       }
+      if (event === 'SIGNED_IN') {
+        const savedSection = window.localStorage.getItem(
+          'pandabio-active-section',
+        ) as NavSection | null;
+        const restoredSection = savedSection || 'dashboard';
+        setCurrentScreen('dashboard');
+        setActiveSection(restoredSection);
+        setVisitedSections(new Set<NavSection>(['dashboard', restoredSection]));
+      }
 
       window.setTimeout(() => {
         if (mounted) void refreshRemoteData();
@@ -316,10 +322,6 @@ function AdminApp() {
             leadsCount={leads.length}
             onCreateNew={() => {
               setIsCreateItemOpen(true);
-              setMobileMenuOpen(false);
-            }}
-            onOpenUpgrade={() => {
-              setIsUpgradeModalOpen(true);
               setMobileMenuOpen(false);
             }}
             onLogout={handleLogout}

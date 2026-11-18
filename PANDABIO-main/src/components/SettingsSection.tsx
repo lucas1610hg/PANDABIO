@@ -292,8 +292,7 @@ export const SettingsSection: React.FC<{
   };
 
   const persistProfile = async (updates: Partial<UserProfile>) => {
-    if (!isSupabaseConfigured()) return true;
-    if (!onUpdateUser) return false;
+    if (!onUpdateUser) return !isSupabaseConfigured();
     const result = await onUpdateUser(updates);
     if (result && typeof result === 'object' && 'success' in result) {
       return result.success !== false;

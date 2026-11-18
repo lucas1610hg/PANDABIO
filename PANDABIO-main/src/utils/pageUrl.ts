@@ -13,11 +13,7 @@ export const getPublicOrigin = (): string => {
   const currentHostname = typeof window !== 'undefined' ? window.location.hostname : '';
   const isLocalHost = /^(localhost|127(?:\.\d{1,3}){3}|0\.0\.0\.0)$/.test(currentHostname);
 
-  if (
-    typeof window !== 'undefined' &&
-    window.location.origin !== 'null' &&
-    !isLocalHost
-  ) {
+  if (typeof window !== 'undefined' && window.location.origin !== 'null' && !isLocalHost) {
     return normalizeOrigin(window.location.origin);
   }
 
@@ -37,8 +33,8 @@ const getBioUrlHost = (value: string): string | null => {
 const isLegacyPublicHost = (hostname: string | null): boolean =>
   Boolean(
     hostname &&
-      (LEGACY_PUBLIC_HOSTS.has(hostname) ||
-        (hostname.startsWith('pandabio') && hostname.endsWith('.vercel.app'))),
+    (LEGACY_PUBLIC_HOSTS.has(hostname) ||
+      (hostname.startsWith('pandabio') && hostname.endsWith('.vercel.app'))),
   );
 
 const getStoredPath = (value: string): string => {
@@ -51,9 +47,7 @@ export const getPageUrl = (bioUrl?: string, username?: string): string => {
   const bioUrlHost = normalizedBioUrl ? getBioUrlHost(normalizedBioUrl) : null;
 
   if (normalizedBioUrl && (!bioUrlHost || !isLegacyPublicHost(bioUrlHost))) {
-    return normalizedBioUrl.startsWith('http')
-      ? normalizedBioUrl
-      : `https://${normalizedBioUrl}`;
+    return normalizedBioUrl.startsWith('http') ? normalizedBioUrl : `https://${normalizedBioUrl}`;
   }
 
   const slug = username?.trim() || (normalizedBioUrl ? getStoredPath(normalizedBioUrl) : '');

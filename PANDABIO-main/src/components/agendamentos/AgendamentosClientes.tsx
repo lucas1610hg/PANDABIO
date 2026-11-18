@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { UserCog, Plus, Edit2, Trash2, Search, Filter, Calendar, DollarSign, Mail, Phone } from 'lucide-react';
+import { UserCog, Plus, Edit2, Trash2, Search, Mail, Phone } from 'lucide-react';
 import { ClientService } from '../../supabase/services/agendamentoService';
 import { BookingClient, BookingWorkspace, CreateClientData } from '../../types_agendamentos';
 
@@ -160,7 +160,9 @@ export const AgendamentosClientes: React.FC<AgendamentosClientesProps> = ({ work
       <div className="flex flex-col items-center justify-center py-16 gap-4">
         <UserCog className="w-12 h-12 text-gray-400" />
         <p className="text-sm text-gray-600">Nenhum workspace configurado</p>
-        <p className="text-xs text-gray-400">Execute os dados de teste para criar um workspace automaticamente</p>
+        <p className="text-xs text-gray-400">
+          Execute os dados de teste para criar um workspace automaticamente
+        </p>
       </div>
     );
   }
@@ -171,9 +173,7 @@ export const AgendamentosClientes: React.FC<AgendamentosClientesProps> = ({ work
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-[#131b2e]">Clientes</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {clients.length} cliente(s) cadastrado(s)
-          </p>
+          <p className="text-sm text-gray-500 mt-1">{clients.length} cliente(s) cadastrado(s)</p>
         </div>
         <button
           type="button"
@@ -221,9 +221,15 @@ export const AgendamentosClientes: React.FC<AgendamentosClientesProps> = ({ work
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Cliente</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Contato</th>
-                <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600">Agendamentos</th>
-                <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600">Total Gasto</th>
-                <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600">No-Show</th>
+                <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600">
+                  Agendamentos
+                </th>
+                <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600">
+                  Total Gasto
+                </th>
+                <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600">
+                  No-Show
+                </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600">Ações</th>
               </tr>
             </thead>
@@ -265,7 +271,9 @@ export const AgendamentosClientes: React.FC<AgendamentosClientesProps> = ({ work
                     </div>
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <span className="text-sm font-semibold text-[#131b2e]">{client.total_bookings}</span>
+                    <span className="text-sm font-semibold text-[#131b2e]">
+                      {client.total_bookings}
+                    </span>
                   </td>
                   <td className="px-6 py-4 text-center">
                     <span className="text-sm font-semibold text-[#131b2e]">
@@ -273,7 +281,9 @@ export const AgendamentosClientes: React.FC<AgendamentosClientesProps> = ({ work
                     </span>
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <span className={`text-sm font-semibold ${client.no_show_count > 2 ? 'text-red-500' : 'text-[#131b2e]'}`}>
+                    <span
+                      className={`text-sm font-semibold ${client.no_show_count > 2 ? 'text-red-500' : 'text-[#131b2e]'}`}
+                    >
                       {client.no_show_count}
                     </span>
                   </td>
@@ -375,10 +385,14 @@ export const AgendamentosClientes: React.FC<AgendamentosClientesProps> = ({ work
 
               <div className="space-y-3 pt-4 border-t border-gray-200">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-[#131b2e]">Consentimento Marketing</label>
+                  <label className="text-sm font-medium text-[#131b2e]">
+                    Consentimento Marketing
+                  </label>
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, consent_marketing: !formData.consent_marketing })}
+                    onClick={() =>
+                      setFormData({ ...formData, consent_marketing: !formData.consent_marketing })
+                    }
                     className={`w-12 h-6 rounded-full relative transition-colors ${
                       formData.consent_marketing ? 'bg-[#FF7A00]' : 'bg-gray-200'
                     }`}
@@ -392,10 +406,17 @@ export const AgendamentosClientes: React.FC<AgendamentosClientesProps> = ({ work
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-[#131b2e]">Consentimento Processamento de Dados</label>
+                  <label className="text-sm font-medium text-[#131b2e]">
+                    Consentimento Processamento de Dados
+                  </label>
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, consent_data_processing: !formData.consent_data_processing })}
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        consent_data_processing: !formData.consent_data_processing,
+                      })
+                    }
                     className={`w-12 h-6 rounded-full relative transition-colors ${
                       formData.consent_data_processing ? 'bg-[#FF7A00]' : 'bg-gray-200'
                     }`}

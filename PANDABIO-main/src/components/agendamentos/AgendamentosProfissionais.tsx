@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Users, Plus, Edit2, Trash2, Eye, EyeOff, Search, Filter, Mail, Phone } from 'lucide-react';
-import {
-  ProfessionalService,
-  ServiceService,
-} from '../../supabase/services/agendamentoService';
+import { ProfessionalService, ServiceService } from '../../supabase/services/agendamentoService';
 import {
   BookingProfessional,
   BookingService,
@@ -15,7 +12,9 @@ interface AgendamentosProfissionaisProps {
   workspace: BookingWorkspace | null;
 }
 
-export const AgendamentosProfissionais: React.FC<AgendamentosProfissionaisProps> = ({ workspace }) => {
+export const AgendamentosProfissionais: React.FC<AgendamentosProfissionaisProps> = ({
+  workspace,
+}) => {
   const [professionals, setProfessionals] = useState<BookingProfessional[]>([]);
   const [services, setServices] = useState<BookingService[]>([]);
   const [loading, setLoading] = useState(true);

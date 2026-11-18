@@ -385,10 +385,14 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
           <div className={`${cardCls} space-y-3`} style={{ ...cardStyle, ...fxVars('#ffffff') }}>
             <div>
               <p className="text-sm font-extrabold">{customForm.title}</p>
-              {customForm.description && <p className={`mt-1 text-[11px] ${muted}`}>{customForm.description}</p>}
+              {customForm.description && (
+                <p className={`mt-1 text-[11px] ${muted}`}>{customForm.description}</p>
+              )}
             </div>
             {state === 'success' ? (
-              <p className="rounded-xl bg-[#e7f8f2] px-3 py-2 text-xs font-bold text-[#047857]">{customForm.successMessage}</p>
+              <p className="rounded-xl bg-[#e7f8f2] px-3 py-2 text-xs font-bold text-[#047857]">
+                {customForm.successMessage}
+              </p>
             ) : (
               <form
                 className="space-y-2"
@@ -422,21 +426,39 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                     required: field.required,
                     value,
                     placeholder: field.placeholder,
-                    onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setValue(field.id, event.target.value),
-                    className: 'w-full rounded-xl border border-black/10 bg-white/80 px-3 py-2 text-xs outline-none focus:border-[#ff7a00]',
+                    onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                      setValue(field.id, event.target.value),
+                    className:
+                      'w-full rounded-xl border border-black/10 bg-white/80 px-3 py-2 text-xs outline-none focus:border-[#ff7a00]',
                   };
                   return (
                     <label key={field.id} className="block text-[11px] font-bold text-[#344054]">
-                      {field.label}{field.required ? ' *' : ''}
-                      {field.type === 'textarea' ? <textarea {...common} rows={3} /> : <input {...common} type={field.type === 'phone' ? 'tel' : field.type} />}
+                      {field.label}
+                      {field.required ? ' *' : ''}
+                      {field.type === 'textarea' ? (
+                        <textarea {...common} rows={3} />
+                      ) : (
+                        <input {...common} type={field.type === 'phone' ? 'tel' : field.type} />
+                      )}
                     </label>
                   );
                 })}
                 <label className={`flex items-start gap-2 text-[10px] ${muted}`}>
-                  <input required type="checkbox" checked={values.consent === true} onChange={(event) => setValue('consent', event.target.checked)} className="mt-0.5 accent-[#FF7A00]" />
+                  <input
+                    required
+                    type="checkbox"
+                    checked={values.consent === true}
+                    onChange={(event) => setValue('consent', event.target.checked)}
+                    className="mt-0.5 accent-[#FF7A00]"
+                  />
                   <span>{customForm.consentText}</span>
                 </label>
-                <button type="submit" disabled={!interactive || state === 'submitting'} className={`${getButtonStyle().className} w-full text-center disabled:opacity-60`} style={getButtonStyle().style}>
+                <button
+                  type="submit"
+                  disabled={!interactive || state === 'submitting'}
+                  className={`${getButtonStyle().className} w-full text-center disabled:opacity-60`}
+                  style={getButtonStyle().style}
+                >
                   {state === 'submitting' ? 'Enviando...' : customForm.buttonLabel}
                 </button>
                 {state === 'error' && (
@@ -809,8 +831,8 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                           href={getSafeExternalUrl(product.link) || undefined}
                           rel="noopener noreferrer"
                           target="_blank"
-                           onClick={() => onInteractiveClick?.(block, product.id)}
-                           className={`block w-full mt-1.5 py-1.5 text-[10px] font-bold text-center ${buttonRadius} ${animation}`}
+                          onClick={() => onInteractiveClick?.(block, product.id)}
+                          className={`block w-full mt-1.5 py-1.5 text-[10px] font-bold text-center ${buttonRadius} ${animation}`}
                           style={{ ...fxVars(accent), backgroundColor: accent, color: accentText }}
                         >
                           {product.purchaseType === 'whatsapp' ? 'Falar no WhatsApp' : 'Comprar'}
@@ -818,8 +840,8 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                       ) : (
                         <button
                           type="button"
-                           onClick={() => interactive && onInteractiveClick?.(block, product.id)}
-                           className={`block w-full mt-1.5 py-1.5 text-[10px] font-bold text-center ${buttonRadius} ${animation}`}
+                          onClick={() => interactive && onInteractiveClick?.(block, product.id)}
+                          className={`block w-full mt-1.5 py-1.5 text-[10px] font-bold text-center ${buttonRadius} ${animation}`}
                           style={{ ...fxVars(accent), backgroundColor: accent, color: accentText }}
                         >
                           {product.purchaseType === 'whatsapp' ? 'Falar no WhatsApp' : 'Comprar'}

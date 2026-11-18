@@ -25,7 +25,9 @@ interface AgendamentosDisponibilidadeProps {
   workspace: BookingWorkspace | null;
 }
 
-export const AgendamentosDisponibilidade: React.FC<AgendamentosDisponibilidadeProps> = ({ workspace }) => {
+export const AgendamentosDisponibilidade: React.FC<AgendamentosDisponibilidadeProps> = ({
+  workspace,
+}) => {
   const [professionals, setProfessionals] = useState<BookingProfessional[]>([]);
   const [selectedProfessional, setSelectedProfessional] = useState<string | null>(null);
   const [availability, setAvailability] = useState<BookingAvailability[]>([]);

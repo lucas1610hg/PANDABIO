@@ -34,11 +34,7 @@ function getErrorMessage(error: unknown): string {
     : 'Não foi possível concluir a reserva.';
 }
 
-export function PublicBookingModal({
-  workspaceSlug,
-  title,
-  onClose,
-}: PublicBookingModalProps) {
+export function PublicBookingModal({ workspaceSlug, title, onClose }: PublicBookingModalProps) {
   const [availability, setAvailability] = useState<PublicBookingAvailability[]>([]);
   const [serviceId, setServiceId] = useState('');
   const [professionalId, setProfessionalId] = useState('');

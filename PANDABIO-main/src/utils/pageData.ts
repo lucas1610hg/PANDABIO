@@ -62,8 +62,20 @@ export function createDefaultCustomForm(): CustomForm {
     consentText: 'Aceito receber contato sobre esta solicitação.',
     fields: [
       { id: 'name', label: 'Nome', type: 'text', placeholder: 'Seu nome', required: true },
-      { id: 'email', label: 'E-mail', type: 'email', placeholder: 'voce@email.com', required: true },
-      { id: 'phone', label: 'WhatsApp', type: 'phone', placeholder: '(00) 00000-0000', required: false },
+      {
+        id: 'email',
+        label: 'E-mail',
+        type: 'email',
+        placeholder: 'voce@email.com',
+        required: true,
+      },
+      {
+        id: 'phone',
+        label: 'WhatsApp',
+        type: 'phone',
+        placeholder: '(00) 00000-0000',
+        required: false,
+      },
     ],
     createdAt: now,
     updatedAt: now,

@@ -8,10 +8,7 @@ export default defineConfig({
     setupFiles: ['src/test/setup.ts'],
     coverage: {
       provider: 'v8',
-      include: [
-        'src/utils/normalizeIp.ts',
-        'src/schemas/linkSchema.ts',
-      ],
+      include: ['src/utils/normalizeIp.ts', 'src/schemas/linkSchema.ts'],
       reporter: ['text', 'html'],
     },
     include: ['src/__tests__/**/*.test.{ts,tsx}'],

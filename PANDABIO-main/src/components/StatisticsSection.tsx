@@ -16,9 +16,9 @@ import {
   Lightbulb,
   Link2,
   MousePointerClick,
-   ShoppingBag,
-   Smartphone,
-   Tablet,
+  ShoppingBag,
+  Smartphone,
+  Tablet,
   Target,
   TrendingUp,
   Users,
@@ -253,7 +253,12 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
     const bookingStarts = countEventsByType(events, 'booking_start');
     const bookingCompleted = countEventsByType(events, 'booking_completed');
     const locationClicks = countEventsByType(events, 'location_click');
-    const contactClicks = countEventsByType(events, ['whatsapp_click', 'phone_click', 'email_click', 'form_submit']);
+    const contactClicks = countEventsByType(events, [
+      'whatsapp_click',
+      'phone_click',
+      'email_click',
+      'form_submit',
+    ]);
     const socialClicks = countEventsByType(events, 'social_click');
     return {
       productClicks,
@@ -861,7 +866,9 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
               <ShoppingBag className="h-4 w-4 text-[#ff7a00]" />
               <h2 className="text-sm font-extrabold text-[#131b2e]">Analytics de produtos</h2>
             </div>
-            <p className="mt-1 text-[11px] text-[#777587]">Desempenho individual dos seus produtos</p>
+            <p className="mt-1 text-[11px] text-[#777587]">
+              Desempenho individual dos seus produtos
+            </p>
           </div>
           <span className="rounded-full bg-[#fff3e6] px-2 py-1 text-[10px] font-bold text-[#ff7a00]">
             Mais clicado
@@ -881,13 +888,21 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
               <tbody>
                 {productAnalytics.map((product) => (
                   <tr key={product.id} className="border-b border-[#f1f2f8] last:border-0">
-                    <td className="max-w-[180px] truncate py-3 font-bold text-[#464555]">{product.name}</td>
-                    <td className="py-3 text-right font-semibold text-[#777587]">{formatNumber(product.views)}</td>
-                    <td className="py-3 text-right font-extrabold text-[#131b2e]">{formatNumber(product.clicks)}</td>
+                    <td className="max-w-[180px] truncate py-3 font-bold text-[#464555]">
+                      {product.name}
+                    </td>
+                    <td className="py-3 text-right font-semibold text-[#777587]">
+                      {formatNumber(product.views)}
+                    </td>
+                    <td className="py-3 text-right font-extrabold text-[#131b2e]">
+                      {formatNumber(product.clicks)}
+                    </td>
                     <td className="py-3 text-right font-semibold text-[#3525cd]">
                       {formatPercent(
                         productAnalytics.reduce((sum, item) => sum + item.clicks, 0) > 0
-                          ? (product.clicks / productAnalytics.reduce((sum, item) => sum + item.clicks, 0)) * 100
+                          ? (product.clicks /
+                              productAnalytics.reduce((sum, item) => sum + item.clicks, 0)) *
+                              100
                           : 0,
                       )}
                     </td>
@@ -908,13 +923,20 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
               <Target className="h-4 w-4 text-[#3525cd]" />
               <h2 className="text-sm font-extrabold text-[#131b2e]">Detalhamento de interações</h2>
             </div>
-            <p className="mt-1 text-[11px] text-[#777587]">Cliques por tipo no período selecionado</p>
+            <p className="mt-1 text-[11px] text-[#777587]">
+              Cliques por tipo no período selecionado
+            </p>
           </div>
-          <span className="rounded-full bg-[#efedff] px-2 py-1 text-[10px] font-bold text-[#3525cd]">Dados reais</span>
+          <span className="rounded-full bg-[#efedff] px-2 py-1 text-[10px] font-bold text-[#3525cd]">
+            Dados reais
+          </span>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-6">
           {[
-            ['Produtos', [...detailedMetrics.productClicks.values()].reduce((sum, value) => sum + value, 0)],
+            [
+              'Produtos',
+              [...detailedMetrics.productClicks.values()].reduce((sum, value) => sum + value, 0),
+            ],
             ['Agendamentos', detailedMetrics.bookingStarts],
             ['Concluídos', detailedMetrics.bookingCompleted],
             ['Localização', detailedMetrics.locationClicks],
@@ -923,7 +945,9 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
           ].map(([label, value]) => (
             <div key={label} className="rounded-xl bg-[#faf8ff] p-3">
               <p className="text-[10px] font-bold text-[#777587]">{label}</p>
-              <p className="mt-1 text-xl font-extrabold text-[#131b2e]">{formatNumber(value as number)}</p>
+              <p className="mt-1 text-xl font-extrabold text-[#131b2e]">
+                {formatNumber(value as number)}
+              </p>
               <p className="mt-1 text-[10px] text-[#969cb0]">cliques</p>
             </div>
           ))}

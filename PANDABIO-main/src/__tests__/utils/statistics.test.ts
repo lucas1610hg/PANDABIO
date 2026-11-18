@@ -58,6 +58,13 @@ describe('statistics helpers', () => {
     ];
 
     expect(countUniqueVisitors(events)).toBe(2);
-    expect(countUniqueVisitors(events.map(({ visitorId, ...legacyEvent }) => legacyEvent))).toBe(3);
+    expect(
+      countUniqueVisitors(
+        events.map((event) => {
+          const { visitorId: _visitorId, ...legacyEvent } = event;
+          return legacyEvent;
+        }),
+      ),
+    ).toBe(3);
   });
 });

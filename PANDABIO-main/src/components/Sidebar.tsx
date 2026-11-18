@@ -46,7 +46,6 @@ interface SidebarProps {
   productsCount?: number;
   leadsCount?: number;
   onCreateNew: () => void;
-  onOpenUpgrade: () => void;
   onLogout: () => void;
   mobileOpen?: boolean;
   onCloseMobile?: () => void;
@@ -62,7 +61,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   productsCount = 0,
   leadsCount = 0,
   onCreateNew,
-  onOpenUpgrade,
   onLogout,
   mobileOpen = false,
   onCloseMobile,
@@ -553,7 +551,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="pointer-events-none absolute -bottom-12 -left-8 h-24 w-24 rounded-full bg-[#3525cd]/20 blur-2xl" />
               <div className="relative z-10 flex gap-2.5">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.08]">
-                  <img src={PANDABIO_ASSETS.logoMini} alt="" aria-hidden="true" className="h-8 w-8 object-contain transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6" />
+                  <img
+                    src={PANDABIO_ASSETS.logoMini}
+                    alt=""
+                    aria-hidden="true"
+                    className="h-8 w-8 object-contain transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6"
+                  />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">

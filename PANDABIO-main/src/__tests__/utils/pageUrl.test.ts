@@ -7,9 +7,7 @@ describe('page URL helpers', () => {
     expect(getPageUrl('pandabio.com/lucas', 'lucas')).toBe(
       'https://pandabio-bice.vercel.app/lucas',
     );
-    expect(getPageUrl('panda.bio/lucas', 'lucas')).toBe(
-      'https://pandabio-bice.vercel.app/lucas',
-    );
+    expect(getPageUrl('panda.bio/lucas', 'lucas')).toBe('https://pandabio-bice.vercel.app/lucas');
   });
 
   it('preserves explicitly configured custom hosts', () => {

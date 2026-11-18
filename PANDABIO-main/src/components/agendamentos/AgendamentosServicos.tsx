@@ -172,7 +172,8 @@ export const AgendamentosServicos: React.FC<AgendamentosServicosProps> = ({ work
   const filteredServices = services.filter((service) => {
     const matchesSearch =
       service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (service.description && service.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (service.description &&
+        service.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (service.category && service.category.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesActive = showInactive || service.active;
     return matchesSearch && matchesActive;
@@ -191,7 +192,9 @@ export const AgendamentosServicos: React.FC<AgendamentosServicosProps> = ({ work
       <div className="flex flex-col items-center justify-center py-16 gap-4">
         <Scissors className="w-12 h-12 text-gray-400" />
         <p className="text-sm text-gray-600">Nenhum workspace configurado</p>
-        <p className="text-xs text-gray-400">Execute os dados de teste para criar um workspace automaticamente</p>
+        <p className="text-xs text-gray-400">
+          Execute os dados de teste para criar um workspace automaticamente
+        </p>
       </div>
     );
   }
@@ -202,9 +205,7 @@ export const AgendamentosServicos: React.FC<AgendamentosServicosProps> = ({ work
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-[#131b2e]">Serviços</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {services.length} serviço(s) cadastrado(s)
-          </p>
+          <p className="text-sm text-gray-500 mt-1">{services.length} serviço(s) cadastrado(s)</p>
         </div>
         <button
           type="button"
@@ -232,7 +233,9 @@ export const AgendamentosServicos: React.FC<AgendamentosServicosProps> = ({ work
           type="button"
           onClick={() => setShowInactive(!showInactive)}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${
-            showInactive ? 'bg-[#3525cd] text-white' : 'bg-white text-gray-600 border border-gray-200'
+            showInactive
+              ? 'bg-[#3525cd] text-white'
+              : 'bg-white text-gray-600 border border-gray-200'
           }`}
         >
           <Filter className="w-4 h-4" />
@@ -311,7 +314,9 @@ export const AgendamentosServicos: React.FC<AgendamentosServicosProps> = ({ work
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500">Duração</span>
-                  <span className="text-xs font-semibold text-[#131b2e]">{service.duration} min</span>
+                  <span className="text-xs font-semibold text-[#131b2e]">
+                    {service.duration} min
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500">Preço</span>
@@ -407,28 +412,36 @@ export const AgendamentosServicos: React.FC<AgendamentosServicosProps> = ({ work
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-[#131b2e] mb-1">Duração (min) *</label>
+                  <label className="block text-sm font-medium text-[#131b2e] mb-1">
+                    Duração (min) *
+                  </label>
                   <input
                     type="number"
                     required
                     min="5"
                     step="5"
                     value={formData.duration}
-                    onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })
+                    }
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
                     placeholder="30"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[#131b2e] mb-1">Preço (R$) *</label>
+                  <label className="block text-sm font-medium text-[#131b2e] mb-1">
+                    Preço (R$) *
+                  </label>
                   <input
                     type="number"
                     required
                     min="0"
                     step="0.01"
                     value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })
+                    }
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
                     placeholder="50.00"
                   />
@@ -436,10 +449,17 @@ export const AgendamentosServicos: React.FC<AgendamentosServicosProps> = ({ work
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#131b2e] mb-1">Tipo de Preço</label>
+                <label className="block text-sm font-medium text-[#131b2e] mb-1">
+                  Tipo de Preço
+                </label>
                 <select
                   value={formData.price_display_type}
-                  onChange={(e) => setFormData({ ...formData, price_display_type: e.target.value as 'fixed' | 'variable' | 'consultation' })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      price_display_type: e.target.value as 'fixed' | 'variable' | 'consultation',
+                    })
+                  }
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
                 >
                   <option value="fixed">Fixo</option>
@@ -453,7 +473,9 @@ export const AgendamentosServicos: React.FC<AgendamentosServicosProps> = ({ work
                   <label className="text-sm font-medium text-[#131b2e]">Requer Depósito</label>
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, requires_deposit: !formData.requires_deposit })}
+                    onClick={() =>
+                      setFormData({ ...formData, requires_deposit: !formData.requires_deposit })
+                    }
                     className={`w-12 h-6 rounded-full relative transition-colors ${
                       formData.requires_deposit ? 'bg-[#FF7A00]' : 'bg-gray-200'
                     }`}
@@ -468,13 +490,20 @@ export const AgendamentosServicos: React.FC<AgendamentosServicosProps> = ({ work
 
                 {formData.requires_deposit && (
                   <div>
-                    <label className="block text-sm font-medium text-[#131b2e] mb-1">Valor do Depósito (R$)</label>
+                    <label className="block text-sm font-medium text-[#131b2e] mb-1">
+                      Valor do Depósito (R$)
+                    </label>
                     <input
                       type="number"
                       min="0"
                       step="0.01"
                       value={formData.deposit_amount}
-                      onChange={(e) => setFormData({ ...formData, deposit_amount: parseFloat(e.target.value) || 0 })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          deposit_amount: parseFloat(e.target.value) || 0,
+                        })
+                      }
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
                       placeholder="20.00"
                     />
@@ -483,24 +512,38 @@ export const AgendamentosServicos: React.FC<AgendamentosServicosProps> = ({ work
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-[#131b2e] mb-1">Antecedência (dias)</label>
+                    <label className="block text-sm font-medium text-[#131b2e] mb-1">
+                      Antecedência (dias)
+                    </label>
                     <input
                       type="number"
                       min="0"
                       value={formData.advance_booking_days}
-                      onChange={(e) => setFormData({ ...formData, advance_booking_days: parseInt(e.target.value) || 0 })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          advance_booking_days: parseInt(e.target.value) || 0,
+                        })
+                      }
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
                       placeholder="0"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-[#131b2e] mb-1">Cancelamento (horas)</label>
+                    <label className="block text-sm font-medium text-[#131b2e] mb-1">
+                      Cancelamento (horas)
+                    </label>
                     <input
                       type="number"
                       min="0"
                       value={formData.cancellation_hours}
-                      onChange={(e) => setFormData({ ...formData, cancellation_hours: parseInt(e.target.value) || 0 })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          cancellation_hours: parseInt(e.target.value) || 0,
+                        })
+                      }
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
                       placeholder="24"
                     />

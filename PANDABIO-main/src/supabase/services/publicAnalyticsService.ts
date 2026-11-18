@@ -197,9 +197,7 @@ export class PublicAnalyticsService {
     } catch (error) {
       console.error('Error capturing public lead:', error);
       const message =
-        error && typeof error === 'object' && 'message' in error
-          ? String(error.message)
-          : '';
+        error && typeof error === 'object' && 'message' in error ? String(error.message) : '';
       const publicMessage = /consentimento|dados de contato|e-mail inválido|página pública/i.test(
         message,
       )

@@ -94,7 +94,10 @@
   }
 
   .pb-card-hover {
-    transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+    transition:
+      transform 200ms ease,
+      box-shadow 200ms ease,
+      border-color 200ms ease;
   }
 
   .pb-card-hover:hover {
@@ -105,10 +108,17 @@
 
   .pb-button-primary {
     border-radius: 0.75rem;
-    background: linear-gradient(135deg, var(--color-primary-orange), var(--color-primary-orange-dark));
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-orange),
+      var(--color-primary-orange-dark)
+    );
     color: white;
     font-weight: 800;
-    transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
+    transition:
+      transform 150ms ease,
+      box-shadow 150ms ease,
+      filter 150ms ease;
   }
 
   .pb-button-primary:hover {
