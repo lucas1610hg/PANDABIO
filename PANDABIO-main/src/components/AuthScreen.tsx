@@ -201,9 +201,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
             }}
           >
             <img
-              src={PANDABIO_ASSETS.mascot3D}
-              alt="Mascote 3D PandaBio"
-              className="w-48 sm:w-72 lg:w-88 object-cover object-bottom drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)]"
+              src={PANDABIO_ASSETS.pandaMark}
+              alt="Símbolo PandaBio"
+              className="w-40 rounded-full object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)] sm:w-56 lg:w-64"
             />
           </motion.div>
 

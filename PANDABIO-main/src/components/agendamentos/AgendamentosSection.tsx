@@ -162,8 +162,8 @@ export const AgendamentosSection: React.FC = () => {
             </p>
           </div>
           <img
-            src={PANDABIO_ASSETS.mascot3D}
-            alt="Mascote PandaBio"
+            src={PANDABIO_ASSETS.pandaMark}
+            alt="Símbolo PandaBio"
             className="hidden h-24 object-contain drop-shadow-2xl sm:block"
           />
         </div>

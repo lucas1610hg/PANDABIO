@@ -51,3 +51,13 @@ createRoot(document.getElementById('root')!).render(
     />
   </StrictMode>,
 );
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register(`${import.meta.env.BASE_URL}service-worker.js`)
+      .catch((error: unknown) => {
+        console.error('Não foi possível registrar o service worker do PandaBio.', error);
+      });
+  });
+}

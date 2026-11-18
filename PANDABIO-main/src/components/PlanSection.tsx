@@ -116,9 +116,9 @@ export const PlanSection: React.FC<PlanSectionProps> = ({ user }) => {
             </p>
           </div>
           <motion.img
-            src={PANDABIO_ASSETS.mascot3D}
-            alt="Mascote PandaBio"
-            className="mx-auto h-36 w-auto object-contain drop-shadow-2xl lg:mx-0 lg:h-44"
+            src={PANDABIO_ASSETS.pandaMark}
+            alt="Símbolo PandaBio"
+            className="mx-auto h-36 w-36 rounded-full object-contain drop-shadow-2xl lg:mx-0 lg:h-44 lg:w-44"
             animate={{ y: [0, -8, 0], rotate: [0, 2, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
           />

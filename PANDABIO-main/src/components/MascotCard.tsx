@@ -17,8 +17,8 @@ export const MascotCard: React.FC<MascotCardProps> = ({ onOpenReport, hasActivit
         <div className="relative w-32 sm:w-36 h-32 sm:h-36 mb-2 flex items-center justify-center">
           <div className="absolute inset-0 bg-[#FF7A00]/20 rounded-full blur-xl transform scale-90 pointer-events-none" />
           <img
-            src={PANDABIO_ASSETS.mascot3D}
-            alt="Mascote 3D oficial PandaBio"
+            src={PANDABIO_ASSETS.pandaMark}
+            alt="Símbolo PandaBio"
             className="relative z-10 w-full h-full object-contain filter drop-shadow-md hover:scale-105 transition-transform duration-300 pointer-events-none select-none"
           />
         </div>

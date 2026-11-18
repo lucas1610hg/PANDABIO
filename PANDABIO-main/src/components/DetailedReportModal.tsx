@@ -53,8 +53,8 @@ export const DetailedReportModal: React.FC<DetailedReportModalProps> = ({
         {/* Summary Banner with Mascot */}
         <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-[#FFF3E6] to-[#f2f3ff] border border-[#FF7A00]/20">
           <img
-            src={PANDABIO_ASSETS.mascot3D}
-            alt="Mascote 3D"
+            src={PANDABIO_ASSETS.pandaMark}
+            alt="Símbolo PandaBio"
             className="w-16 h-16 object-contain shrink-0 drop-shadow-sm"
           />
           <div>

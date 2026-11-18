@@ -391,8 +391,8 @@ export const HelpSection: React.FC = () => {
             </div>
           </div>
           <img
-            src={PANDABIO_ASSETS.mascot3D}
-            alt="Mascote PandaBio"
+            src={PANDABIO_ASSETS.pandaMark}
+            alt="Símbolo PandaBio"
             className="mx-auto h-32 object-contain drop-shadow-2xl sm:mx-0 sm:h-40"
           />
         </div>
