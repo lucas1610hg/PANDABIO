@@ -17,7 +17,7 @@ import { CreateItemModal } from './components/CreateItemModal';
 import { DetailedReportModal } from './components/DetailedReportModal';
 import { UpgradeModal } from './components/UpgradeModal';
 import { SectionViews } from './components/SectionViews';
-import { ExternalLink, Waves } from 'lucide-react';
+import { ExternalLink, Smartphone, Waves } from 'lucide-react';
 import { useSupabaseData } from './hooks/useSupabaseData';
 import { AuthService } from './supabase/services/authService';
 import { supabase } from './supabase/client';
@@ -181,6 +181,13 @@ function AdminApp() {
     }
   };
 
+  const handleSelectSection = (section: NavSection) => {
+    setVisitedSections((previous) => new Set(previous).add(section));
+    setActiveSection(section);
+    window.localStorage.setItem('pandabio-active-section', section);
+    setMobileMenuOpen(false);
+  };
+
   const handleUpgradeSuccess = () => {
     setActiveSection('plano');
     window.localStorage.setItem('pandabio-active-section', 'plano');
@@ -304,18 +311,7 @@ function AdminApp() {
             mobileOpen={mobileMenuOpen}
             onCloseMobile={() => setMobileMenuOpen(false)}
             activeSection={activeSection}
-            onSelectSection={(section) => {
-              setVisitedSections((previous) => {
-                if (previous.has(section)) return previous;
-
-                const next = new Set(previous);
-                next.add(section);
-                return next;
-              });
-              setActiveSection(section);
-              window.localStorage.setItem('pandabio-active-section', section);
-              setMobileMenuOpen(false);
-            }}
+            onSelectSection={handleSelectSection}
             user={user}
             linksCount={links.length}
             productsCount={products.length}
@@ -339,11 +335,12 @@ function AdminApp() {
               collapsed={sidebarCollapsed}
               onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
               onToggleMobileMenu={() => setMobileMenuOpen((prev) => !prev)}
+              activeSection={activeSection}
               user={user}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               onOpenPhonePreview={() => setIsPhonePreviewOpen(true)}
-              onSwitchToAuth={() => setCurrentScreen('auth')}
+              onOpenProfile={() => handleSelectSection('perfil')}
             />
 
             {/* Dashboard Canvas */}
@@ -365,23 +362,33 @@ function AdminApp() {
                       </p>
                     </div>
 
-                    {/* Quick actions badge/pill */}
+                    {/* Public page link */}
                     <div className="flex items-center gap-3 self-start md:self-auto">
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#eaedff] text-[#464555] text-xs font-medium">
-                        <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
-                        <span className="text-[#10B981] font-semibold">Página Online</span>
-                        <span className="text-[#c7c4d8]">•</span>
-                        <span className="text-[#FF7A00] font-bold">
+                      <a
+                        href={getPageUrl(user.bioUrl, user.username)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex min-w-0 max-w-full items-center gap-2 rounded-xl border border-neutral-lighter bg-white px-3 py-2 text-xs font-medium text-neutral-gray shadow-sm transition hover:border-primary-orange/40 hover:text-neutral-dark"
+                        title="Abrir link público em uma nova aba"
+                      >
+                        <ExternalLink
+                          aria-hidden="true"
+                          className="h-3.5 w-3.5 shrink-0 text-primary-orange"
+                        />
+                        <span className="shrink-0">Link público</span>
+                        <span className="truncate font-mono font-semibold text-primary-orange">
                           {getPageUrl(user.bioUrl, user.username)}
                         </span>
-                      </div>
+                      </a>
 
                       <button
+                        type="button"
                         onClick={() => setIsPhonePreviewOpen(true)}
+                        aria-label="Abrir prévia da página no celular"
                         className="p-2 rounded-xl bg-[#f2f3ff] hover:bg-[#eaedff] text-[#464555] hover:text-[#FF7A00] transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
                         title="Abrir prévia no celular"
                       >
-                        <ExternalLink aria-hidden="true" className="w-4 h-4" />
+                        <Smartphone aria-hidden="true" className="w-4 h-4" />
                       </button>
                     </div>
                   </div>

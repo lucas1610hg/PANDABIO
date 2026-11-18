@@ -108,8 +108,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'minha-pagina',
       label: 'Minha Página',
       icon: Smartphone,
-      badge: 'Online',
-      badgeColor: 'emerald',
     },
     {
       id: 'agendamentos',
@@ -208,8 +206,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <img
                   src={sidebarLogoImg}
                   alt="PandaBio"
-                  className="h-[114px] w-[181.05px] object-contain drop-shadow-[0_2px_10px_rgba(255,102,0,0.25)] transition-transform duration-200 group-hover:scale-[1.02]"
-                  style={{ height: '114px', width: '181.0469px' }}
+                  className="h-14 w-[181px] object-cover object-center drop-shadow-[0_2px_10px_rgba(255,102,0,0.25)] transition-transform duration-200 group-hover:scale-[1.02]"
                 />
               </div>
             </div>
@@ -265,10 +262,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-between px-3 py-1.5 mb-4 rounded-lg bg-sidebar-card hover:bg-sidebar-card-hover border border-sidebar-border-light hover:border-primary-orange-strong/40 text-neutral-muted-light hover:text-zinc-200 transition-all text-[11.5px] font-medium group"
-              title="Abrir página pública"
+              title="Abrir link público"
             >
               <div className="flex items-center gap-2 truncate">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20 shrink-0" />
+                <ExternalLink
+                  aria-hidden="true"
+                  className="h-3.5 w-3.5 shrink-0 text-sidebar-icon group-hover:text-primary-orange"
+                />
                 <span className="truncate text-zinc-300 font-mono text-[11px]">
                   {getPageUrl(user.bioUrl, user.username)}
                 </span>

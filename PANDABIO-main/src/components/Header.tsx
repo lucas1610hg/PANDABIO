@@ -1,40 +1,30 @@
-import React, { useState } from 'react';
-import { Menu, Search, Bell, ExternalLink, Lock, CheckCircle, X } from 'lucide-react';
-import { UserProfile } from '../types';
-import { getPageUrl } from '../utils/pageUrl';
+import React from 'react';
+import { Menu, Search, Smartphone, UserCircle } from 'lucide-react';
+import { NavSection, UserProfile } from '../types';
 
 interface HeaderProps {
   collapsed: boolean;
   onToggleCollapse: () => void;
   onToggleMobileMenu?: () => void;
+  activeSection: NavSection;
   user: UserProfile;
   searchQuery: string;
   onSearchChange: (q: string) => void;
   onOpenPhonePreview: () => void;
-  onSwitchToAuth: () => void;
+  onOpenProfile: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   collapsed,
   onToggleCollapse,
   onToggleMobileMenu,
+  activeSection,
   user,
   searchQuery,
   onSearchChange,
   onOpenPhonePreview,
-  onSwitchToAuth,
+  onOpenProfile,
 }) => {
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState<
-    Array<{ id: number; title: string; desc: string; time: string; unread: boolean }>
-  >([]);
-
-  const unreadCount = notifications.filter((n) => n.unread).length;
-
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
-  };
-
   const handleMenuClick = () => {
     if (window.innerWidth < 1024 && onToggleMobileMenu) {
       onToggleMobileMenu();
@@ -61,144 +51,60 @@ export const Header: React.FC<HeaderProps> = ({
           <Menu aria-hidden="true" className="w-5 h-5" />
         </button>
 
-        {/* Search Bar */}
-        <div className="relative flex items-center min-w-0">
-          <Search
-            aria-hidden="true"
-            className="w-4 h-4 absolute left-3 text-neutral-gray-light pointer-events-none shrink-0"
-          />
-          <input
-            id="global-search-input"
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Buscar..."
-            className="pl-8 sm:pl-9 pr-3 sm:pr-4 py-1.5 rounded-xl bg-neutral-light text-xs sm:text-sm text-neutral-dark placeholder:text-neutral-gray-light outline-none w-28 xs:w-36 sm:w-56 md:w-64 lg:w-72 transition-all focus:bg-neutral-lighter focus:ring-1 focus:ring-secondary-blue"
-          />
-        </div>
+        {activeSection === 'dashboard' && (
+          <div className="relative flex items-center min-w-0">
+            <Search
+              aria-hidden="true"
+              className="w-4 h-4 absolute left-3 text-neutral-gray-light pointer-events-none shrink-0"
+            />
+            <input
+              id="global-search-input"
+              type="search"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="Buscar links"
+              aria-label="Buscar links no painel"
+              className="pl-8 sm:pl-9 pr-3 sm:pr-4 py-1.5 rounded-xl bg-neutral-light text-xs sm:text-sm text-neutral-dark placeholder:text-neutral-gray-light outline-none w-28 xs:w-36 sm:w-56 md:w-64 lg:w-72 transition-all focus:bg-white focus:ring-2 focus:ring-primary-orange/30"
+            />
+          </div>
+        )}
       </div>
 
-      {/* Right side: Switch to Auth screen, Quick Status pill, Notifications, Profile avatar */}
+      {/* Right side: Preview and account */}
       <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-        {/* Screen Switcher Button (Auth / Login screen) */}
-        <button
-          id="btn-switch-to-auth"
-          onClick={onSwitchToAuth}
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-neutral-border/60 text-xs font-semibold text-neutral-gray hover:text-primary-orange hover:border-primary-orange/40 transition-all shadow-xs cursor-pointer"
-          title="Ver Tela de Login / Cadastro"
-        >
-          <Lock aria-hidden="true" className="w-3.5 h-3.5 text-primary-orange" />
-          <span className="hidden md:inline">Tela de Login</span>
-          <span className="md:hidden">Login</span>
-        </button>
-
-        {/* Public Page online status pill */}
-        <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-lighter text-neutral-gray text-xs font-medium">
-          <span className="w-2 h-2 rounded-full bg-secondary-green animate-pulse" />
-          <span className="text-secondary-green font-semibold">Página Online</span>
-          <span className="text-neutral-border">•</span>
-          <span className="text-primary-orange font-bold">
-            {getPageUrl(user.bioUrl, user.username)}
-          </span>
-        </div>
-
-        {/* Open public page / phone preview button */}
         <button
           id="btn-open-preview"
+          type="button"
           onClick={onOpenPhonePreview}
-          className="p-2 rounded-xl bg-neutral-light hover:bg-neutral-lighter text-neutral-gray hover:text-primary-orange transition-colors flex items-center justify-center cursor-pointer"
+          aria-label="Abrir prévia da página no celular"
+          className="p-2 rounded-xl bg-neutral-light hover:bg-neutral-lighter text-neutral-gray hover:text-primary-orange transition-colors flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-orange"
           title="Ver prévia da página pública no celular"
         >
-          <ExternalLink aria-hidden="true" className="w-4 h-4" />
+          <Smartphone aria-hidden="true" className="w-4 h-4" />
         </button>
 
-        {/* Notifications Button */}
-        <div className="relative">
-          <button
-            id="btn-notifications"
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="relative p-2 rounded-xl text-neutral-gray hover:bg-neutral-lighter hover:text-neutral-dark transition-colors cursor-pointer"
-            title="Notificações"
-          >
-            <Bell aria-hidden="true" className="w-5 h-5" />
-            {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-functional-error-dark" />
-            )}
-          </button>
-
-          {/* Notifications Dropdown */}
-          {showNotifications && (
-            <div className="absolute right-0 mt-2 w-72 sm:w-88 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-xl border border-black/5 p-4 z-50 animate-fadeIn">
-              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-neutral-dark">Notificações</span>
-                  {unreadCount > 0 && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary-orange/15 text-primary-orange">
-                      {unreadCount} novas
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  {unreadCount > 0 && (
-                    <button
-                      onClick={markAllAsRead}
-                      className="text-[11px] text-secondary-blue hover:underline font-semibold cursor-pointer"
-                    >
-                      Ler todas
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setShowNotifications(false)}
-                    className="p-1 text-gray-500 hover:text-gray-600 cursor-pointer"
-                  >
-                    <X aria-hidden="true" className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2 mt-3 max-h-72 overflow-y-auto">
-                {notifications.length > 0 ? (
-                  notifications.map((item) => (
-                    <div
-                      key={item.id}
-                      className={`p-2.5 rounded-xl transition-colors ${
-                        item.unread ? 'bg-neutral-light' : 'hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <span className="font-semibold text-xs text-neutral-dark">
-                          {item.title}
-                        </span>
-                        <span className="text-[10px] text-gray-500 shrink-0">{item.time}</span>
-                      </div>
-                      <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">{item.desc}</p>
-                    </div>
-                  ))
-                ) : (
-                  <div className="p-4 text-center text-xs text-gray-500">
-                    Nenhuma notificação nova no momento.
-                  </div>
-                )}
-              </div>
-
-              <div className="pt-3 mt-2 border-t border-gray-100 text-center">
-                <span className="text-xs text-emerald-600 font-medium flex items-center justify-center gap-1">
-                  <CheckCircle aria-hidden="true" className="w-3.5 h-3.5" />
-                  Sua bio está 100% ativa e monitorada
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Profile Avatar */}
-        <div
-          onClick={onOpenPhonePreview}
-          className="w-8 h-8 rounded-full ring-2 ring-primary-orange/30 overflow-hidden cursor-pointer shrink-0"
-          title={user.name}
+        <button
+          id="btn-open-profile"
+          type="button"
+          onClick={onOpenProfile}
+          aria-label={`Abrir perfil de ${user.name}`}
+          title={`Perfil de ${user.name}`}
+          className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-primary-orange-light text-sm font-bold text-primary-orange ring-1 ring-primary-orange/25 transition hover:ring-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-orange"
         >
-          <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
-        </div>
+          {user.avatarUrl ? (
+            <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <span aria-hidden="true">
+              {user.name
+                .trim()
+                .split(/\s+/)
+                .slice(0, 2)
+                .map((part) => part[0])
+                .join('')
+                .toUpperCase() || <UserCircle className="h-5 w-5" />}
+            </span>
+          )}
+        </button>
       </div>
     </header>
   );
