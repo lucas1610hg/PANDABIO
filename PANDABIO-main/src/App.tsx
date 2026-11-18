@@ -401,7 +401,10 @@ function AdminApp() {
 
                   {/* Central Charts (2 Columns) */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                    <VisitsChart totalVisits={realKpiData.visits} />
+                    <VisitsChart
+                      totalVisits={realKpiData.visits}
+                      events={remoteData.publicAnalytics.events}
+                    />
                     <ClicksByLinkChart links={links} />
                   </div>
 

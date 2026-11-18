@@ -3,7 +3,7 @@ import { PANDABIO_ASSETS } from '../constants/assets';
 import { Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AuthService } from '../supabase/services/authService';
-import { isSupabaseConfigured } from '../supabase/client';
+import { isSupabaseConfigured, supabaseConfigError } from '../supabase/client';
 import { isValidUsername, normalizeUsername, usernameValidationMessage } from '../utils/username';
 import { getPublicOrigin } from '../utils/pageUrl';
 
@@ -263,6 +263,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                 )}
               </button>
             </div>
+
+            {!isSupabaseConfigured() && (
+              <div
+                role="alert"
+                className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900"
+              >
+                {supabaseConfigError || 'Configure o Supabase para habilitar o sistema.'}
+              </div>
+            )}
 
             {/* Form View with AnimatePresence slide transitions */}
             <div className="relative min-h-[470px]">

@@ -16,6 +16,7 @@ import {
   UsersRound,
   X,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { BioLink, LeadItem, LeadStatus, ProductItem, TrackingEventType } from '../types';
 import {
   PublicAnalyticsEvent,
@@ -324,13 +325,20 @@ export const LeadsSection: React.FC<LeadsSectionProps> = ({
     try {
       if (onUpdateLeadStatus) {
         const result = (await onUpdateLeadStatus(lead.id, status)) as
-          { success?: boolean } | undefined;
+          { success?: boolean; error?: string } | undefined;
         if (result?.success === false) {
           setLocalLeads((current) =>
             current.map((item) => (item.id === lead.id ? { ...item, status: previous } : item)),
           );
+          toast.error(result.error || 'Não foi possível atualizar o status do lead.');
         }
       }
+    } catch (error) {
+      setLocalLeads((current) =>
+        current.map((item) => (item.id === lead.id ? { ...item, status: previous } : item)),
+      );
+      console.error('Lead status update failed:', error);
+      toast.error(error instanceof Error ? error.message : 'Não foi possível atualizar o lead.');
     } finally {
       setBusyLeadId(null);
     }
@@ -341,11 +349,19 @@ export const LeadsSection: React.FC<LeadsSectionProps> = ({
     setBusyLeadId(lead.id);
     try {
       if (onDeleteLead) {
-        const result = (await onDeleteLead(lead.id)) as { success?: boolean } | undefined;
-        if (result?.success === false) return;
+        const result = (await onDeleteLead(lead.id)) as
+          { success?: boolean; error?: string } | undefined;
+        if (result?.success === false) {
+          toast.error(result.error || 'Não foi possível excluir o lead.');
+          return;
+        }
       }
       setLocalLeads((current) => current.filter((item) => item.id !== lead.id));
       setSelectedLeadId(null);
+      toast.success('Lead excluído.');
+    } catch (error) {
+      console.error('Lead deletion failed:', error);
+      toast.error(error instanceof Error ? error.message : 'Não foi possível excluir o lead.');
     } finally {
       setBusyLeadId(null);
     }

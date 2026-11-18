@@ -323,19 +323,21 @@ export const ProductsSection: React.FC<ProductsSectionProps> = memo(
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
               type="search"
+              aria-label="Buscar produtos por nome ou link"
               placeholder="Buscar por nome ou link..."
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm outline-none transition-all focus:border-[#10b981] focus:bg-white focus:ring-2 focus:ring-[#10b981]/20"
             />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Filter className="h-4 w-4 text-gray-400" />
             {(['all', 'active', 'draft'] as const).map((option) => (
               <button
                 key={option}
                 type="button"
                 onClick={() => setFilter(option)}
+                aria-pressed={filter === option}
                 className={`rounded-lg px-3 py-2 text-xs font-bold transition-colors ${filter === option ? 'bg-[#131b2e] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
               >
                 {option === 'all' ? 'Todos' : option === 'active' ? 'Ativos' : 'Rascunhos'}
@@ -352,7 +354,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = memo(
                 return (
                   <li
                     key={product.id}
-                    className={`flex flex-col gap-3 p-4 transition-all sm:flex-row sm:items-center ${!isActive ? 'opacity-70' : 'hover:bg-gray-50'}`}
+                    className={`flex flex-wrap items-center gap-3 p-4 transition-all sm:flex-nowrap ${!isActive ? 'opacity-70' : 'hover:bg-gray-50'}`}
                   >
                     <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-100 sm:h-20 sm:w-20">
                       {product.image ? (
@@ -366,10 +368,17 @@ export const ProductsSection: React.FC<ProductsSectionProps> = memo(
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="truncate text-sm font-bold text-[#131b2e] sm:text-base">
+                      <div className="flex min-w-0 flex-wrap items-center gap-2">
+                        <p className="min-w-0 flex-1 truncate text-sm font-bold text-[#131b2e] sm:text-base">
                           {product.name}
                         </p>
+                        <span
+                          className={`shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+                            isActive ? 'bg-emerald-50 text-[#059669]' : 'bg-amber-50 text-amber-700'
+                          }`}
+                        >
+                          {isActive ? 'Ativo' : 'Rascunho'}
+                        </span>
                         {product.sourceUrl && (
                           <span className="rounded bg-[#fff3e6] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#ff7a00]">
                             Importado
@@ -396,7 +405,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = memo(
                         </a>
                       )}
                     </div>
-                    <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end">
+                    <div className="flex w-full items-center justify-between gap-4 sm:w-auto sm:flex-col sm:items-end">
                       <div className="flex items-center gap-1.5 text-xs text-gray-500">
                         <Tag className="h-3.5 w-3.5 text-[#3525cd]" />
                         <span className="font-semibold text-[#131b2e]">

@@ -251,14 +251,14 @@ export class SettingsService {
           .from('booking_settings')
           .select('*')
           .eq('workspace_id', workspaceId)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
         settingsCache.set(workspaceId, { data, expiresAt: Date.now() + catalogCacheTtl });
         return data;
       } catch (error) {
         console.error('Error fetching settings:', error);
-        return null;
+        throw error;
       }
     })();
 
@@ -320,7 +320,7 @@ export class ServiceService {
         return services;
       } catch (error) {
         console.error('Error fetching services:', error);
-        return [];
+        throw error;
       }
     })();
 
@@ -425,7 +425,7 @@ export class ProfessionalService {
         return professionals;
       } catch (error) {
         console.error('Error fetching professionals:', error);
-        return [];
+        throw error;
       }
     })();
 
@@ -596,7 +596,7 @@ export class AvailabilityService {
       return data || [];
     } catch (error) {
       console.error('Error fetching availability:', error);
-      return [];
+      throw error;
     }
   }
 
@@ -847,7 +847,7 @@ export class AppointmentService {
       return data || [];
     } catch (error) {
       console.error('Error fetching appointments:', error);
-      return [];
+      throw error;
     }
   }
 

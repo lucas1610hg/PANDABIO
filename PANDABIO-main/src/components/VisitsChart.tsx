@@ -1,69 +1,64 @@
 import React, { useMemo, useState } from 'react';
 import { TrendingUp, BarChart2 } from 'lucide-react';
+import type { PublicAnalyticsEvent } from '../supabase/services/publicAnalyticsService';
+import {
+  buildStatisticsChart,
+  filterStatisticsEvents,
+  getStatisticsWindow,
+  parseStatisticsDate,
+} from '../utils/statistics';
+import type { StatisticsPeriod } from '../utils/statistics';
 
-type Timeframe = '7d' | '30d' | '90d' | '12m';
-
-const TIMEFRAME_POINTS: Record<Timeframe, number> = {
-  '7d': 7,
-  '30d': 30,
-  '90d': 90,
-  '12m': 12,
-};
+type Timeframe = StatisticsPeriod;
 
 const TIMEFRAME_LABEL: Record<Timeframe, string> = {
   '7d': 'Últimos 7 dias',
   '30d': 'Últimos 30 dias',
   '90d': 'Últimos 90 dias',
-  '12m': 'Últimos 12 meses',
+  all: 'Todo o período',
 };
 
 interface VisitsChartProps {
   totalVisits?: number;
+  events?: PublicAnalyticsEvent[];
 }
 
-export const VisitsChart: React.FC<VisitsChartProps> = ({ totalVisits = 0 }) => {
+const formatNumber = (value: number) => value.toLocaleString('pt-BR');
+
+export const VisitsChart: React.FC<VisitsChartProps> = ({ totalVisits = 0, events = [] }) => {
   const [timeframe, setTimeframe] = useState<Timeframe>('7d');
-
-  // Distribui o total de visitas em `points` valores que somam totalVisits
-  const series = useMemo(() => {
-    const points = TIMEFRAME_POINTS[timeframe];
-    if (totalVisits <= 0) return Array.from({ length: points }, () => 0);
-
-    const base = totalVisits / points;
-    const values = Array.from({ length: points }, (_, i) => {
-      const wave = 0.7 + 0.3 * (0.5 + 0.5 * Math.sin((i + 1) * 1.6));
-      return base * wave;
-    });
-    const sum = values.reduce((a, b) => a + b, 0);
-    const diff = totalVisits - sum;
-    if (points > 0) values[points - 1] = Math.max(0, values[points - 1] + diff);
-    return values;
-  }, [totalVisits, timeframe]);
-
-  const hasData = totalVisits > 0;
+  const [now] = useState(() => Date.now());
+  const chart = useMemo(() => {
+    const window = getStatisticsWindow(timeframe, now);
+    const periodEvents = filterStatisticsEvents(events, window);
+    return buildStatisticsChart(periodEvents, timeframe, now);
+  }, [events, timeframe, now]);
+  const periodVisits = chart.reduce((sum, point) => sum + point.visits, 0);
+  const hasData = chart.length > 0;
+  const hasDatedHistory = events.some((event) => parseStatisticsDate(event.createdAt) !== null);
 
   const { linePath, areaPath, lastPoint } = useMemo(() => {
-    const W = 540;
+    const width = 540;
     const top = 30;
     const bottom = 165;
-    const padX = 60;
-    const padRight = 25;
-    const maxVal = Math.max(...series, 1);
-    const stepX = series.length > 1 ? (W - padX - padRight) / (series.length - 1) : 0;
-
-    const coords = series.map((v, i) => ({
-      x: padX + i * stepX,
-      y: bottom - (v / maxVal) * (bottom - top),
+    const paddingLeft = 60;
+    const paddingRight = 25;
+    const maxValue = Math.max(...chart.map((point) => point.visits), 1);
+    const stepX = chart.length > 1 ? (width - paddingLeft - paddingRight) / (chart.length - 1) : 0;
+    const points = chart.map((point, index) => ({
+      x: paddingLeft + index * stepX,
+      y: bottom - (point.visits / maxValue) * (bottom - top),
     }));
-
-    const linePath = coords.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x},${p.y}`).join(' ');
+    const linePath = points
+      .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x},${point.y}`)
+      .join(' ');
     const areaPath =
-      coords.length > 0
-        ? `${linePath} L ${coords[coords.length - 1].x},${bottom} L ${coords[0].x},${bottom} Z`
+      points.length > 0
+        ? `${linePath} L ${points[points.length - 1].x},${bottom} L ${points[0].x},${bottom} Z`
         : '';
 
-    return { linePath, areaPath, lastPoint: coords[coords.length - 1] };
-  }, [series]);
+    return { linePath, areaPath, lastPoint: points[points.length - 1] };
+  }, [chart]);
 
   return (
     <div
@@ -82,46 +77,49 @@ export const VisitsChart: React.FC<VisitsChartProps> = ({ totalVisits = 0 }) => 
         </div>
 
         <div className="flex items-center gap-3 overflow-x-auto max-w-full">
-          {/* Timeframe buttons */}
           <div className="inline-flex p-1 bg-[#f2f3ff] rounded-xl text-[11px] sm:text-xs shrink-0">
-            {(['7d', '30d', '90d', '12m'] as const).map((tf) => (
+            {(['7d', '30d', '90d', 'all'] as const).map((value) => (
               <button
-                key={tf}
-                onClick={() => setTimeframe(tf)}
+                key={value}
+                type="button"
+                aria-pressed={timeframe === value}
+                onClick={() => setTimeframe(value)}
                 className={`px-2 sm:px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                  timeframe === tf
+                  timeframe === value
                     ? 'bg-[#FF7A00] text-white shadow-xs'
                     : 'text-[#464555] hover:text-[#131b2e]'
                 }`}
               >
-                {tf === '7d'
-                  ? '7 dias'
-                  : tf === '30d'
-                    ? '30 dias'
-                    : tf === '90d'
-                      ? '90 dias'
-                      : '12 meses'}
+                {value === 'all'
+                  ? 'Tudo'
+                  : value === '7d'
+                    ? '7 dias'
+                    : value === '30d'
+                      ? '30 dias'
+                      : '90 dias'}
               </button>
             ))}
           </div>
 
-          {/* Metric highlight */}
           <div className="hidden xl:flex flex-col items-end pl-2">
             <span className="text-base font-bold text-[#131b2e] leading-none">
-              {totalVisits.toLocaleString('pt-BR')}
+              {hasData ? formatNumber(periodVisits) : '—'}
             </span>
             <span className="text-xs text-[#464555]">
-              {hasData ? 'Visitas registradas' : 'Sem visitas'}
+              {hasData ? 'Visitas no período' : 'Série temporal indisponível'}
             </span>
           </div>
         </div>
       </div>
 
-      {/* SVG Line / Empty state */}
       <div
         className="relative w-full h-64 pt-2 flex items-center justify-center"
         role="img"
-        aria-label={`Gráfico de visitas - ${TIMEFRAME_LABEL[timeframe]}`}
+        aria-label={
+          hasData
+            ? `Gráfico de visitas — ${TIMEFRAME_LABEL[timeframe]}: ${formatNumber(periodVisits)} visitas`
+            : `Gráfico de visitas — ${TIMEFRAME_LABEL[timeframe]}: sem dados por período`
+        }
       >
         {hasData ? (
           <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 540 220">
@@ -131,8 +129,6 @@ export const VisitsChart: React.FC<VisitsChartProps> = ({ totalVisits = 0 }) => 
                 <stop offset="100%" stopColor="#FF7A00" stopOpacity="0.0" />
               </linearGradient>
             </defs>
-
-            {/* Horizontal Grid Lines */}
             <line
               stroke="#eaedff"
               strokeDasharray="3 3"
@@ -152,7 +148,6 @@ export const VisitsChart: React.FC<VisitsChartProps> = ({ totalVisits = 0 }) => 
               y2="105"
             />
             <line stroke="#eaedff" strokeWidth="1" x1="45" x2="520" y1="165" y2="165" />
-
             <path d={areaPath} fill="url(#orangeGradient)" />
             <path
               d={linePath}
@@ -179,10 +174,18 @@ export const VisitsChart: React.FC<VisitsChartProps> = ({ totalVisits = 0 }) => 
               <BarChart2 aria-hidden="true" className="w-5 h-5" />
             </div>
             <p className="text-xs sm:text-sm font-bold text-[#131b2e]">
-              Aguardando primeiras visitas
+              {hasDatedHistory
+                ? 'Sem visitas neste período'
+                : totalVisits > 0
+                  ? 'Histórico por período indisponível'
+                  : 'Aguardando primeiras visitas'}
             </p>
             <p className="text-[11px] text-[#777587] max-w-xs mt-1">
-              Compartilhe o link da sua bio para acompanhar o gráfico de tráfego em tempo real.
+              {hasDatedHistory
+                ? 'Não houve visitas nesse intervalo. Amplie o período para consultar o histórico.'
+                : totalVisits > 0
+                  ? `Há ${formatNumber(totalVisits)} visitas acumuladas, mas ainda não existe histórico por data para montar o gráfico.`
+                  : 'Compartilhe o link da sua bio para acompanhar o gráfico de tráfego.'}
             </p>
           </div>
         )}

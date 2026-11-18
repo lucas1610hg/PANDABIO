@@ -12,17 +12,21 @@ import {
 } from 'lucide-react';
 import {
   AppointmentService,
+  AvailabilityService,
   ProfessionalService,
+  SettingsService,
   ServiceService,
 } from '../../supabase/services/agendamentoService';
 import {
   BookingAppointment,
+  BookingAvailability,
   BookingProfessional,
   BookingService,
   BookingStatus,
   BookingWorkspace,
   CreateBookingData,
 } from '../../types_agendamentos';
+import { Modal } from '../Modal';
 
 type ViewType = 'day' | 'week' | 'month';
 
@@ -34,6 +38,8 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
   const [appointments, setAppointments] = useState<BookingAppointment[]>([]);
   const [professionals, setProfessionals] = useState<BookingProfessional[]>([]);
   const [services, setServices] = useState<BookingService[]>([]);
+  const [availability, setAvailability] = useState<BookingAvailability[]>([]);
+  const [slotDuration, setSlotDuration] = useState(30);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewType, setViewType] = useState<ViewType>('day');
@@ -64,11 +70,13 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
         setAppointments([]);
         setProfessionals([]);
         setServices([]);
+        setAvailability([]);
+        setSlotDuration(30);
         setLoading(false);
         return;
       }
 
-      const [appointmentsData, professionalsData, servicesData] = await Promise.all([
+      const [appointmentsData, professionalsData, servicesData, settingsData] = await Promise.all([
         AppointmentService.getAppointments(workspace.id, {
           start_date: getStartDate(currentDate, viewType),
           end_date: getEndDate(currentDate, viewType),
@@ -77,11 +85,25 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
         }),
         ProfessionalService.getProfessionals(workspace.id),
         ServiceService.getServices(workspace.id),
+        SettingsService.getSettings(workspace.id),
       ]);
+
+      const professionalIds = selectedProfessional
+        ? [selectedProfessional]
+        : professionalsData.filter((professional) => professional.active).map(({ id }) => id);
+      const availabilityData = (
+        await Promise.all(
+          professionalIds.map((professionalId) =>
+            AvailabilityService.getAvailability(professionalId),
+          ),
+        )
+      ).flat();
 
       setAppointments(appointmentsData);
       setProfessionals(professionalsData);
       setServices(servicesData);
+      setAvailability(availabilityData);
+      setSlotDuration(settingsData?.default_slot_duration ?? 30);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
       setError(`Erro ao carregar agenda: ${errorMessage}`);
@@ -102,6 +124,7 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
     } else if (viewType === 'week') {
       newDate.setDate(newDate.getDate() - 7);
     } else {
+      newDate.setDate(1);
       newDate.setMonth(newDate.getMonth() - 1);
     }
     setCurrentDate(newDate);
@@ -114,6 +137,7 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
     } else if (viewType === 'week') {
       newDate.setDate(newDate.getDate() + 7);
     } else {
+      newDate.setDate(1);
       newDate.setMonth(newDate.getMonth() + 1);
     }
     setCurrentDate(newDate);
@@ -260,19 +284,13 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
 
   const sortedDates = Object.keys(groupedAppointments).sort();
 
-  const generateTimeSlots = () => {
-    const slots = [];
-    for (let hour = 8; hour < 20; hour++) {
-      for (let min = 0; min < 60; min += 30) {
-        const time = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-        slots.push(time);
-      }
-    }
-    return slots;
-  };
-
-  const timeSlots = generateTimeSlots();
   const dayAppointments = groupedAppointments[toDateKey(currentDate)] || [];
+  const timeSlots = getDailyTimeSlots(
+    availability,
+    currentDate.getDay(),
+    slotDuration,
+    dayAppointments,
+  );
   const getAppointmentAtTime = (time: string) =>
     dayAppointments.find((appointment) => {
       const start = appointment.start_time.slice(0, 5);
@@ -321,7 +339,7 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
         </div>
         <button
           type="button"
-          onClick={() => handleOpenBookingModal(toDateKey(currentDate), '09:00')}
+          onClick={() => handleOpenBookingModal(toDateKey(currentDate), timeSlots[0] || '09:00')}
           className="flex items-center gap-2 px-4 py-2 bg-[#FF7A00] text-white rounded-lg text-sm font-semibold"
         >
           <Plus className="w-4 h-4" />
@@ -334,6 +352,7 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
           <button
             type="button"
             onClick={handlePrevious}
+            aria-label="Período anterior"
             className="p-2 hover:bg-gray-100 rounded-lg"
           >
             <ChevronLeft className="w-5 h-5 text-gray-600" />
@@ -345,7 +364,12 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
           >
             Hoje
           </button>
-          <button type="button" onClick={handleNext} className="p-2 hover:bg-gray-100 rounded-lg">
+          <button
+            type="button"
+            onClick={handleNext}
+            aria-label="Próximo período"
+            className="p-2 hover:bg-gray-100 rounded-lg"
+          >
             <ChevronRight className="w-5 h-5 text-gray-600" />
           </button>
           <span className="text-sm font-semibold text-[#131b2e] ml-2">
@@ -388,8 +412,14 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
         <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[#131b2e] mb-1">Profissional</label>
+              <label
+                htmlFor="agenda-filter-professional"
+                className="block text-sm font-medium text-[#131b2e] mb-1"
+              >
+                Profissional
+              </label>
               <select
+                id="agenda-filter-professional"
                 value={selectedProfessional || ''}
                 onChange={(e) => setSelectedProfessional(e.target.value || null)}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
@@ -404,8 +434,14 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#131b2e] mb-1">Status</label>
+              <label
+                htmlFor="agenda-filter-status"
+                className="block text-sm font-medium text-[#131b2e] mb-1"
+              >
+                Status
+              </label>
               <select
+                id="agenda-filter-status"
                 value={selectedStatus || ''}
                 onChange={(e) =>
                   setSelectedStatus((e.target.value || null) as BookingStatus | null)
@@ -437,151 +473,193 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div
+          role="alert"
+          className="flex flex-wrap items-center justify-between gap-3 bg-red-50 border border-red-200 rounded-lg p-4"
+        >
           <p className="text-sm text-red-600">{error}</p>
+          <button
+            type="button"
+            onClick={() => void loadData()}
+            className="text-sm font-semibold text-red-700 underline"
+          >
+            Recarregar dados
+          </button>
         </div>
       )}
 
       {viewType === 'day' ? (
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-          <div className="grid grid-cols-[80px_1fr] min-h-[600px]">
-            <div className="border-r border-gray-200">
-              <div className="h-12 border-b border-gray-200" />
-              {timeSlots.map((time) => (
-                <div
-                  key={time}
-                  className="h-16 border-b border-gray-100 flex items-center justify-center text-xs text-gray-500"
-                >
-                  {time}
+        <div
+          role="region"
+          aria-label="Agenda diária"
+          tabIndex={0}
+          className="overflow-x-auto rounded-2xl border border-gray-200 bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FF7A00]"
+        >
+          {timeSlots.length === 0 ? (
+            <div className="flex min-h-48 items-center justify-center p-6 text-center text-sm text-gray-600">
+              Nenhum horário configurado para este dia.
+            </div>
+          ) : (
+            <div className="min-w-[640px]">
+              <div className="grid grid-cols-[80px_minmax(560px,1fr)] min-h-[600px]">
+                <div className="border-r border-gray-200">
+                  <div className="h-12 border-b border-gray-200" />
+                  {timeSlots.map((time) => (
+                    <div
+                      key={time}
+                      className="h-16 border-b border-gray-100 flex items-center justify-center text-xs text-gray-500"
+                    >
+                      {time}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            <div className="relative">
-              <div className="h-12 border-b border-gray-200 flex items-center px-4">
-                <span className="text-sm font-semibold text-[#131b2e]">
-                  {new Date(currentDate).toLocaleDateString('pt-BR', {
-                    weekday: 'long',
-                    day: 'numeric',
-                    month: 'long',
-                  })}
-                </span>
-              </div>
-
-              {timeSlots.map((time) => {
-                const slotAppointments = dayAppointments.filter(
-                  (appointment) => appointment.start_time.slice(0, 5) === time,
-                );
-                const occupiedAppointment = getAppointmentAtTime(time);
-
-                return (
-                  <div key={time} className="h-16 border-b border-gray-100 relative">
-                    {slotAppointments.length > 0 ? (
-                      <div className="absolute inset-0 p-1 space-y-1 overflow-auto">
-                        {slotAppointments.map((appointment) => (
-                          <div
-                            key={appointment.id}
-                            className={`p-2 rounded-lg text-xs border-l-4 ${getStatusColor(appointment.status)}`}
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="font-medium text-[#131b2e]">
-                                {appointment.service?.name}
-                              </span>
-                              <span className="text-[#131b2e]">
-                                R$ {appointment.service?.price?.toFixed(2) || '0.00'}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 text-gray-600">
-                              <User className="w-3 h-3" />
-                              <span>{appointment.professional?.name}</span>
-                              {appointment.client && <span>- {appointment.client.name}</span>}
-                            </div>
-                            <div className="flex items-center gap-2 mt-2">
-                              {appointment.status === 'pending' && (
-                                <>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleStatusChange(appointment.id, 'confirmed')}
-                                    className="px-2 py-0.5 bg-emerald-500 text-white rounded text-xs"
-                                  >
-                                    Confirmar
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleStatusChange(appointment.id, 'cancelled')}
-                                    className="px-2 py-0.5 bg-red-500 text-white rounded text-xs"
-                                  >
-                                    Cancelar
-                                  </button>
-                                </>
-                              )}
-                              {appointment.status === 'confirmed' && (
-                                <>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleStatusChange(appointment.id, 'in_progress')
-                                    }
-                                    className="px-2 py-0.5 bg-blue-500 text-white rounded text-xs"
-                                  >
-                                    Iniciar
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleStatusChange(appointment.id, 'cancelled')}
-                                    className="px-2 py-0.5 bg-red-500 text-white rounded text-xs"
-                                  >
-                                    Cancelar
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleStatusChange(appointment.id, 'no_show')}
-                                    className="px-2 py-0.5 bg-orange-500 text-white rounded text-xs"
-                                  >
-                                    Não compareceu
-                                  </button>
-                                </>
-                              )}
-                              {appointment.status === 'in_progress' && (
-                                <>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleStatusChange(appointment.id, 'completed')}
-                                    className="px-2 py-0.5 bg-purple-500 text-white rounded text-xs"
-                                  >
-                                    Concluir
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleStatusChange(appointment.id, 'no_show')}
-                                    className="px-2 py-0.5 bg-orange-500 text-white rounded text-xs"
-                                  >
-                                    Não compareceu
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : occupiedAppointment ? (
-                      <div className="flex h-full items-center justify-center bg-red-50/40 text-[11px] font-semibold text-red-400">
-                        Horário ocupado
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => handleOpenBookingModal(toDateKey(currentDate), time)}
-                        className="w-full h-full hover:bg-gray-50 flex items-center justify-center transition-colors"
-                      >
-                        <Plus className="w-4 h-4 text-gray-300" />
-                      </button>
-                    )}
+                <div className="relative">
+                  <div className="h-12 border-b border-gray-200 flex items-center px-4">
+                    <span className="text-sm font-semibold text-[#131b2e]">
+                      {new Date(currentDate).toLocaleDateString('pt-BR', {
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long',
+                      })}
+                    </span>
                   </div>
-                );
-              })}
+
+                  {timeSlots.map((time) => {
+                    const slotAppointments = dayAppointments.filter(
+                      (appointment) => appointment.start_time.slice(0, 5) === time,
+                    );
+                    const occupiedAppointment = getAppointmentAtTime(time);
+
+                    return (
+                      <div key={time} className="h-16 border-b border-gray-100 relative">
+                        {slotAppointments.length > 0 ? (
+                          <div className="absolute inset-0 p-1 space-y-1 overflow-auto">
+                            {slotAppointments.map((appointment) => (
+                              <div
+                                key={appointment.id}
+                                className={`p-2 rounded-lg text-xs border-l-4 ${getStatusColor(appointment.status)}`}
+                              >
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="font-medium text-[#131b2e]">
+                                    {appointment.service?.name || appointment.service_name}
+                                  </span>
+                                  <span className="text-[#131b2e]">
+                                    R${' '}
+                                    {(
+                                      appointment.service?.price ?? appointment.service_price
+                                    ).toFixed(2)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 text-gray-600">
+                                  <User className="w-3 h-3" />
+                                  <span>
+                                    {appointment.professional?.name ||
+                                      appointment.professional_name}
+                                  </span>
+                                  {appointment.client && <span>- {appointment.client.name}</span>}
+                                </div>
+                                <div className="flex items-center gap-2 mt-2">
+                                  {appointment.status === 'pending' && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleStatusChange(appointment.id, 'confirmed')
+                                        }
+                                        className="px-2 py-0.5 bg-emerald-500 text-white rounded text-xs"
+                                      >
+                                        Confirmar
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleStatusChange(appointment.id, 'cancelled')
+                                        }
+                                        className="px-2 py-0.5 bg-red-500 text-white rounded text-xs"
+                                      >
+                                        Cancelar
+                                      </button>
+                                    </>
+                                  )}
+                                  {appointment.status === 'confirmed' && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleStatusChange(appointment.id, 'in_progress')
+                                        }
+                                        className="px-2 py-0.5 bg-blue-500 text-white rounded text-xs"
+                                      >
+                                        Iniciar
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleStatusChange(appointment.id, 'cancelled')
+                                        }
+                                        className="px-2 py-0.5 bg-red-500 text-white rounded text-xs"
+                                      >
+                                        Cancelar
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleStatusChange(appointment.id, 'no_show')
+                                        }
+                                        className="px-2 py-0.5 bg-orange-500 text-white rounded text-xs"
+                                      >
+                                        Não compareceu
+                                      </button>
+                                    </>
+                                  )}
+                                  {appointment.status === 'in_progress' && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleStatusChange(appointment.id, 'completed')
+                                        }
+                                        className="px-2 py-0.5 bg-purple-500 text-white rounded text-xs"
+                                      >
+                                        Concluir
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleStatusChange(appointment.id, 'no_show')
+                                        }
+                                        className="px-2 py-0.5 bg-orange-500 text-white rounded text-xs"
+                                      >
+                                        Não compareceu
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : occupiedAppointment ? (
+                          <div className="flex h-full items-center justify-center bg-red-50/40 text-[11px] font-semibold text-red-400">
+                            Horário ocupado
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenBookingModal(toDateKey(currentDate), time)}
+                            aria-label={`Criar reserva às ${time}`}
+                            className="w-full h-full hover:bg-gray-50 flex items-center justify-center transition-colors"
+                          >
+                            <Plus className="w-4 h-4 text-gray-300" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
@@ -730,155 +808,250 @@ export const AgendamentosAgenda: React.FC<AgendamentosAgendaProps> = ({ workspac
         </div>
       )}
 
-      {showBookingModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md">
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-[#131b2e]">Nova Reserva</h3>
+      <Modal
+        isOpen={showBookingModal}
+        onClose={handleCloseBookingModal}
+        titleId="agenda-booking-title"
+        size="sm"
+      >
+        <div className="flex min-h-0 flex-col">
+          <div className="flex shrink-0 items-center justify-between border-b border-gray-200 p-5 sm:p-6">
+            <h3 id="agenda-booking-title" className="text-lg font-bold text-[#131b2e]">
+              Nova Reserva
+            </h3>
+            <button
+              type="button"
+              onClick={handleCloseBookingModal}
+              aria-label="Fechar janela"
+              className="p-1 hover:bg-gray-100 rounded"
+            >
+              <X className="w-5 h-5 text-gray-400" />
+            </button>
+          </div>
+
+          <form
+            onSubmit={handleCreateBooking}
+            className="min-h-0 overflow-y-auto p-5 space-y-4 sm:p-6"
+          >
+            <div>
+              <label
+                htmlFor="agenda-booking-date"
+                className="block text-sm font-medium text-[#131b2e] mb-1"
+              >
+                Data e Hora
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="date"
+                  id="agenda-booking-date"
+                  required
+                  value={bookingForm.date}
+                  onChange={(e) => setBookingForm({ ...bookingForm, date: e.target.value })}
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
+                />
+                <input
+                  type="time"
+                  aria-label="Horário"
+                  required
+                  value={bookingForm.start_time}
+                  onChange={(e) => setBookingForm({ ...bookingForm, start_time: e.target.value })}
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="agenda-booking-service"
+                className="block text-sm font-medium text-[#131b2e] mb-1"
+              >
+                Serviço *
+              </label>
+              <select
+                id="agenda-booking-service"
+                required
+                value={bookingForm.service_id}
+                onChange={(e) => setBookingForm({ ...bookingForm, service_id: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
+              >
+                <option value="">Selecione um serviço</option>
+                {services.map((service) => (
+                  <option key={service.id} value={service.id}>
+                    {service.name} - {service.duration}min - R$ {service.price.toFixed(2)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="agenda-booking-professional"
+                className="block text-sm font-medium text-[#131b2e] mb-1"
+              >
+                Profissional *
+              </label>
+              <select
+                id="agenda-booking-professional"
+                required
+                value={bookingForm.professional_id}
+                onChange={(e) =>
+                  setBookingForm({ ...bookingForm, professional_id: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
+              >
+                <option value="">Selecione um profissional</option>
+                {professionals.map((prof) => (
+                  <option key={prof.id} value={prof.id}>
+                    {prof.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="agenda-booking-client-name"
+                className="block text-sm font-medium text-[#131b2e] mb-1"
+              >
+                Nome do Cliente *
+              </label>
+              <input
+                id="agenda-booking-client-name"
+                type="text"
+                required
+                value={bookingForm.client_name}
+                onChange={(e) => setBookingForm({ ...bookingForm, client_name: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
+                placeholder="Nome completo"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="agenda-booking-client-email"
+                  className="block text-sm font-medium text-[#131b2e] mb-1"
+                >
+                  Email
+                </label>
+                <input
+                  id="agenda-booking-client-email"
+                  type="email"
+                  value={bookingForm.client_email || ''}
+                  onChange={(e) => setBookingForm({ ...bookingForm, client_email: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
+                  placeholder="email@exemplo.com"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="agenda-booking-client-phone"
+                  className="block text-sm font-medium text-[#131b2e] mb-1"
+                >
+                  Telefone
+                </label>
+                <input
+                  id="agenda-booking-client-phone"
+                  type="tel"
+                  value={bookingForm.client_phone || ''}
+                  onChange={(e) => setBookingForm({ ...bookingForm, client_phone: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
+                  placeholder="(11) 99999-9999"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="agenda-booking-notes"
+                className="block text-sm font-medium text-[#131b2e] mb-1"
+              >
+                Observações
+              </label>
+              <textarea
+                id="agenda-booking-notes"
+                value={bookingForm.notes}
+                onChange={(e) => setBookingForm({ ...bookingForm, notes: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00] resize-none"
+                rows={3}
+                placeholder="Observações sobre a reserva"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
               <button
                 type="button"
                 onClick={handleCloseBookingModal}
-                className="p-1 hover:bg-gray-100 rounded"
+                className="flex-1 px-4 py-2 bg-white text-[#131b2e] rounded-lg text-sm font-semibold border border-gray-200"
               >
-                <X className="w-5 h-5 text-gray-400" />
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={bookingSaving}
+                className="flex-1 px-4 py-2 bg-[#FF7A00] text-white rounded-lg text-sm font-semibold disabled:opacity-50"
+              >
+                {bookingSaving ? 'Criando...' : 'Criar Reserva'}
               </button>
             </div>
-
-            <form onSubmit={handleCreateBooking} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-[#131b2e] mb-1">Data e Hora</label>
-                <div className="flex gap-2">
-                  <input
-                    type="date"
-                    required
-                    value={bookingForm.date}
-                    onChange={(e) => setBookingForm({ ...bookingForm, date: e.target.value })}
-                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
-                  />
-                  <input
-                    type="time"
-                    required
-                    value={bookingForm.start_time}
-                    onChange={(e) => setBookingForm({ ...bookingForm, start_time: e.target.value })}
-                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#131b2e] mb-1">Serviço *</label>
-                <select
-                  required
-                  value={bookingForm.service_id}
-                  onChange={(e) => setBookingForm({ ...bookingForm, service_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
-                >
-                  <option value="">Selecione um serviço</option>
-                  {services.map((service) => (
-                    <option key={service.id} value={service.id}>
-                      {service.name} - {service.duration}min - R$ {service.price.toFixed(2)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#131b2e] mb-1">
-                  Profissional *
-                </label>
-                <select
-                  required
-                  value={bookingForm.professional_id}
-                  onChange={(e) =>
-                    setBookingForm({ ...bookingForm, professional_id: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
-                >
-                  <option value="">Selecione um profissional</option>
-                  {professionals.map((prof) => (
-                    <option key={prof.id} value={prof.id}>
-                      {prof.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#131b2e] mb-1">
-                  Nome do Cliente *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={bookingForm.client_name}
-                  onChange={(e) => setBookingForm({ ...bookingForm, client_name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
-                  placeholder="Nome completo"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-[#131b2e] mb-1">Email</label>
-                  <input
-                    type="email"
-                    value={bookingForm.client_email || ''}
-                    onChange={(e) =>
-                      setBookingForm({ ...bookingForm, client_email: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
-                    placeholder="email@exemplo.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#131b2e] mb-1">Telefone</label>
-                  <input
-                    type="tel"
-                    value={bookingForm.client_phone || ''}
-                    onChange={(e) =>
-                      setBookingForm({ ...bookingForm, client_phone: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
-                    placeholder="(11) 99999-9999"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#131b2e] mb-1">Observações</label>
-                <textarea
-                  value={bookingForm.notes}
-                  onChange={(e) => setBookingForm({ ...bookingForm, notes: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00] resize-none"
-                  rows={3}
-                  placeholder="Observações sobre a reserva"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={handleCloseBookingModal}
-                  className="flex-1 px-4 py-2 bg-white text-[#131b2e] rounded-lg text-sm font-semibold border border-gray-200"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={bookingSaving}
-                  className="flex-1 px-4 py-2 bg-[#FF7A00] text-white rounded-lg text-sm font-semibold disabled:opacity-50"
-                >
-                  {bookingSaving ? 'Criando...' : 'Criar Reserva'}
-                </button>
-              </div>
-            </form>
-          </div>
+          </form>
         </div>
-      )}
+      </Modal>
     </div>
   );
 };
+
+function getDailyTimeSlots(
+  availability: BookingAvailability[],
+  dayOfWeek: number,
+  slotDuration: number,
+  appointments: BookingAppointment[],
+): string[] {
+  const parsedDuration = Math.floor(slotDuration);
+  const step = Number.isFinite(parsedDuration) && parsedDuration > 0 ? parsedDuration : 30;
+  const slots = new Set(appointments.map((appointment) => appointment.start_time.slice(0, 5)));
+
+  availability.forEach((schedule) => {
+    if (!schedule.active || schedule.day_of_week !== dayOfWeek) return;
+
+    const start = parseTime(schedule.start_time);
+    const end = parseTime(schedule.end_time);
+    const breakStart = schedule.break_start_time ? parseTime(schedule.break_start_time) : null;
+    const breakEnd = schedule.break_end_time ? parseTime(schedule.break_end_time) : null;
+    if (start === null || end === null || start >= end) return;
+
+    for (let time = start; time + step <= end; time += step) {
+      const overlapsBreak =
+        breakStart !== null && breakEnd !== null && time < breakEnd && time + step > breakStart;
+      if (!overlapsBreak) slots.add(formatTime(time));
+    }
+  });
+
+  return [...slots].sort();
+}
+
+function parseTime(value: string): number | null {
+  const [hours, minutes] = value.slice(0, 5).split(':').map(Number);
+  if (
+    !Number.isInteger(hours) ||
+    !Number.isInteger(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
+    return null;
+  }
+
+  return hours * 60 + minutes;
+}
+
+function formatTime(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${String(hours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}`;
+}
 
 function toDateKey(date: Date): string {
   const year = date.getFullYear();

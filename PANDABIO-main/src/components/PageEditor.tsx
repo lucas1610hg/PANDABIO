@@ -508,12 +508,15 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
         </div>
       )}
       {/* Header do Editor */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold text-[#131b2e]">Minha Página</h1>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+      <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-gray-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
+        <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
+          <h1 className="shrink-0 text-lg font-bold text-[#131b2e] sm:text-xl">Minha Página</h1>
+          <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-gray-500 sm:text-sm">
             <span>Sua página:</span>
-            <span className="font-mono text-[#FF5E00]">
+            <span
+              className="min-w-0 max-w-[55vw] truncate font-mono text-[#FF5E00] sm:max-w-none"
+              title={getPageUrl(undefined, pageData.profile.username)}
+            >
               {getPageUrl(undefined, pageData.profile.username)}
             </span>
             <span
@@ -524,7 +527,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
               {pageData.published ? 'Publicado' : 'Rascunho'}
             </span>
             <button
+              type="button"
               onClick={handleCopyLink}
+              aria-label={copySuccess ? 'Link copiado' : 'Copiar link público'}
               className="p-1.5 rounded hover:bg-gray-100 transition-colors"
               title="Copiar link"
             >
@@ -536,9 +541,11 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
             </button>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button
+            type="button"
             onClick={() => setIsPreviewMode(!isPreviewMode)}
+            aria-pressed={isPreviewMode}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
               isPreviewMode
                 ? 'bg-[#FF5E00] text-white'
@@ -550,14 +557,16 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
           </button>
           {pageData.published && (
             <button
+              type="button"
               onClick={handleUnpublish}
               disabled={isPublishing}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3 sm:text-sm"
             >
               Retirar do ar
             </button>
           )}
           <button
+            type="button"
             onClick={handlePublish}
             disabled={isPublishing}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#FF5E00] text-white font-medium hover:bg-[#E55300] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -571,7 +580,11 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
               {isPublishing ? 'Salvando...' : pageData.published ? 'Atualizar' : 'Publicar'}
             </span>
           </button>
-          <span className="text-[11px] text-gray-500">
+          <span
+            role="status"
+            aria-live="polite"
+            className="basis-full text-[11px] text-gray-500 sm:basis-auto sm:text-right"
+          >
             {saveStatus === 'saving' && 'Salvando alterações...'}
             {saveStatus === 'saved' && 'Alterações salvas'}
             {saveStatus === 'error' && 'Falha ao salvar'}
@@ -582,16 +595,16 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
       {/* Área Principal Dividida */}
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Área de Configurações */}
-        <div className="flex-1 overflow-y-auto p-6 border-r border-gray-200 min-h-0 overscroll-contain">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain border-r border-gray-200 p-4 sm:p-6">
           {!isPreviewMode && (
             <div className="space-y-6">
               {/* 1. Informações do Perfil */}
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
                 <h2 className="text-lg font-bold text-[#131b2e] mb-4">Perfil</h2>
 
                 <div className="space-y-4">
                   {/* Foto de Perfil */}
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-4">
                     <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
                       {pageData.profile.avatarUrl ? (
                         <img
@@ -620,7 +633,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
                   </div>
 
                   {/* Capa da página (opcional) */}
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-4">
                     <div className="w-40 h-16 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden shrink-0">
                       {pageData.profile.coverUrl ? (
                         <img
@@ -774,7 +787,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
               </div>
 
               {/* 2. Blocos da Página */}
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
                 <h2 className="text-lg font-bold text-[#131b2e] mb-4">Blocos</h2>
 
                 <button
@@ -795,7 +808,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
                     {pageData.blocks.map((block, index) => (
                       <div
                         key={block.id}
-                        className={`flex items-center gap-2.5 p-3 bg-gray-50 rounded-lg border transition-opacity ${
+                        className={`grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-2.5 rounded-lg border bg-gray-50 p-3 transition-opacity sm:flex ${
                           block.active === false ? 'opacity-55' : 'border-gray-200'
                         }`}
                       >
@@ -806,16 +819,16 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
                           type="text"
                           value={block.title || getBlockPlaceholder(block.type)}
                           onChange={(e) => handleUpdateBlock(block.id, { title: e.target.value })}
-                          className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent text-sm"
+                          className="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-[#FF5E00] sm:flex-1"
                         />
                         {block.type === 'produto' && (block.products?.length ?? 0) > 0 && (
-                          <span className="shrink-0 px-2 py-1 rounded-full bg-[#FF7A00]/10 text-[#FF7A00] text-[10px] font-bold whitespace-nowrap">
+                          <span className="col-span-2 shrink-0 rounded-full bg-[#FF7A00]/10 px-2 py-1 text-[10px] font-bold whitespace-nowrap text-[#FF7A00] sm:col-span-1">
                             {block.products?.length ?? 0}{' '}
                             {block.products!.length === 1 ? 'produto' : 'produtos'}
                           </span>
                         )}
                         {block.type === 'image' && (block.gallery?.images.length ?? 0) > 0 && (
-                          <span className="shrink-0 px-2 py-1 rounded-full bg-[#FF7A00]/10 text-[#FF7A00] text-[10px] font-bold whitespace-nowrap">
+                          <span className="col-span-2 shrink-0 rounded-full bg-[#FF7A00]/10 px-2 py-1 text-[10px] font-bold whitespace-nowrap text-[#FF7A00] sm:col-span-1">
                             {block.gallery?.images.length ?? 0}{' '}
                             {block.gallery!.images.length === 1 ? 'imagem' : 'imagens'}
                           </span>
@@ -823,13 +836,13 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
                         {block.type === 'social' &&
                           (block.socialLinks?.filter((l) => l.url && l.url.trim()).length ?? 0) >
                             0 && (
-                            <span className="shrink-0 px-2 py-1 rounded-full bg-[#FF7A00]/10 text-[#FF7A00] text-[10px] font-bold whitespace-nowrap">
+                            <span className="col-span-2 shrink-0 rounded-full bg-[#FF7A00]/10 px-2 py-1 text-[10px] font-bold whitespace-nowrap text-[#FF7A00] sm:col-span-1">
                               {block.socialLinks!.filter((l) => l.url && l.url.trim()).length} redes
                             </span>
                           )}
                         {block.type === 'contact' &&
                           (block.contact?.whatsapp?.trim() || block.contact?.email?.trim() ? (
-                            <span className="shrink-0 px-2 py-1 rounded-full bg-[#FF7A00]/10 text-[#FF7A00] text-[10px] font-bold whitespace-nowrap">
+                            <span className="col-span-2 shrink-0 rounded-full bg-[#FF7A00]/10 px-2 py-1 text-[10px] font-bold whitespace-nowrap text-[#FF7A00] sm:col-span-1">
                               {block.contact?.whatsapp?.trim() && block.contact?.email?.trim()
                                 ? 'WhatsApp + E-mail'
                                 : block.contact?.whatsapp?.trim()
@@ -837,7 +850,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
                                   : 'E-mail'}
                             </span>
                           ) : null)}
-                        <div className="flex items-center gap-0.5">
+                        <div className="col-span-2 flex items-center justify-end gap-0.5 sm:ml-auto sm:col-span-1">
                           <button
                             onClick={() => handleToggleBlockActive(block.id)}
                             title={block.active === false ? 'Ativar bloco' : 'Desativar bloco'}
@@ -900,7 +913,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
               </div>
 
               {/* 3. Aparência */}
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
                 <h2 className="text-lg font-bold text-[#131b2e] mb-4">Aparência</h2>
                 <AppearancePanel
                   theme={pageData.theme}
@@ -914,12 +927,14 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
           {/* Modo Preview - Todo tela é preview */}
           {isPreviewMode && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <h2 className="text-lg font-bold text-[#131b2e]">Preview</h2>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <div className="flex bg-[#f2f3ff] p-1 rounded-xl text-xs font-semibold">
                     <button
+                      type="button"
                       onClick={() => setPreviewDevice('mobile')}
+                      aria-pressed={previewDevice === 'mobile'}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                         previewDevice === 'mobile'
                           ? 'bg-white text-[#131b2e] shadow-xs'
@@ -929,7 +944,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
                       <Smartphone aria-hidden="true" className="w-3.5 h-3.5" /> Celular
                     </button>
                     <button
+                      type="button"
                       onClick={() => setPreviewDevice('desktop')}
+                      aria-pressed={previewDevice === 'desktop'}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                         previewDevice === 'desktop'
                           ? 'bg-white text-[#131b2e] shadow-xs'
@@ -940,6 +957,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
                     </button>
                   </div>
                   <button
+                    type="button"
                     onClick={() => setIsPreviewMode(false)}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium cursor-pointer"
                   >
@@ -971,7 +989,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
         </div>
 
         {/* Área de Preview (Direita) */}
-        <div className="hidden md:flex flex-col w-[420px] shrink-0 bg-gray-100 p-5 min-h-0">
+        <div className="hidden min-h-0 w-[min(38vw,420px)] shrink-0 flex-col bg-gray-100 p-5 lg:flex">
           <div className="flex items-center justify-between mb-3 shrink-0">
             <div>
               <h3 className="text-sm font-bold text-[#131b2e]">Visualização ao vivo</h3>
@@ -979,8 +997,11 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
             </div>
             <div className="flex bg-[#f2f3ff] p-0.5 rounded-xl text-xs font-semibold">
               <button
+                type="button"
                 onClick={() => setPreviewDevice('mobile')}
                 title="Modo celular"
+                aria-label="Prévia em celular"
+                aria-pressed={previewDevice === 'mobile'}
                 className={`p-1.5 rounded-lg transition-all cursor-pointer ${
                   previewDevice === 'mobile'
                     ? 'bg-white text-[#131b2e] shadow-xs'
@@ -990,8 +1011,11 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
                 <Smartphone aria-hidden="true" className="w-3.5 h-3.5" />
               </button>
               <button
+                type="button"
                 onClick={() => setPreviewDevice('desktop')}
                 title="Modo desktop"
+                aria-label="Prévia em desktop"
+                aria-pressed={previewDevice === 'desktop'}
                 className={`p-1.5 rounded-lg transition-all cursor-pointer ${
                   previewDevice === 'desktop'
                     ? 'bg-white text-[#131b2e] shadow-xs'

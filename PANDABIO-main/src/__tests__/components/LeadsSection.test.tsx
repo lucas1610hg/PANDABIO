@@ -1,8 +1,13 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import toast from 'react-hot-toast';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LeadsSection } from '../../components/LeadsSection';
 import { LeadItem } from '../../types';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 const leads: LeadItem[] = [
   {
@@ -113,5 +118,58 @@ describe('LeadsSection', () => {
       expect(onUpdateLeadStatus).toHaveBeenCalledWith('lead-1', 'interested');
     });
     expect(screen.getAllByText('Interessado').length).toBeGreaterThan(0);
+  });
+
+  it('reverte o status e informa quando a atualização falha', async () => {
+    const user = userEvent.setup();
+    const toastError = vi.spyOn(toast, 'error');
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onUpdateLeadStatus = vi.fn().mockRejectedValue(new Error('Falha ao salvar status'));
+    render(
+      <LeadsSection
+        leads={leads}
+        links={[]}
+        products={[]}
+        analytics={analytics}
+        onUpdateLeadStatus={onUpdateLeadStatus}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Todos os leads' }));
+    await user.click(screen.getByRole('button', { name: /Maria Silva/ }));
+    const statusSelect = screen.getByRole('combobox', {
+      name: 'Status do lead',
+    }) as HTMLSelectElement;
+    await user.selectOptions(statusSelect, 'interested');
+
+    await waitFor(() => expect(statusSelect.value).toBe('new'));
+    expect(toastError).toHaveBeenCalledWith('Falha ao salvar status');
+  });
+
+  it('mantém o lead selecionado e informa quando a exclusão falha', async () => {
+    const user = userEvent.setup();
+    const toastError = vi.spyOn(toast, 'error');
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const onDeleteLead = vi.fn().mockResolvedValue({
+      success: false,
+      error: 'Falha ao excluir lead',
+    });
+    render(
+      <LeadsSection
+        leads={leads}
+        links={[]}
+        products={[]}
+        analytics={analytics}
+        onDeleteLead={onDeleteLead}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Todos os leads' }));
+    await user.click(screen.getByRole('button', { name: /Maria Silva/ }));
+    await user.click(screen.getByRole('button', { name: 'Excluir' }));
+
+    await waitFor(() => expect(onDeleteLead).toHaveBeenCalledWith('lead-1'));
+    expect(screen.getByRole('combobox', { name: 'Status do lead' })).toBeTruthy();
+    expect(toastError).toHaveBeenCalledWith('Falha ao excluir lead');
   });
 });

@@ -36,6 +36,7 @@ export const LinksSection: React.FC<LinksSectionProps> = memo(
     const totalClicks = links.reduce((s, l) => s + l.clicks, 0);
     const totalLeads = links.reduce((s, l) => s + l.leads, 0);
     const activeCount = links.filter((l) => l.active).length;
+    const canReorder = links.length > 1 && filter === 'all' && !search.trim();
 
     /* ── Filtered / searched list ── */
     const displayLinks = useMemo(() => {
@@ -137,21 +138,37 @@ export const LinksSection: React.FC<LinksSectionProps> = memo(
             />
             <input
               type="search"
+              aria-label="Buscar links por título ou URL"
               placeholder="Buscar por título ou URL..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setSearch(value);
+                if (value.trim()) {
+                  setReorderMode(false);
+                  setDragIndex(null);
+                  setOverIndex(null);
+                }
+              }}
               className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]/20 focus:border-[#FF7A00] transition-all"
             />
           </div>
 
           {/* Filter pills */}
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex flex-wrap items-center gap-1.5">
             <Filter aria-hidden="true" className="w-4 h-4 text-gray-400 mr-1" />
             {(['all', 'active', 'inactive'] as FilterType[]).map((f) => (
               <button
                 key={f}
                 type="button"
-                onClick={() => setFilter(f)}
+                onClick={() => {
+                  setFilter(f);
+                  if (f !== 'all') {
+                    setReorderMode(false);
+                    setDragIndex(null);
+                    setOverIndex(null);
+                  }
+                }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                   filter === f
                     ? 'bg-[#131b2e] text-white'
@@ -174,7 +191,15 @@ export const LinksSection: React.FC<LinksSectionProps> = memo(
                   setDragIndex(null);
                   setOverIndex(null);
                 }}
-                className={`ml-2 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                disabled={!canReorder}
+                title={
+                  canReorder
+                    ? reorderMode
+                      ? 'Concluir reordenação'
+                      : 'Reordenar links'
+                    : 'Limpe a busca e selecione Todos para reordenar'
+                }
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                   reorderMode
                     ? 'bg-[#3525cd] text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -246,6 +271,24 @@ export const LinksSection: React.FC<LinksSectionProps> = memo(
                           className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
                         />
                       </a>
+                      <div
+                        role="group"
+                        aria-label={`Estatísticas do link ${link.title}`}
+                        className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-gray-500 sm:hidden"
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          <MousePointerClick
+                            aria-hidden="true"
+                            className="h-3 w-3 text-[#FF7A00]"
+                          />
+                          {link.clicks.toLocaleString('pt-BR')}{' '}
+                          {link.clicks === 1 ? 'clique' : 'cliques'}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <Users aria-hidden="true" className="h-3 w-3 text-emerald-500" />
+                          {link.leads.toLocaleString('pt-BR')} {link.leads === 1 ? 'lead' : 'leads'}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Stats */}
@@ -258,14 +301,14 @@ export const LinksSection: React.FC<LinksSectionProps> = memo(
                         <span className="font-semibold text-[#131b2e]">
                           {link.clicks.toLocaleString('pt-BR')}
                         </span>
-                        <span>cliques</span>
+                        <span>{link.clicks === 1 ? 'clique' : 'cliques'}</span>
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-gray-500">
                         <Users aria-hidden="true" className="w-3.5 h-3.5 text-emerald-500" />
                         <span className="font-semibold text-[#131b2e]">
                           {link.leads.toLocaleString('pt-BR')}
                         </span>
-                        <span>leads</span>
+                        <span>{link.leads === 1 ? 'lead' : 'leads'}</span>
                       </div>
                     </div>
 

@@ -16,6 +16,7 @@ import {
   ProfessionalService,
   ServiceService,
 } from '../../supabase/services/agendamentoService';
+import { Modal } from '../Modal';
 import {
   BookingAppointment,
   BookingWorkspace,
@@ -254,7 +255,7 @@ export const AgendamentosReservas: React.FC<AgendamentosReservasProps> = ({ work
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-bold text-[#131b2e]">Reservas</h2>
           <p className="text-sm text-gray-500 mt-1">
@@ -264,7 +265,7 @@ export const AgendamentosReservas: React.FC<AgendamentosReservasProps> = ({ work
         <button
           type="button"
           onClick={handleOpenBookingModal}
-          className="flex items-center gap-2 px-4 py-2 bg-[#FF7A00] text-white rounded-lg text-sm font-semibold"
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-[#FF7A00] text-white rounded-lg text-sm font-semibold"
         >
           <Plus className="w-4 h-4" />
           Nova Reserva
@@ -273,7 +274,7 @@ export const AgendamentosReservas: React.FC<AgendamentosReservasProps> = ({ work
 
       {/* Filters */}
       <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-4">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
@@ -294,7 +295,7 @@ export const AgendamentosReservas: React.FC<AgendamentosReservasProps> = ({ work
               setStartDate('');
               setEndDate('');
             }}
-            className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium"
+            className="w-full px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium sm:w-auto"
           >
             Limpar Filtros
           </button>
@@ -376,8 +377,18 @@ export const AgendamentosReservas: React.FC<AgendamentosReservasProps> = ({ work
 
       {/* Error */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div
+          role="alert"
+          className="flex flex-wrap items-center justify-between gap-3 bg-red-50 border border-red-200 rounded-lg p-4"
+        >
           <p className="text-sm text-red-600">{error}</p>
+          <button
+            type="button"
+            onClick={() => void loadData()}
+            className="text-sm font-semibold text-red-700 underline"
+          >
+            Recarregar dados
+          </button>
         </div>
       )}
 
@@ -392,8 +403,13 @@ export const AgendamentosReservas: React.FC<AgendamentosReservasProps> = ({ work
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-          <table className="w-full">
+        <div
+          role="region"
+          aria-label="Lista de reservas"
+          tabIndex={0}
+          className="overflow-x-auto rounded-2xl border border-gray-200 bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FF7A00]"
+        >
+          <table aria-label="Reservas cadastradas" className="w-full min-w-[760px]">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">
@@ -531,152 +547,157 @@ export const AgendamentosReservas: React.FC<AgendamentosReservasProps> = ({ work
       )}
 
       {/* Booking Modal */}
-      {showBookingModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md">
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-[#131b2e]">Nova Reserva</h3>
+      <Modal
+        isOpen={showBookingModal}
+        onClose={handleCloseBookingModal}
+        titleId="new-booking-title"
+        size="sm"
+      >
+        <div className="flex min-h-0 flex-col">
+          <div className="flex shrink-0 items-center justify-between border-b border-gray-200 p-5 sm:p-6">
+            <h3 id="new-booking-title" className="text-lg font-bold text-[#131b2e]">
+              Nova Reserva
+            </h3>
+            <button
+              type="button"
+              onClick={handleCloseBookingModal}
+              aria-label="Fechar janela"
+              className="p-1 hover:bg-gray-100 rounded"
+            >
+              <X className="w-5 h-5 text-gray-400" />
+            </button>
+          </div>
+
+          <form
+            onSubmit={handleCreateBooking}
+            className="min-h-0 overflow-y-auto p-5 space-y-4 sm:p-6"
+          >
+            <div>
+              <label className="block text-sm font-medium text-[#131b2e] mb-1">Data e Hora</label>
+              <div className="flex gap-2">
+                <input
+                  type="date"
+                  required
+                  value={bookingForm.date}
+                  onChange={(e) => setBookingForm({ ...bookingForm, date: e.target.value })}
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
+                />
+                <input
+                  type="time"
+                  required
+                  value={bookingForm.start_time}
+                  onChange={(e) => setBookingForm({ ...bookingForm, start_time: e.target.value })}
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#131b2e] mb-1">Serviço *</label>
+              <select
+                required
+                value={bookingForm.service_id}
+                onChange={(e) => setBookingForm({ ...bookingForm, service_id: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
+              >
+                <option value="">Selecione um serviço</option>
+                {services.map((service) => (
+                  <option key={service.id} value={service.id}>
+                    {service.name} - {service.duration}min - R$ {service.price.toFixed(2)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#131b2e] mb-1">
+                Profissional *
+              </label>
+              <select
+                required
+                value={bookingForm.professional_id}
+                onChange={(e) =>
+                  setBookingForm({ ...bookingForm, professional_id: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
+              >
+                <option value="">Selecione um profissional</option>
+                {professionals.map((prof) => (
+                  <option key={prof.id} value={prof.id}>
+                    {prof.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#131b2e] mb-1">
+                Nome do Cliente *
+              </label>
+              <input
+                type="text"
+                required
+                value={bookingForm.client_name}
+                onChange={(e) => setBookingForm({ ...bookingForm, client_name: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
+                placeholder="Nome completo"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[#131b2e] mb-1">Email</label>
+                <input
+                  type="email"
+                  value={bookingForm.client_email}
+                  onChange={(e) => setBookingForm({ ...bookingForm, client_email: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
+                  placeholder="email@exemplo.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#131b2e] mb-1">Telefone</label>
+                <input
+                  type="tel"
+                  value={bookingForm.client_phone}
+                  onChange={(e) => setBookingForm({ ...bookingForm, client_phone: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
+                  placeholder="(11) 99999-9999"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#131b2e] mb-1">Observações</label>
+              <textarea
+                value={bookingForm.notes}
+                onChange={(e) => setBookingForm({ ...bookingForm, notes: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00] resize-none"
+                rows={3}
+                placeholder="Observações sobre a reserva"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
               <button
                 type="button"
                 onClick={handleCloseBookingModal}
-                className="p-1 hover:bg-gray-100 rounded"
+                className="flex-1 px-4 py-2 bg-white text-[#131b2e] rounded-lg text-sm font-semibold border border-gray-200"
               >
-                <X className="w-5 h-5 text-gray-400" />
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={bookingSaving}
+                className="flex-1 px-4 py-2 bg-[#FF7A00] text-white rounded-lg text-sm font-semibold disabled:opacity-50"
+              >
+                {bookingSaving ? 'Criando...' : 'Criar Reserva'}
               </button>
             </div>
-
-            <form onSubmit={handleCreateBooking} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-[#131b2e] mb-1">Data e Hora</label>
-                <div className="flex gap-2">
-                  <input
-                    type="date"
-                    required
-                    value={bookingForm.date}
-                    onChange={(e) => setBookingForm({ ...bookingForm, date: e.target.value })}
-                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
-                  />
-                  <input
-                    type="time"
-                    required
-                    value={bookingForm.start_time}
-                    onChange={(e) => setBookingForm({ ...bookingForm, start_time: e.target.value })}
-                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#131b2e] mb-1">Serviço *</label>
-                <select
-                  required
-                  value={bookingForm.service_id}
-                  onChange={(e) => setBookingForm({ ...bookingForm, service_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
-                >
-                  <option value="">Selecione um serviço</option>
-                  {services.map((service) => (
-                    <option key={service.id} value={service.id}>
-                      {service.name} - {service.duration}min - R$ {service.price.toFixed(2)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#131b2e] mb-1">
-                  Profissional *
-                </label>
-                <select
-                  required
-                  value={bookingForm.professional_id}
-                  onChange={(e) =>
-                    setBookingForm({ ...bookingForm, professional_id: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
-                >
-                  <option value="">Selecione um profissional</option>
-                  {professionals.map((prof) => (
-                    <option key={prof.id} value={prof.id}>
-                      {prof.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#131b2e] mb-1">
-                  Nome do Cliente *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={bookingForm.client_name}
-                  onChange={(e) => setBookingForm({ ...bookingForm, client_name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
-                  placeholder="Nome completo"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-[#131b2e] mb-1">Email</label>
-                  <input
-                    type="email"
-                    value={bookingForm.client_email}
-                    onChange={(e) =>
-                      setBookingForm({ ...bookingForm, client_email: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
-                    placeholder="email@exemplo.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#131b2e] mb-1">Telefone</label>
-                  <input
-                    type="tel"
-                    value={bookingForm.client_phone}
-                    onChange={(e) =>
-                      setBookingForm({ ...bookingForm, client_phone: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00]"
-                    placeholder="(11) 99999-9999"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#131b2e] mb-1">Observações</label>
-                <textarea
-                  value={bookingForm.notes}
-                  onChange={(e) => setBookingForm({ ...bookingForm, notes: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A00] resize-none"
-                  rows={3}
-                  placeholder="Observações sobre a reserva"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={handleCloseBookingModal}
-                  className="flex-1 px-4 py-2 bg-white text-[#131b2e] rounded-lg text-sm font-semibold border border-gray-200"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={bookingSaving}
-                  className="flex-1 px-4 py-2 bg-[#FF7A00] text-white rounded-lg text-sm font-semibold disabled:opacity-50"
-                >
-                  {bookingSaving ? 'Criando...' : 'Criar Reserva'}
-                </button>
-              </div>
-            </form>
-          </div>
+          </form>
         </div>
-      )}
+      </Modal>
     </div>
   );
 };

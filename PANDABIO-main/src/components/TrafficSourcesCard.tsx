@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { PieChart, Smartphone, Laptop } from 'lucide-react';
+import { PieChart } from 'lucide-react';
 import { BioLink } from '../types';
 import { Card } from './Card';
 
@@ -59,25 +59,8 @@ export const TrafficSourcesCard: React.FC<TrafficSourcesCardProps> = ({ links = 
       icon={<PieChart aria-hidden="true" className="w-4 h-4" />}
       iconBg="bg-[#FFF3E6]"
       iconColor="text-[#FF7A00]"
-      title="Fontes de tráfego"
-      subtitle="Origem dos visitantes"
-      footer={
-        <div className="flex items-center justify-around pt-2 mt-4 bg-[#f2f3ff]/70 -mx-4 -mb-4 px-4 py-2 rounded-b-2xl text-xs">
-          <div className="flex items-center gap-1.5 text-[#464555]">
-            <Smartphone aria-hidden="true" className="w-4 h-4 text-[#FF7A00]" />
-            <span>
-              Mobile: <strong className="text-[#131b2e]">—</strong>
-            </span>
-          </div>
-          <span className="text-[#c7c4d8]">•</span>
-          <div className="flex items-center gap-1.5 text-[#464555]">
-            <Laptop aria-hidden="true" className="w-4 h-4 text-[#777587]" />
-            <span>
-              Desktop: <strong className="text-[#131b2e]">—</strong>
-            </span>
-          </div>
-        </div>
-      }
+      title="Cliques por link"
+      subtitle="Participação de cada link nos cliques"
     >
       {/* SVG Donut Chart / Clean State */}
       <div className="flex items-center justify-center py-2 relative min-h-[140px]">
@@ -118,9 +101,11 @@ export const TrafficSourcesCard: React.FC<TrafficSourcesCardProps> = ({ links = 
             <div className="w-10 h-10 rounded-full bg-[#f2f3ff] flex items-center justify-center text-[#969cb0] mb-1.5">
               <PieChart aria-hidden="true" className="w-4 h-4" />
             </div>
-            <span className="text-xs font-semibold text-[#131b2e]">Nenhum tráfego computado</span>
+            <span className="text-xs font-semibold text-[#131b2e]">
+              Nenhum clique recebido ainda
+            </span>
             <span className="text-[10px] text-[#777587] max-w-[170px] mt-0.5">
-              O tráfego aparecerá aqui assim que seus links receberem acessos.
+              A distribuição aparecerá quando seus links receberem acessos.
             </span>
           </div>
         )}
