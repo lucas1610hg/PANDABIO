@@ -62,6 +62,7 @@ const analytics = {
       createdAt: '2026-10-01T14:35:00.000Z',
     },
   ],
+  eventsAvailable: true,
   sales: [],
   salesAvailable: false,
 };

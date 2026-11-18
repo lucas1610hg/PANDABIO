@@ -1,125 +1,150 @@
 import React from 'react';
 import { Filter, Eye, Link as LinkIcon, Users, Target } from 'lucide-react';
-import { FunnelData } from '../types';
+import type { LucideIcon } from 'lucide-react';
+import type { FunnelData } from '../types';
 
 interface ConversionFunnelProps {
   data?: FunnelData;
 }
 
+interface FunnelStep {
+  label: string;
+  value: number | null;
+  rate: number | null;
+  rateLabel: string;
+  icon: LucideIcon;
+  iconBackground: string;
+  iconColor: string;
+  highlighted?: boolean;
+}
+
+const formatNumber = (value: number | null) =>
+  value === null ? '—' : value.toLocaleString('pt-BR');
+
+const formatRate = (value: number | null) =>
+  value === null ? '—' : `${value.toFixed(1).replace('.', ',')}%`;
+
 export const ConversionFunnel: React.FC<ConversionFunnelProps> = ({
   data = {
-    visits: 0,
-    clicks: 0,
+    visits: null,
+    clicks: null,
     leads: 0,
-    conversions: 0,
-    ctr: 0,
-    leadRate: 0,
-    conversionRate: 0,
-    leadToConversionRate: 0,
+    conversions: null,
+    ctr: null,
+    leadRate: null,
+    conversionRate: null,
+    leadToConversionRate: null,
   },
 }) => {
+  const steps: FunnelStep[] = [
+    {
+      label: 'Visitas',
+      value: data.visits,
+      rate: data.ctr,
+      rateLabel: 'cliques / visitas',
+      icon: Eye,
+      iconBackground: 'bg-[#FFF3E6]',
+      iconColor: 'text-[#FF7A00]',
+    },
+    {
+      label: 'Cliques',
+      value: data.clicks,
+      rate: data.leadRate,
+      rateLabel: 'leads / cliques',
+      icon: LinkIcon,
+      iconBackground: 'bg-[#E6F8F3]',
+      iconColor: 'text-[#10B981]',
+    },
+    {
+      label: 'Leads',
+      value: data.leads,
+      rate: data.leadToConversionRate,
+      rateLabel: 'vendas / leads',
+      icon: Users,
+      iconBackground: 'bg-[#E0F2FE]',
+      iconColor: 'text-[#0284C7]',
+    },
+    {
+      label: 'Vendas',
+      value: data.conversions,
+      rate: data.conversionRate,
+      rateLabel: 'vendas / cliques',
+      icon: Target,
+      iconBackground: 'bg-white/20',
+      iconColor: 'text-white',
+      highlighted: true,
+    },
+  ];
+
   return (
-    <div
+    <section
       id="conversion-funnel-card"
-      className="bg-white rounded-2xl p-4 sm:p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] border border-[#eaedff]/60 flex flex-col xl:flex-row xl:items-center justify-between gap-4"
+      aria-labelledby="conversion-funnel-title"
+      className="flex flex-col justify-between gap-4 rounded-2xl border border-[#eaedff]/60 bg-white p-4 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] sm:p-5 xl:flex-row xl:items-center"
     >
-      {/* Title block */}
-      <div className="flex items-center gap-3 min-w-[260px]">
-        <div className="w-11 h-11 rounded-xl bg-[#FF7A00] text-white flex items-center justify-center shrink-0 shadow-sm">
-          <Filter aria-hidden="true" className="w-5 h-5" />
+      <div className="flex min-w-0 items-center gap-3 xl:min-w-[260px]">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#FF7A00] text-white shadow-sm">
+          <Filter aria-hidden="true" className="h-5 w-5" />
         </div>
-        <div className="flex flex-col">
-          <h2 className="text-base sm:text-lg font-bold text-[#131b2e] leading-tight">
+        <div className="flex min-w-0 flex-col">
+          <h2
+            id="conversion-funnel-title"
+            className="text-base font-bold leading-tight text-[#131b2e] sm:text-lg"
+          >
             Seu funil de conversão
           </h2>
-          <p className="text-xs text-[#464555]">
-            Acompanhe a jornada dos seus visitantes em tempo real.
-          </p>
+          <p className="text-xs text-[#464555]">Resultados dos últimos 7 dias.</p>
         </div>
       </div>
 
-      {/* Funnel Pipeline Steps */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 w-full xl:w-auto xl:flex-1">
-        {/* Step 1: Visitas */}
-        <div className="flex items-center gap-2 bg-[#f2f3ff] p-2.5 sm:px-3 sm:py-2 rounded-xl justify-between min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-[#FFF3E6] text-[#FF7A00] flex items-center justify-center shrink-0">
-              <Eye aria-hidden="true" className="w-4 h-4" />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs sm:text-sm font-bold text-[#131b2e] leading-none truncate">
-                {data.visits.toLocaleString('pt-BR')}
-              </span>
-              <span className="text-[10px] text-[#464555] uppercase tracking-wider font-semibold truncate">
-                Visitas
-              </span>
-            </div>
-          </div>
-          <span className="text-[11px] text-[#464555] font-semibold shrink-0">
-            {data.visits > 0 ? `${data.ctr.toFixed(1).replace('.', ',')}%` : '0%'}
-          </span>
-        </div>
-
-        {/* Step 2: Cliques */}
-        <div className="flex items-center gap-2 bg-[#f2f3ff] p-2.5 sm:px-3 sm:py-2 rounded-xl justify-between min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-[#E6F8F3] text-[#10B981] flex items-center justify-center shrink-0">
-              <LinkIcon className="w-4 h-4" />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs sm:text-sm font-bold text-[#131b2e] leading-none truncate">
-                {data.clicks.toLocaleString('pt-BR')}
-              </span>
-              <span className="text-[10px] text-[#464555] uppercase tracking-wider font-semibold truncate">
-                Cliques
-              </span>
-            </div>
-          </div>
-          <span className="text-[11px] text-[#464555] font-semibold shrink-0">
-            {data.clicks > 0 ? `${data.leadRate.toFixed(1).replace('.', ',')}%` : '0%'}
-          </span>
-        </div>
-
-        {/* Step 3: Leads */}
-        <div className="flex items-center gap-2 bg-[#f2f3ff] p-2.5 sm:px-3 sm:py-2 rounded-xl justify-between min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-[#E0F2FE] text-[#0284C7] flex items-center justify-center shrink-0">
-              <Users aria-hidden="true" className="w-4 h-4" />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs sm:text-sm font-bold text-[#131b2e] leading-none truncate">
-                {data.leads.toLocaleString('pt-BR')}
-              </span>
-              <span className="text-[10px] text-[#464555] uppercase tracking-wider font-semibold truncate">
-                Leads
+      <div className="grid w-full grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-4 xl:flex-1">
+        {steps.map((step) => {
+          const Icon = step.icon;
+          return (
+            <div
+              key={step.label}
+              className={`flex min-w-0 items-center justify-between gap-2 rounded-xl p-2.5 sm:px-3 sm:py-2 ${
+                step.highlighted
+                  ? 'bg-gradient-to-r from-[#FF7A00] to-[#FF5500] text-white shadow-[0_2px_8px_rgba(255,122,0,0.25)]'
+                  : 'bg-[#f2f3ff]'
+              }`}
+            >
+              <div className="flex min-w-0 items-center gap-2">
+                <div
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${step.iconBackground} ${step.iconColor}`}
+                >
+                  <Icon aria-hidden="true" className="h-4 w-4" />
+                </div>
+                <div className="flex min-w-0 flex-col">
+                  <span
+                    className={`truncate text-xs font-bold leading-none sm:text-sm ${
+                      step.highlighted ? 'text-white' : 'text-[#131b2e]'
+                    }`}
+                  >
+                    {formatNumber(step.value)}
+                  </span>
+                  <span
+                    className={`truncate text-[10px] font-semibold uppercase tracking-wider ${
+                      step.highlighted ? 'text-orange-100' : 'text-[#464555]'
+                    }`}
+                  >
+                    {step.label}
+                  </span>
+                </div>
+              </div>
+              <span
+                className={`shrink-0 text-[11px] font-semibold ${
+                  step.highlighted ? 'text-white' : 'text-[#464555]'
+                }`}
+                aria-label={`${step.rateLabel}: ${formatRate(step.rate)}`}
+                title={step.rateLabel}
+              >
+                {formatRate(step.rate)}
               </span>
             </div>
-          </div>
-          <span className="text-[11px] text-[#464555] font-semibold shrink-0">
-            {data.leads > 0 ? `${data.leadToConversionRate.toFixed(1).replace('.', ',')}%` : '0%'}
-          </span>
-        </div>
-
-        {/* Step 4: Conversões */}
-        <div className="flex items-center gap-2 bg-gradient-to-r from-[#FF7A00] to-[#FF5500] text-white p-2.5 sm:px-3.5 sm:py-2 rounded-xl shadow-[0_2px_8px_rgba(255,122,0,0.25)] justify-between min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-white/20 text-white flex items-center justify-center shrink-0">
-              <Target aria-hidden="true" className="w-4 h-4" />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs sm:text-sm font-bold text-white leading-none truncate">
-                {data.conversions.toLocaleString('pt-BR')}
-              </span>
-              <span className="text-[10px] text-orange-100 uppercase tracking-wider font-semibold truncate">
-                Conversões
-              </span>
-            </div>
-          </div>
-          <span className="text-[11px] text-white font-bold shrink-0">
-            {data.conversions > 0 ? 'Ativo' : '0'}
-          </span>
-        </div>
+          );
+        })}
       </div>
-    </div>
+    </section>
   );
 };

@@ -29,6 +29,18 @@ export const isClickEvent = (event: PublicAnalyticsEvent) =>
     'location_click',
   ].includes(event.eventType);
 
+export const getTrafficSourceName = (event: PublicAnalyticsEvent): string => {
+  const source = event.source?.trim();
+  if (source) return source;
+  if (!event.referrer) return 'Acesso direto';
+
+  try {
+    return new URL(event.referrer).hostname.replace(/^www\./, '');
+  } catch {
+    return 'Outras fontes';
+  }
+};
+
 export const countEventsByType = (
   events: PublicAnalyticsEvent[],
   eventTypes: PublicAnalyticsEvent['eventType'][] | PublicAnalyticsEvent['eventType'],
@@ -102,10 +114,11 @@ export const filterStatisticsItems = <T>(
   });
 };
 
-export const countUniqueVisitors = (events: PublicAnalyticsEvent[]): number => {
+export const countUniqueVisitors = (events: PublicAnalyticsEvent[]): number | null => {
   const views = events.filter(isViewEvent);
-  const visitorIds = new Set(views.map((event) => event.visitorId).filter(Boolean));
-  return visitorIds.size || views.length;
+  if (views.length === 0) return 0;
+  if (views.some((event) => !event.visitorId)) return null;
+  return new Set(views.map((event) => event.visitorId)).size;
 };
 
 export const getPreviousStatisticsWindow = (

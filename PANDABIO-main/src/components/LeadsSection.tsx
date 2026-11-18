@@ -94,7 +94,8 @@ const engagementEvents = new Set<TrackingEventType>([
   'conversion',
 ]);
 
-const formatNumber = (value: number) => value.toLocaleString('pt-BR');
+const formatNumber = (value: number | null) =>
+  value === null ? '—' : value.toLocaleString('pt-BR');
 const formatPercent = (value: number) => `${value.toFixed(2).replace('.', ',')}%`;
 
 const formatDate = (value?: string) => {
@@ -155,7 +156,7 @@ const getLeadTimeline = (lead: LeadItem, analytics?: PublicAnalyticsSummary) => 
 
 const MetricCard: React.FC<{
   label: string;
-  value: number;
+  value: number | null;
   detail: string;
   icon: React.ReactNode;
   tone: string;
@@ -230,16 +231,15 @@ export const LeadsSection: React.FC<LeadsSectionProps> = ({
   }, [leads]);
 
   const allEvents = useMemo(() => analytics?.events || [], [analytics?.events]);
-  const visitors = analytics?.uniqueVisitors || analytics?.visits || 0;
+  const visitors = analytics?.uniqueVisitors ?? null;
   const engagedEvents = allEvents.filter((event) => engagementEvents.has(event.eventType));
-  const interestedVisitorIds = new Set(
-    engagedEvents
-      .map((event) => event.visitorId)
-      .filter((visitorId): visitorId is string => Boolean(visitorId)),
-  );
-  const interested = interestedVisitorIds.size || analytics?.clicks || engagedEvents.length;
+  const hasCompleteEngagementIds = engagedEvents.every((event) => Boolean(event.visitorId));
+  const interested = hasCompleteEngagementIds
+    ? new Set(engagedEvents.map((event) => event.visitorId)).size
+    : null;
   const converted = localLeads.filter((lead) => lead.status === 'converted').length;
-  const conversionRate = visitors > 0 ? (localLeads.length / visitors) * 100 : 0;
+  const conversionRate =
+    visitors === null || visitors === 0 ? null : (localLeads.length / visitors) * 100;
 
   const sourceCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -308,7 +308,7 @@ export const LeadsSection: React.FC<LeadsSectionProps> = ({
     { label: 'Visitantes', value: visitors, color: 'bg-[#dbeafe] text-[#1d4ed8]' },
     {
       label: 'Engajamentos',
-      value: engagedEvents.length || analytics?.clicks || 0,
+      value: interested,
       color: 'bg-[#ede9fe] text-[#6d28d9]',
     },
     { label: 'Interessados', value: interested, color: 'bg-[#fef3c7] text-[#a16207]' },
@@ -710,8 +710,11 @@ export const LeadsSection: React.FC<LeadsSectionProps> = ({
               Taxa de conversão
             </p>
             <p className="mt-1 text-xl font-extrabold text-[#131b2e]">
-              {formatNumber(localLeads.length)} leads / {formatNumber(visitors)} visitantes ={' '}
-              {formatPercent(conversionRate)}
+              {visitors === null
+                ? `${formatNumber(localLeads.length)} leads / — visitantes = —`
+                : `${formatNumber(localLeads.length)} leads / ${formatNumber(visitors)} visitantes = ${
+                    conversionRate === null ? '—' : formatPercent(conversionRate)
+                  }`}
             </p>
             <p className="mt-1 text-xs text-[#777587]">
               Lead é contado somente quando a pessoa fornece dado que permite contato ou

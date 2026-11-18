@@ -36,6 +36,7 @@ import {
   getPercentageChange,
   getPreviousStatisticsWindow,
   getStatisticsWindow,
+  getTrafficSourceName,
   isClickEvent,
   isViewEvent,
   parseStatisticsDate,
@@ -54,8 +55,10 @@ interface StatisticsSectionProps {
   kpiData?: KpiData;
 }
 
-const formatNumber = (value: number) => value.toLocaleString('pt-BR');
-const formatPercent = (value: number) => `${value.toFixed(1).replace('.', ',')}%`;
+const formatNumber = (value: number | null) =>
+  value === null ? '—' : value.toLocaleString('pt-BR');
+const formatPercent = (value: number | null) =>
+  value === null ? '—' : `${value.toFixed(1).replace('.', ',')}%`;
 
 const periodLabel: Record<Period, string> = {
   '7d': 'Últimos 7 dias',
@@ -64,18 +67,9 @@ const periodLabel: Record<Period, string> = {
   all: 'Todo o período',
 };
 
-const getSourceName = (referrer: string | null) => {
-  if (!referrer) return 'Acesso direto';
-  try {
-    return new URL(referrer).hostname.replace(/^www\./, '');
-  } catch {
-    return 'Outras fontes';
-  }
-};
-
 const formatActivityDate = (activity: ActivityItem) => {
   const timestamp = parseStatisticsDate(activity.date) ?? parseStatisticsDate(activity.timestamp);
-  if (!timestamp) return activity.timeAgo;
+  if (timestamp === null) return activity.timeAgo;
   return new Date(timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 };
 
@@ -119,7 +113,7 @@ const MetricCard: React.FC<{
           }`}
         >
           {trend === null ? (
-            'Novo período'
+            'Sem base comparativa'
           ) : trend === 0 ? (
             'Sem mudança'
           ) : (
@@ -154,14 +148,13 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
   leads,
   activities,
   analytics,
-  kpiData,
 }) => {
   const [period, setPeriod] = useState<Period>('30d');
   const [periodMenuOpen, setPeriodMenuOpen] = useState(false);
   const [now] = useState(() => Date.now());
   const allEvents = useMemo(() => analytics?.events ?? [], [analytics?.events]);
   const allSales = useMemo(() => analytics?.sales ?? [], [analytics?.sales]);
-  const hasEventHistory = allEvents.length > 0;
+  const hasEventHistory = analytics?.eventsAvailable === true;
   const salesAvailable = analytics?.salesAvailable === true;
 
   const currentWindow = useMemo(() => getStatisticsWindow(period, now), [now, period]);
@@ -174,56 +167,38 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
     () => filterStatisticsEvents(allEvents, previousWindow),
     [allEvents, previousWindow],
   );
-  const periodDataLabel = hasEventHistory ? periodLabel[period] : 'Dados acumulados';
+  const periodDataLabel = hasEventHistory ? periodLabel[period] : 'Dados indisponíveis';
 
   const totals = useMemo(() => {
-    const fallbackClicks = links.reduce((sum, link) => sum + (link.clicks || 0), 0);
-    const fallbackVisits = kpiData?.visits ?? fallbackClicks * 2;
-    const fallbackClickTotal = kpiData?.clicks ?? fallbackClicks;
-    const visits = hasEventHistory ? events.filter(isViewEvent).length : fallbackVisits;
-    const clicks = hasEventHistory ? events.filter(isClickEvent).length : fallbackClickTotal;
+    const visits = hasEventHistory ? events.filter(isViewEvent).length : null;
+    const clicks = hasEventHistory ? events.filter(isClickEvent).length : null;
     const leadsInPeriod = filterStatisticsItems(leads, (lead) => lead.createdAt, currentWindow);
-    const leadsCount = hasEventHistory ? leadsInPeriod.length : leads.length;
-    const productSalesTotal = products.reduce((sum, product) => sum + (product.salesCount || 0), 0);
-    const recordedSalesTotal = allSales.reduce((sum, sale) => sum + Math.max(sale.quantity, 0), 0);
+    const leadsCount = leadsInPeriod.length;
     const salesInPeriod = filterStatisticsItems(allSales, (sale) => sale.createdAt, currentWindow);
     const conversions = salesAvailable
-      ? period === 'all'
-        ? Math.max(recordedSalesTotal, productSalesTotal)
-        : salesInPeriod.reduce((sum, sale) => sum + Math.max(sale.quantity, 0), 0)
-      : productSalesTotal;
+      ? salesInPeriod.reduce((sum, sale) => sum + Math.max(sale.quantity, 0), 0)
+      : null;
     const conversionRate =
-      period === 'all' || !hasEventHistory || salesAvailable
-        ? clicks > 0
-          ? (conversions / clicks) * 100
-          : 0
-        : null;
+      clicks === null || clicks === 0 || conversions === null ? null : (conversions / clicks) * 100;
     const leadToConversionRate =
-      conversionRate === null ? null : leadsCount > 0 ? (conversions / leadsCount) * 100 : 0;
+      conversionRate === null || conversions === null
+        ? null
+        : leadsCount > 0
+          ? (conversions / leadsCount) * 100
+          : null;
 
     return {
       visits,
-      uniqueVisitors: hasEventHistory ? countUniqueVisitors(events) : 0,
+      uniqueVisitors: hasEventHistory ? countUniqueVisitors(events) : null,
       clicks,
       leads: leadsCount,
       conversions,
-      ctr: visits > 0 ? (clicks / visits) * 100 : 0,
-      leadRate: clicks > 0 ? (leadsCount / clicks) * 100 : 0,
+      ctr: visits === null || visits === 0 || clicks === null ? null : (clicks / visits) * 100,
+      leadRate: clicks === null || clicks === 0 ? null : (leadsCount / clicks) * 100,
       conversionRate,
       leadToConversionRate,
     };
-  }, [
-    allSales,
-    currentWindow,
-    events,
-    hasEventHistory,
-    kpiData,
-    leads,
-    links,
-    period,
-    products,
-    salesAvailable,
-  ]);
+  }, [allSales, currentWindow, events, hasEventHistory, leads, salesAvailable]);
 
   const chart = useMemo<StatisticsChartPoint[]>(() => {
     if (!hasEventHistory || events.length === 0) return [];
@@ -233,16 +208,17 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
   const maxChartValue = Math.max(...chart.map((point) => Math.max(point.visits, point.clicks)), 1);
 
   const topLinks = useMemo(() => {
+    if (!hasEventHistory) return [];
     const clicksByTarget = new Map<string, number>();
     events.forEach((event) => {
-      if (isClickEvent(event) && event.targetId) {
+      if ((event.eventType === 'click' || event.eventType === 'link_click') && event.targetId) {
         clicksByTarget.set(event.targetId, (clicksByTarget.get(event.targetId) ?? 0) + 1);
       }
     });
     return [...links]
       .map((link) => ({
         ...link,
-        periodClicks: hasEventHistory ? (clicksByTarget.get(link.id) ?? 0) : link.clicks || 0,
+        periodClicks: clicksByTarget.get(link.id) ?? 0,
       }))
       .sort((first, second) => second.periodClicks - first.periodClicks)
       .slice(0, 5);
@@ -289,7 +265,7 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
   const sources = useMemo(() => {
     const counts = new Map<string, number>();
     events.filter(isViewEvent).forEach((event) => {
-      const source = getSourceName(event.referrer);
+      const source = getTrafficSourceName(event);
       counts.set(source, (counts.get(source) ?? 0) + 1);
     });
     const total = [...counts.values()].reduce((sum, value) => sum + value, 0);
@@ -314,6 +290,7 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
 
   const trends = useMemo(() => {
     if (!hasEventHistory || period === 'all') return undefined;
+    if (totals.visits === null || totals.clicks === null) return undefined;
     const previousVisits = previousEvents.filter(isViewEvent).length;
     const previousClicks = previousEvents.filter(isClickEvent).length;
     const previousLeads = filterStatisticsItems(
@@ -330,8 +307,11 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
 
   const activeLinks = links.filter((link) => link.active).length;
   const activeProducts = products.filter((product) => product.status === 'active').length;
-  const averageDailyVisits = period === 'all' ? null : totals.visits / periodDays[period];
-  const primaryDevice = [...devices].sort((first, second) => second.count - first.count)[0];
+  const averageDailyVisits =
+    period === 'all' || totals.visits === null ? null : totals.visits / periodDays[period];
+  const primaryDevice = [...devices]
+    .filter((device) => device.count > 0)
+    .sort((first, second) => second.count - first.count)[0];
 
   const insights = useMemo(() => {
     const result: Array<{
@@ -342,9 +322,9 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
 
     if (!hasEventHistory) {
       result.push({
-        title: 'Ative o histórico público',
+        title: 'Analytics indisponível',
         description:
-          'Publique e compartilhe sua página para registrar visitas, cliques, dispositivos e origens.',
+          'Não foi possível consultar os eventos da página. Verifique a configuração do Supabase e tente novamente.',
         tone: 'warning',
       });
     } else if (totals.visits === 0) {
@@ -353,7 +333,7 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
         description: 'Compartilhe seu link público para começar a criar histórico de desempenho.',
         tone: 'warning',
       });
-    } else if (totals.ctr < 3) {
+    } else if (totals.ctr !== null && totals.ctr < 3) {
       result.push({
         title: 'Melhore a chamada para ação',
         description: `CTR de ${formatPercent(totals.ctr)} indica espaço para revisar títulos, ordem e destaque dos links.`,
@@ -388,7 +368,7 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
 
   const periodSummary = hasEventHistory
     ? `${events.length.toLocaleString('pt-BR')} eventos no período`
-    : 'Sem histórico público sincronizado';
+    : 'Histórico de eventos indisponível';
 
   const funnel = [
     { label: 'Visitas', value: totals.visits, color: '#ff7a00', icon: <Eye className="h-4 w-4" /> },
@@ -400,7 +380,7 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
     },
     { label: 'Leads', value: totals.leads, color: '#0284c7', icon: <Users className="h-4 w-4" /> },
     {
-      label: totals.conversionRate === null ? 'Vendas acumuladas' : 'Conversões',
+      label: totals.conversions === null ? 'Vendas' : 'Conversões',
       value: totals.conversions,
       color: '#3525cd',
       icon: <Target className="h-4 w-4" />,
@@ -411,13 +391,13 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
     const rows = [
       ['Métrica', 'Valor'],
       ['Período', periodLabel[period]],
-      ['Fonte dos dados', hasEventHistory ? 'Eventos públicos' : 'Estimativas da conta'],
-      ['Visitas', String(totals.visits)],
-      ['Cliques', String(totals.clicks)],
+      ['Fonte dos dados', hasEventHistory ? 'Eventos públicos' : 'Analytics indisponível'],
+      ['Visitas', formatNumber(totals.visits)],
+      ['Cliques', formatNumber(totals.clicks)],
       ['CTR', formatPercent(totals.ctr)],
       ['Leads', String(totals.leads)],
       ['Taxa de leads', formatPercent(totals.leadRate)],
-      ['Conversões', String(totals.conversions)],
+      ['Conversões', formatNumber(totals.conversions)],
       [
         'Taxa final',
         totals.conversionRate === null
@@ -537,12 +517,12 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
         )}
         <div>
           <p className="font-bold">
-            {hasEventHistory ? 'Dados reais da página pública' : 'Modo estimado'}
+            {hasEventHistory ? 'Dados reais da página pública' : 'Analytics indisponível'}
           </p>
           <p className="mt-0.5 opacity-90">
             {hasEventHistory
-              ? `${periodSummary}. ${salesAvailable ? 'Vendas possuem histórico por período.' : 'Vendas continuam acumuladas porque o histórico datado não está sincronizado.'}`
-              : 'Visitas e cliques usam dados agregados da conta. Publique e receba tráfego para ativar filtros por período.'}
+              ? `${periodSummary}. ${salesAvailable ? 'Vendas possuem histórico por período.' : 'O histórico de vendas não está disponível.'}`
+              : 'Não foi possível carregar visitas, cliques, dispositivos e origens. As métricas indisponíveis são exibidas como —.'}
           </p>
         </div>
       </div>
@@ -572,7 +552,7 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
           detail={`Conversão de ${formatPercent(totals.leadRate)}`}
           icon={<Users className="h-5 w-5" />}
           tone="blue"
-          badge={hasEventHistory ? 'Dados reais' : 'Estimado'}
+          badge="Dados reais"
           trend={trends?.leads}
         />
         <MetricCard
@@ -580,12 +560,12 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
           value={formatNumber(totals.conversions)}
           detail={
             totals.conversionRate === null
-              ? 'Vendas acumuladas · sem data por período'
+              ? 'Dados de vendas ou cliques indisponíveis'
               : `Taxa final de ${formatPercent(totals.conversionRate)}`
           }
           icon={<Target className="h-5 w-5" />}
           tone="purple"
-          badge={hasEventHistory ? 'Acumulado' : 'Estimado'}
+          badge={salesAvailable ? 'Dados reais' : 'Indisponível'}
         />
       </div>
 
@@ -696,15 +676,26 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
           </div>
           <p className="mt-1 text-[11px] text-[#777587]">
             {totals.conversionRate === null
-              ? 'Vendas acumuladas; demais etapas seguem período selecionado'
+              ? 'Taxa indisponível até sincronizar os dados de vendas e cliques'
               : 'Da primeira visita à conversão'}
           </p>
           <div className="mt-5 flex flex-col gap-3">
             {funnel.map((step, index) => {
-              const base = Math.max(totals.visits, 1);
-              const width = Math.min(100, Math.max((step.value / base) * 100, step.value ? 12 : 3));
+              const base = Math.max(totals.visits ?? 0, 1);
+              const width =
+                step.value === null
+                  ? 0
+                  : Math.min(100, Math.max((step.value / base) * 100, step.value ? 12 : 3));
+              const nextValue = funnel[index + 1]?.value;
               const transitionIsUnavailable =
-                totals.conversionRate === null && index === funnel.length - 2;
+                step.value === null || nextValue === null || nextValue === undefined;
+              const transitionRate =
+                step.value !== null &&
+                step.value > 0 &&
+                nextValue !== null &&
+                nextValue !== undefined
+                  ? (nextValue / step.value) * 100
+                  : null;
               return (
                 <div key={step.label}>
                   <div className="mb-1.5 flex items-center justify-between text-xs">
@@ -725,12 +716,10 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
                   {index < funnel.length - 1 && (
                     <p className="mt-1 text-right text-[10px] font-semibold text-[#969cb0]">
                       {transitionIsUnavailable
-                        ? 'Taxa indisponível para vendas acumuladas'
-                        : `${formatPercent(
-                            step.value > 0
-                              ? Math.min(100, (funnel[index + 1].value / step.value) * 100)
-                              : 0,
-                          )} avançam`}
+                        ? 'Dados indisponíveis para esta etapa'
+                        : transitionRate === null
+                          ? 'Sem base para calcular a taxa'
+                          : `${formatPercent(transitionRate)} avançam`}
                     </p>
                   )}
                 </div>
@@ -750,7 +739,9 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
                   Links com melhor desempenho
                 </h2>
               </div>
-              <p className="mt-1 text-[11px] text-[#777587]">Cliques atribuídos por link</p>
+              <p className="mt-1 text-[11px] text-[#777587]">
+                {hasEventHistory ? 'Cliques atribuídos por link' : 'Analytics indisponível'}
+              </p>
             </div>
             <span className="rounded-full bg-[#e6f8f3] px-2 py-1 text-[10px] font-bold text-[#059669]">
               Top 5
@@ -783,7 +774,13 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
                 );
               })
             ) : (
-              <EmptyChart message="Adicione links à sua página para comparar desempenho." />
+              <EmptyChart
+                message={
+                  hasEventHistory
+                    ? 'Nenhum clique em link foi registrado neste período.'
+                    : 'Não foi possível consultar os eventos atribuídos a cada link.'
+                }
+              />
             )}
           </div>
         </div>
@@ -798,7 +795,7 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
               <p className="mt-1 text-[11px] text-[#777587]">Dispositivo e fonte das visitas</p>
             </div>
             <span className="rounded-full bg-[#fff3e6] px-2 py-1 text-[10px] font-bold text-[#ff7a00]">
-              {hasEventHistory ? 'Dados reais' : 'Aguardando dados'}
+              {hasEventHistory ? 'Dados reais' : 'Indisponível'}
             </span>
           </div>
           {hasEventHistory ? (
@@ -892,19 +889,21 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
                       {product.name}
                     </td>
                     <td className="py-3 text-right font-semibold text-[#777587]">
-                      {formatNumber(product.views)}
+                      {formatNumber(hasEventHistory ? product.views : null)}
                     </td>
                     <td className="py-3 text-right font-extrabold text-[#131b2e]">
-                      {formatNumber(product.clicks)}
+                      {formatNumber(hasEventHistory ? product.clicks : null)}
                     </td>
                     <td className="py-3 text-right font-semibold text-[#3525cd]">
-                      {formatPercent(
-                        productAnalytics.reduce((sum, item) => sum + item.clicks, 0) > 0
-                          ? (product.clicks /
-                              productAnalytics.reduce((sum, item) => sum + item.clicks, 0)) *
-                              100
-                          : 0,
-                      )}
+                      {hasEventHistory
+                        ? formatPercent(
+                            productAnalytics.reduce((sum, item) => sum + item.clicks, 0) > 0
+                              ? (product.clicks /
+                                  productAnalytics.reduce((sum, item) => sum + item.clicks, 0)) *
+                                  100
+                              : 0,
+                          )
+                        : '—'}
                     </td>
                   </tr>
                 ))}
@@ -928,7 +927,7 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
             </p>
           </div>
           <span className="rounded-full bg-[#efedff] px-2 py-1 text-[10px] font-bold text-[#3525cd]">
-            Dados reais
+            {hasEventHistory ? 'Dados reais' : 'Indisponível'}
           </span>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-6">
@@ -946,7 +945,7 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
             <div key={label} className="rounded-xl bg-[#faf8ff] p-3">
               <p className="text-[10px] font-bold text-[#777587]">{label}</p>
               <p className="mt-1 text-xl font-extrabold text-[#131b2e]">
-                {formatNumber(value as number)}
+                {hasEventHistory ? formatNumber(value as number) : '—'}
               </p>
               <p className="mt-1 text-[10px] text-[#969cb0]">cliques</p>
             </div>

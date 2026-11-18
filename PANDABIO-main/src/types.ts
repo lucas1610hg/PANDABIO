@@ -328,14 +328,14 @@ export interface PageTheme {
 export type MusicProvider = 'spotify' | 'youtube' | 'outro';
 
 export interface FunnelData {
-  visits: number;
-  clicks: number;
+  visits: number | null;
+  clicks: number | null;
   leads: number;
-  conversions: number;
-  ctr: number;
-  leadRate: number;
-  conversionRate: number;
-  leadToConversionRate: number;
+  conversions: number | null;
+  ctr: number | null;
+  leadRate: number | null;
+  conversionRate: number | null;
+  leadToConversionRate: number | null;
 }
 
 export interface PageData {

@@ -1,55 +1,60 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { PieChart } from 'lucide-react';
-import { BioLink } from '../types';
+import type { PublicAnalyticsSummary } from '../supabase/services/publicAnalyticsService';
+import {
+  filterStatisticsEvents,
+  getStatisticsWindow,
+  getTrafficSourceName,
+  isViewEvent,
+} from '../utils/statistics';
 import { Card } from './Card';
 
 interface TrafficSourcesCardProps {
-  links?: BioLink[];
+  analytics?: PublicAnalyticsSummary;
 }
 
-const COLORS = ['#FF7A00', '#10B981', '#3525cd', '#F59E0B'];
+const COLORS = ['#FF7A00', '#10B981', '#3525cd', '#F59E0B', '#969cb0'];
+const CIRCUMFERENCE = 2 * Math.PI * 38;
 
-export const TrafficSourcesCard: React.FC<TrafficSourcesCardProps> = ({ links = [] }) => {
-  const totalClicks = links.reduce((acc, l) => acc + (l.clicks || 0), 0);
-  const hasTraffic = totalClicks > 0;
-
-  // Fontes derivadas dos links, ordenadas por cliques, com segmento "Outros"
+export const TrafficSourcesCard: React.FC<TrafficSourcesCardProps> = ({ analytics }) => {
+  const [now] = useState(() => Date.now());
+  const eventsAvailable = analytics?.eventsAvailable === true;
+  const window = useMemo(() => getStatisticsWindow('7d', now), [now]);
+  const visits = useMemo(
+    () => filterStatisticsEvents(analytics?.events ?? [], window).filter(isViewEvent),
+    [analytics?.events, window],
+  );
   const sources = useMemo(() => {
-    if (!hasTraffic) return [] as { name: string; pct: number; pctRaw: number; color: string }[];
+    const counts = new Map<string, number>();
+    visits.forEach((event) => {
+      const source = getTrafficSourceName(event);
+      counts.set(source, (counts.get(source) ?? 0) + 1);
+    });
 
-    const sorted = [...links]
-      .filter((l) => (l.clicks || 0) > 0)
-      .sort((a, b) => (b.clicks || 0) - (a.clicks || 0));
+    const sorted = [...counts.entries()].sort((first, second) => second[1] - first[1]);
     const top = sorted.slice(0, 4);
-    const shownClicks = top.reduce((s, l) => s + (l.clicks || 0), 0);
+    const rest = sorted.slice(4).reduce((sum, [, count]) => sum + count, 0);
+    if (rest > 0) top.push(['Outros', rest]);
+    const total = visits.length;
 
-    const items = top.map((l, i) => ({
-      name: l.title,
-      pct: Math.round((l.clicks / totalClicks) * 100),
-      pctRaw: (l.clicks / totalClicks) * 100,
-      color: COLORS[i % COLORS.length],
+    return top.map(([name, count], index) => ({
+      name,
+      count,
+      pct: total > 0 ? (count / total) * 100 : 0,
+      color: COLORS[index % COLORS.length],
     }));
-
-    const rest = totalClicks - shownClicks;
-    if (sorted.length > top.length && rest > 0) {
-      items.push({
-        name: 'Outros',
-        pct: Math.round((rest / totalClicks) * 100),
-        pctRaw: rest / totalClicks,
-        color: '#969cb0',
-      });
-    }
-
-    return items;
-  }, [links, totalClicks, hasTraffic]);
-
-  // Segmentos do donut via stroke-dasharray
+  }, [visits]);
   const segments = useMemo(() => {
-    const C = 2 * Math.PI * 38;
-    return sources.map((s, i) => {
-      const prevLen = sources.slice(0, i).reduce((acc, p) => acc + (p.pctRaw / 100) * C, 0);
-      const len = (s.pctRaw / 100) * C;
-      return { ...s, dash: `${len} ${C - len}`, offset: -prevLen };
+    return sources.map((source, index) => {
+      const length = (source.pct / 100) * CIRCUMFERENCE;
+      const offset = sources
+        .slice(0, index)
+        .reduce((sum, previous) => sum + (previous.pct / 100) * CIRCUMFERENCE, 0);
+      return {
+        ...source,
+        dash: `${length} ${CIRCUMFERENCE - length}`,
+        offset: -offset,
+      };
     });
   }, [sources]);
 
@@ -59,71 +64,74 @@ export const TrafficSourcesCard: React.FC<TrafficSourcesCardProps> = ({ links = 
       icon={<PieChart aria-hidden="true" className="w-4 h-4" />}
       iconBg="bg-[#FFF3E6]"
       iconColor="text-[#FF7A00]"
-      title="Cliques por link"
-      subtitle="Participação de cada link nos cliques"
+      title="Origem do tráfego"
+      subtitle="Visitas por UTM ou domínio de referência · últimos 7 dias"
     >
-      {/* SVG Donut Chart / Clean State */}
-      <div className="flex items-center justify-center py-2 relative min-h-[140px]">
-        {hasTraffic && segments.length > 0 ? (
+      <div className="relative flex min-h-[140px] items-center justify-center py-2">
+        {eventsAvailable && visits.length > 0 ? (
           <>
             <svg
-              className="w-32 h-32 transform -rotate-90"
+              className="h-32 w-32 -rotate-90"
               viewBox="0 0 100 100"
               role="img"
-              aria-label="Distribuição de cliques por link"
+              aria-label={`Origem das ${visits.length} visitas dos últimos 7 dias`}
             >
-              {segments.map((s) => (
+              {segments.map((segment) => (
                 <circle
-                  key={s.name}
+                  key={segment.name}
                   cx="50"
                   cy="50"
                   r="38"
                   fill="none"
-                  stroke={s.color}
+                  stroke={segment.color}
                   strokeWidth="14"
-                  strokeDasharray={s.dash}
-                  strokeDashoffset={s.offset}
+                  strokeDasharray={segment.dash}
+                  strokeDashoffset={segment.offset}
                 />
               ))}
             </svg>
-
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-[10px] text-[#777587] leading-tight uppercase font-semibold">
-                Cliques
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-[10px] font-semibold uppercase leading-tight text-[#777587]">
+                Visitas
               </span>
-              <span className="text-base font-bold text-[#131b2e] leading-none mt-0.5">
-                {totalClicks.toLocaleString('pt-BR')}
+              <span className="mt-0.5 text-base font-bold leading-none text-[#131b2e]">
+                {visits.length.toLocaleString('pt-BR')}
               </span>
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center text-center p-3">
-            <div className="w-10 h-10 rounded-full bg-[#f2f3ff] flex items-center justify-center text-[#969cb0] mb-1.5">
-              <PieChart aria-hidden="true" className="w-4 h-4" />
+          <div className="flex flex-col items-center justify-center p-3 text-center">
+            <div className="mb-1.5 flex h-10 w-10 items-center justify-center rounded-full bg-[#f2f3ff] text-[#969cb0]">
+              <PieChart aria-hidden="true" className="h-4 w-4" />
             </div>
             <span className="text-xs font-semibold text-[#131b2e]">
-              Nenhum clique recebido ainda
+              {eventsAvailable ? 'Sem visitas nos últimos 7 dias' : 'Analytics indisponível'}
             </span>
-            <span className="text-[10px] text-[#777587] max-w-[170px] mt-0.5">
-              A distribuição aparecerá quando seus links receberem acessos.
+            <span className="mt-0.5 max-w-[190px] text-[10px] text-[#777587]">
+              {eventsAvailable
+                ? 'A distribuição aparecerá quando sua página receber visitas.'
+                : 'Não foi possível carregar as origens das visitas.'}
             </span>
           </div>
         )}
       </div>
 
-      {/* Sources Breakdown Grid */}
-      {hasTraffic && sources.length > 0 && (
-        <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-2 text-xs">
-          {sources.map((item) => (
-            <div key={item.name} className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-[#464555] truncate">
+      {eventsAvailable && sources.length > 0 && (
+        <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
+          {sources.map((source) => (
+            <div key={source.name} className="flex items-center justify-between">
+              <span className="flex min-w-0 items-center gap-1.5 truncate text-[#464555]">
                 <span
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{ backgroundColor: item.color }}
+                  className="h-2 w-2 shrink-0 rounded-full"
+                  style={{ backgroundColor: source.color }}
                 />
-                <span className="truncate">{item.name}</span>
+                <span className="truncate" title={source.name}>
+                  {source.name}
+                </span>
               </span>
-              <span className="font-bold text-[#131b2e] shrink-0 ml-1">{item.pct}%</span>
+              <span className="ml-1 shrink-0 font-bold text-[#131b2e]">
+                {source.pct.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%
+              </span>
             </div>
           ))}
         </div>

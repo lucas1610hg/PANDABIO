@@ -38,7 +38,7 @@ import {
 } from '../theme/presets';
 import { loadGoogleFont } from '../theme/loadFont';
 import { buttonFxColors } from '../theme/effectColors';
-import { getSafeExternalUrl, getSafeImageUrl } from '../utils/externalUrl';
+import { getSafeExternalUrl, getSafeImageUrl, isShopeeUrl } from '../utils/externalUrl';
 import { getPreviewThemeTokens } from '../theme/themeTokens';
 
 export type PreviewDevice = 'mobile' | 'desktop';
@@ -288,7 +288,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
   const textSizeClass = TEXT_SIZES.find((s) => s.id === theme.textSize) || TEXT_SIZES[1];
 
   const getButtonStyle = (extraClass = ''): { className: string; style?: React.CSSProperties } => {
-    const base = `w-full min-w-0 max-w-full font-bold ${buttonSize.padding} ${buttonSize.text} ${buttonRadius} ${animation} ${theme.buttonGlow ? 'pb-button-glow' : ''} ${extraClass}`;
+    const base = `w-full min-w-0 max-w-full min-h-11 font-bold ${buttonSize.padding} ${buttonSize.text} ${buttonRadius} ${animation} ${theme.buttonGlow ? 'pb-button-glow' : ''} ${extraClass}`;
     const color = theme.customButtonColor ? accent : undefined;
     const text = theme.customButtonTextColor ? accentText : '#ffffff';
     const shadowClass = theme.buttonShadow === false ? 'shadow-none' : 'shadow-sm';
@@ -331,7 +331,12 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
     }
   };
 
-  const renderBlockButton = (children: React.ReactNode, href?: string, block?: PageBlock) => {
+  const renderBlockButton = (
+    children: React.ReactNode,
+    href?: string,
+    block?: PageBlock,
+    targetId?: string,
+  ) => {
     const { className, style } = getButtonStyle();
 
     const normalizedHref = getSafeExternalUrl(href);
@@ -343,7 +348,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
           rel="noopener noreferrer"
           className={`${className} text-center`}
           style={style}
-          onClick={() => block && onInteractiveClick?.(block)}
+          onClick={() => block && onInteractiveClick?.(block, targetId)}
         >
           {children}
         </a>
@@ -355,7 +360,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
         type="button"
         className={`${className} text-center`}
         style={style}
-        onClick={() => interactive && block && onInteractiveClick?.(block)}
+        onClick={() => interactive && block && onInteractiveClick?.(block, targetId)}
       >
         {children}
       </button>
@@ -513,6 +518,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                       </span>,
                       link.url,
                       block,
+                      link.id,
                     )}
                   </React.Fragment>
                 );
@@ -787,9 +793,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                   {block.title || 'Meus produtos'}
                 </span>
               </div>
-              <div
-                className={`grid gap-2 ${block.products!.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}
-              >
+              <div className="grid grid-cols-1 gap-2 min-[360px]:grid-cols-2">
                 {block.products!.map((product) => (
                   <div
                     key={product.id}
@@ -830,9 +834,9 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                         <a
                           href={getSafeExternalUrl(product.link) || undefined}
                           rel="noopener noreferrer"
-                          target="_blank"
+                          target={isShopeeUrl(product.link) ? undefined : '_blank'}
                           onClick={() => onInteractiveClick?.(block, product.id)}
-                          className={`block w-full mt-1.5 py-1.5 text-[10px] font-bold text-center ${buttonRadius} ${animation}`}
+                          className={`block min-h-11 w-full px-2 py-2.5 mt-1.5 text-xs font-bold text-center ${buttonRadius} ${animation}`}
                           style={{ ...fxVars(accent), backgroundColor: accent, color: accentText }}
                         >
                           {product.purchaseType === 'whatsapp' ? 'Falar no WhatsApp' : 'Comprar'}
@@ -841,7 +845,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
                         <button
                           type="button"
                           onClick={() => interactive && onInteractiveClick?.(block, product.id)}
-                          className={`block w-full mt-1.5 py-1.5 text-[10px] font-bold text-center ${buttonRadius} ${animation}`}
+                          className={`block min-h-11 w-full px-2 py-2.5 mt-1.5 text-xs font-bold text-center ${buttonRadius} ${animation}`}
                           style={{ ...fxVars(accent), backgroundColor: accent, color: accentText }}
                         >
                           {product.purchaseType === 'whatsapp' ? 'Falar no WhatsApp' : 'Comprar'}
@@ -876,9 +880,9 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
             {interactive && getSafeExternalUrl(block.url) ? (
               <a
                 href={getSafeExternalUrl(block.url) || undefined}
-                target="_blank"
+                target={isShopeeUrl(block.url) ? undefined : '_blank'}
                 rel="noopener noreferrer"
-                className={`block w-full mt-2.5 py-2.5 text-xs font-bold text-center ${buttonRadius} ${animation}`}
+                className={`block min-h-11 w-full mt-2.5 px-3 py-2.5 text-xs font-bold text-center ${buttonRadius} ${animation}`}
                 style={{ ...fxVars(accent), backgroundColor: accent, color: accentText }}
                 onClick={() => onInteractiveClick?.(block)}
               >
@@ -887,7 +891,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
             ) : (
               <button
                 type="button"
-                className={`w-full mt-2.5 py-2.5 text-xs font-bold ${buttonRadius} ${animation}`}
+                className={`w-full min-h-11 mt-2.5 px-3 py-2.5 text-xs font-bold ${buttonRadius} ${animation}`}
                 style={{ ...fxVars(accent), backgroundColor: accent, color: accentText }}
                 onClick={() => interactive && onInteractiveClick?.(block)}
               >

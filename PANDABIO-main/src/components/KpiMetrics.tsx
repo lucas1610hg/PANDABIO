@@ -1,354 +1,187 @@
-import React, { memo } from 'react';
-import { Eye, Link as LinkIcon, Users, Target, ArrowUp } from 'lucide-react';
+import React from 'react';
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  Eye,
+  Link as LinkIcon,
+  Minus,
+  Target,
+  Users,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 export interface KpiData {
-  visits: number;
-  visitsGrowth: number;
-  ctrGeneral: number;
-
-  clicks: number;
-  clicksGrowth: number;
-  clickRate: number;
-
+  visits: number | null;
+  visitsGrowth: number | null;
+  uniqueVisitors: number | null;
+  clicks: number | null;
+  clicksGrowth: number | null;
+  clickRate: number | null;
   leads: number;
-  leadsGrowth: number;
-  leadConversionRate: number;
-
-  conversions: number;
-  conversionsGrowth: number;
-  finalConversionRate: number;
+  leadsGrowth: number | null;
+  leadConversionRate: number | null;
+  conversions: number | null;
+  conversionsGrowth: number | null;
+  finalConversionRate: number | null;
 }
 
 interface KpiMetricsProps {
   data?: KpiData;
 }
 
-export const KpiMetrics = memo<KpiMetricsProps>(
-  ({
-    data = {
-      visits: 0,
-      visitsGrowth: 0,
-      ctrGeneral: 0,
+interface MetricCardData {
+  id: string;
+  label: string;
+  value: number | null;
+  growth: number | null;
+  detailLabel: string;
+  detailValue: number | null;
+  icon: LucideIcon;
+  color: string;
+  iconBackground: string;
+}
 
-      clicks: 0,
-      clicksGrowth: 0,
-      clickRate: 0,
+const formatNumber = (value: number | null) =>
+  value === null ? '—' : value.toLocaleString('pt-BR');
 
-      leads: 0,
-      leadsGrowth: 0,
-      leadConversionRate: 0,
+const formatPercentage = (value: number | null) =>
+  value === null ? '—' : `${value.toFixed(1).replace('.', ',')}%`;
 
-      conversions: 0,
-      conversionsGrowth: 0,
-      finalConversionRate: 0,
+const GrowthIndicator: React.FC<{ value: number | null; metricAvailable: boolean }> = ({
+  value,
+  metricAvailable,
+}) => {
+  if (!metricAvailable) {
+    return <span className="text-neutral-gray">Dados indisponíveis</span>;
+  }
+  if (value === null) {
+    return <span className="text-neutral-gray">Sem base comparativa</span>;
+  }
+
+  const isPositive = value > 0;
+  const isNegative = value < 0;
+  const Icon = isPositive ? ArrowUpRight : isNegative ? ArrowDownRight : Minus;
+  const colorClass = isPositive
+    ? 'text-secondary-green-dark'
+    : isNegative
+      ? 'text-red-600'
+      : 'text-neutral-gray';
+  const sign = isPositive ? '+' : '';
+
+  return (
+    <span className={`inline-flex items-center gap-0.5 ${colorClass}`}>
+      <Icon aria-hidden="true" className="h-3.5 w-3.5" />
+      <span className="font-semibold">
+        {sign}
+        {value.toFixed(1).replace('.', ',')}%
+      </span>
+      <span>vs. 7 dias anteriores</span>
+    </span>
+  );
+};
+
+export const KpiMetrics: React.FC<KpiMetricsProps> = ({
+  data = {
+    visits: null,
+    visitsGrowth: null,
+    uniqueVisitors: null,
+    clicks: null,
+    clicksGrowth: null,
+    clickRate: null,
+    leads: 0,
+    leadsGrowth: null,
+    leadConversionRate: null,
+    conversions: null,
+    conversionsGrowth: null,
+    finalConversionRate: null,
+  },
+}) => {
+  const metrics: MetricCardData[] = [
+    {
+      id: 'kpi-card-visits',
+      label: 'Visitas à página',
+      value: data.visits,
+      growth: data.visitsGrowth,
+      detailLabel: 'Visitantes únicos',
+      detailValue: data.uniqueVisitors,
+      icon: Eye,
+      color: 'text-primary-orange',
+      iconBackground: 'bg-primary-orange-light',
     },
-  }) => {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {/* Card 1: Visitas à página */}
-        <div
-          id="kpi-card-visits"
-          className="flex flex-col justify-between bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] border border-neutral-lighter/60 hover:shadow-md transition-all group"
-        >
-          <div>
-            <div className="flex items-center justify-between">
+    {
+      id: 'kpi-card-clicks',
+      label: 'Cliques nos links',
+      value: data.clicks,
+      growth: data.clicksGrowth,
+      detailLabel: 'CTR (cliques / visitas)',
+      detailValue: data.clickRate,
+      icon: LinkIcon,
+      color: 'text-secondary-green',
+      iconBackground: 'bg-secondary-green-light',
+    },
+    {
+      id: 'kpi-card-leads',
+      label: 'Leads capturados',
+      value: data.leads,
+      growth: data.leadsGrowth,
+      detailLabel: 'Conversão (visita → lead)',
+      detailValue: data.leadConversionRate,
+      icon: Users,
+      color: 'text-secondary-teal',
+      iconBackground: 'bg-secondary-teal-light',
+    },
+    {
+      id: 'kpi-card-conversions',
+      label: 'Vendas registradas',
+      value: data.conversions,
+      growth: data.conversionsGrowth,
+      detailLabel: 'Conversão (clique → venda)',
+      detailValue: data.finalConversionRate,
+      icon: Target,
+      color: 'text-primary-orange',
+      iconBackground: 'bg-primary-orange-light',
+    },
+  ];
+
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {metrics.map((metric) => {
+        const Icon = metric.icon;
+        return (
+          <article
+            id={metric.id}
+            key={metric.id}
+            className="flex flex-col justify-between rounded-2xl border border-neutral-lighter/60 bg-white p-4 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] transition-shadow hover:shadow-md"
+          >
+            <div>
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-primary-orange-light flex items-center justify-center text-primary-orange">
-                  <Eye aria-hidden="true" className="w-5 h-5" />
+                <div
+                  className={`flex h-9 w-9 items-center justify-center rounded-xl ${metric.iconBackground} ${metric.color}`}
+                >
+                  <Icon aria-hidden="true" className="h-5 w-5" />
                 </div>
-                <span className="text-xs font-medium text-neutral-gray">Visitas à página</span>
+                <span className="text-xs font-medium text-neutral-gray">{metric.label}</span>
               </div>
-              <span className="text-primary-orange">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                  />
-                </svg>
+
+              <div className="mt-4">
+                <span className="text-3xl font-bold leading-none tracking-tight text-neutral-dark sm:text-[32px]">
+                  {formatNumber(metric.value)}
+                </span>
+                <span className="mt-2 flex min-h-4 items-center text-[11px] font-medium">
+                  <GrowthIndicator value={metric.growth} metricAvailable={metric.value !== null} />
+                </span>
+              </div>
+            </div>
+
+            <div className="-mx-4 -mb-4 mt-4 flex items-center justify-between rounded-b-2xl bg-neutral-light/70 px-4 py-2">
+              <span className="text-[11px] text-neutral-gray">{metric.detailLabel}</span>
+              <span className="text-[11px] font-bold text-neutral-dark">
+                {formatPercentage(metric.detailValue)}
               </span>
             </div>
-
-            <div className="flex items-baseline justify-between mt-4">
-              <div className="flex flex-col">
-                <span className="text-3xl sm:text-[32px] font-bold text-neutral-dark leading-none tracking-tight">
-                  {data.visits.toLocaleString('pt-BR')}
-                </span>
-                <span className="flex items-center gap-1 text-[11px] text-neutral-gray mt-1.5 font-medium">
-                  {data.visitsGrowth > 0 ? (
-                    <>
-                      <ArrowUp
-                        aria-hidden="true"
-                        className="w-3.5 h-3.5 text-secondary-green-dark"
-                      />
-                      <span className="text-secondary-green-dark font-semibold">
-                        +{data.visitsGrowth}%
-                      </span>{' '}
-                      nos últimos 7 dias
-                    </>
-                  ) : (
-                    <span>Últimos 7 dias</span>
-                  )}
-                </span>
-              </div>
-
-              {/* Sparkline Orange */}
-              <div className="w-20 h-10 shrink-0">
-                <svg className="w-full h-full overflow-visible" viewBox="0 0 80 40">
-                  <path
-                    d={data.visits > 0 ? 'M0,32 Q20,28 35,20 T70,8 L80,6' : 'M0,25 L80,25'}
-                    fill="none"
-                    stroke="#FF7A00"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2.5"
-                    strokeDasharray={data.visits > 0 ? 'none' : '3 3'}
-                  />
-                  <circle cx="80" cy={data.visits > 0 ? 6 : 25} fill="#FF7A00" r="3" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between pt-2 mt-4 bg-neutral-light/70 -mx-4 -mb-4 px-4 py-2 rounded-b-2xl">
-            <span className="text-[11px] text-neutral-gray">CTR (clique geral)</span>
-            <span className="text-[11px] font-bold text-neutral-dark">
-              {data.ctrGeneral.toFixed(1).replace('.', ',')}%
-            </span>
-          </div>
-        </div>
-
-        {/* Card 2: Cliques nos links */}
-        <div
-          id="kpi-card-clicks"
-          className="flex flex-col justify-between bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] border border-neutral-lighter/60 hover:shadow-md transition-all group"
-        >
-          <div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-secondary-green-light flex items-center justify-center text-secondary-green">
-                  <LinkIcon className="w-5 h-5" />
-                </div>
-                <span className="text-xs font-medium text-neutral-gray">Cliques nos links</span>
-              </div>
-              <span className="text-secondary-green">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                  />
-                </svg>
-              </span>
-            </div>
-
-            <div className="flex items-baseline justify-between mt-4">
-              <div className="flex flex-col">
-                <span className="text-3xl sm:text-[32px] font-bold text-neutral-dark leading-none tracking-tight">
-                  {data.clicks.toLocaleString('pt-BR')}
-                </span>
-                <span className="flex items-center gap-1 text-[11px] text-neutral-gray mt-1.5 font-medium">
-                  {data.clicksGrowth > 0 ? (
-                    <>
-                      <ArrowUp
-                        aria-hidden="true"
-                        className="w-3.5 h-3.5 text-secondary-green-dark"
-                      />
-                      <span className="text-secondary-green-dark font-semibold">
-                        +{data.clicksGrowth}%
-                      </span>{' '}
-                      nos últimos 7 dias
-                    </>
-                  ) : (
-                    <span>Últimos 7 dias</span>
-                  )}
-                </span>
-              </div>
-
-              {/* Sparkline Green */}
-              <div className="w-20 h-10 shrink-0">
-                <svg className="w-full h-full overflow-visible" viewBox="0 0 80 40">
-                  <path
-                    d={data.clicks > 0 ? 'M0,34 Q25,30 45,16 T75,10 L80,8' : 'M0,25 L80,25'}
-                    fill="none"
-                    stroke="#10B981"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2.5"
-                    strokeDasharray={data.clicks > 0 ? 'none' : '3 3'}
-                  />
-                  <circle cx="80" cy={data.clicks > 0 ? 8 : 25} fill="#10B981" r="3" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between pt-2 mt-4 bg-neutral-light/70 -mx-4 -mb-4 px-4 py-2 rounded-b-2xl">
-            <span className="text-[11px] text-neutral-gray">Taxa de clique</span>
-            <span className="text-[11px] font-bold text-neutral-dark">
-              {data.clickRate.toFixed(1).replace('.', ',')}%
-            </span>
-          </div>
-        </div>
-
-        {/* Card 3: Leads capturados */}
-        <div
-          id="kpi-card-leads"
-          className="flex flex-col justify-between bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] border border-neutral-lighter/60 hover:shadow-md transition-all group"
-        >
-          <div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-secondary-teal-light flex items-center justify-center text-secondary-teal">
-                  <Users aria-hidden="true" className="w-5 h-5" />
-                </div>
-                <span className="text-xs font-medium text-neutral-gray">Leads capturados</span>
-              </div>
-              <span className="text-secondary-teal">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                  />
-                </svg>
-              </span>
-            </div>
-
-            <div className="flex items-baseline justify-between mt-4">
-              <div className="flex flex-col">
-                <span className="text-3xl sm:text-[32px] font-bold text-neutral-dark leading-none tracking-tight">
-                  {data.leads.toLocaleString('pt-BR')}
-                </span>
-                <span className="flex items-center gap-1 text-[11px] text-neutral-gray mt-1.5 font-medium">
-                  {data.leadsGrowth > 0 ? (
-                    <>
-                      <ArrowUp
-                        aria-hidden="true"
-                        className="w-3.5 h-3.5 text-secondary-green-dark"
-                      />
-                      <span className="text-secondary-green-dark font-semibold">
-                        +{data.leadsGrowth}%
-                      </span>{' '}
-                      nos últimos 7 dias
-                    </>
-                  ) : (
-                    <span>Últimos 7 dias</span>
-                  )}
-                </span>
-              </div>
-
-              {/* Sparkline Blue/Teal */}
-              <div className="w-20 h-10 shrink-0">
-                <svg className="w-full h-full overflow-visible" viewBox="0 0 80 40">
-                  <path
-                    d={data.leads > 0 ? 'M0,30 Q20,32 40,22 T65,14 L80,10' : 'M0,25 L80,25'}
-                    fill="none"
-                    stroke="#0284C7"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2.5"
-                    strokeDasharray={data.leads > 0 ? 'none' : '3 3'}
-                  />
-                  <circle cx="80" cy={data.leads > 0 ? 10 : 25} fill="#0284C7" r="3" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between pt-2 mt-4 bg-neutral-light/70 -mx-4 -mb-4 px-4 py-2 rounded-b-2xl">
-            <span className="text-[11px] text-neutral-gray">Conversão (visita → lead)</span>
-            <span className="text-[11px] font-bold text-neutral-dark">
-              {data.leadConversionRate.toFixed(1).replace('.', ',')}%
-            </span>
-          </div>
-        </div>
-
-        {/* Card 4: Conversões */}
-        <div
-          id="kpi-card-conversions"
-          className="flex flex-col justify-between bg-white rounded-2xl p-4 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] border border-neutral-lighter/60 hover:shadow-md transition-all group"
-        >
-          <div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-primary-orange-light flex items-center justify-center text-primary-orange">
-                  <Target aria-hidden="true" className="w-5 h-5" />
-                </div>
-                <span className="text-xs font-medium text-neutral-gray">Conversões</span>
-              </div>
-              <span className="text-primary-orange">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                  />
-                </svg>
-              </span>
-            </div>
-
-            <div className="flex items-baseline justify-between mt-4">
-              <div className="flex flex-col">
-                <span className="text-3xl sm:text-[32px] font-bold text-neutral-dark leading-none tracking-tight">
-                  {data.conversions.toLocaleString('pt-BR')}
-                </span>
-                <span className="flex items-center gap-1 text-[11px] text-neutral-gray mt-1.5 font-medium">
-                  {data.conversionsGrowth > 0 ? (
-                    <>
-                      <ArrowUp
-                        aria-hidden="true"
-                        className="w-3.5 h-3.5 text-secondary-green-dark"
-                      />
-                      <span className="text-secondary-green-dark font-semibold">
-                        +{data.conversionsGrowth}%
-                      </span>{' '}
-                      nos últimos 7 dias
-                    </>
-                  ) : (
-                    <span>Últimos 7 dias</span>
-                  )}
-                </span>
-              </div>
-
-              {/* Sparkline Orange */}
-              <div className="w-20 h-10 shrink-0">
-                <svg className="w-full h-full overflow-visible" viewBox="0 0 80 40">
-                  <path
-                    d={data.conversions > 0 ? 'M0,32 Q25,35 48,20 T72,14 L80,6' : 'M0,25 L80,25'}
-                    fill="none"
-                    stroke="#FF7A00"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2.5"
-                    strokeDasharray={data.conversions > 0 ? 'none' : '3 3'}
-                  />
-                  <circle cx="80" cy={data.conversions > 0 ? 6 : 25} fill="#FF7A00" r="3" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between pt-2 mt-4 bg-neutral-light/70 -mx-4 -mb-4 px-4 py-2 rounded-b-2xl">
-            <span className="text-[11px] text-neutral-gray">Conversão final (venda)</span>
-            <span className="text-[11px] font-bold text-neutral-dark">
-              {data.finalConversionRate.toFixed(1).replace('.', ',')}%
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  },
-  (prevProps, nextProps) => {
-    return (
-      prevProps.data?.visits === nextProps.data?.visits &&
-      prevProps.data?.clicks === nextProps.data?.clicks &&
-      prevProps.data?.leads === nextProps.data?.leads &&
-      prevProps.data?.conversions === nextProps.data?.conversions
-    );
-  },
-);
+          </article>
+        );
+      })}
+    </div>
+  );
+};

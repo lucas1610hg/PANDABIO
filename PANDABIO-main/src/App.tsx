@@ -404,8 +404,13 @@ function AdminApp() {
                     <VisitsChart
                       totalVisits={realKpiData.visits}
                       events={remoteData.publicAnalytics.events}
+                      eventsAvailable={remoteData.publicAnalytics.eventsAvailable}
                     />
-                    <ClicksByLinkChart links={links} />
+                    <ClicksByLinkChart
+                      links={links}
+                      events={remoteData.publicAnalytics.events}
+                      eventsAvailable={remoteData.publicAnalytics.eventsAvailable}
+                    />
                   </div>
 
                   {/* Bottom Grid with 4 Strategic Cards */}
@@ -416,7 +421,7 @@ function AdminApp() {
                       onAddLink={() => setIsCreateItemOpen(true)}
                       onReorder={handleReorderLinks}
                     />
-                    <TrafficSourcesCard links={links} />
+                    <TrafficSourcesCard analytics={remoteData.publicAnalytics} />
                     <RecentActivityCard
                       activities={activities}
                       onViewAll={() => setIsReportModalOpen(true)}

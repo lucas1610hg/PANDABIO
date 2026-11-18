@@ -50,7 +50,7 @@ describe('statistics helpers', () => {
     expect(getPercentageChange(0, 0)).toBe(0);
   });
 
-  it('counts unique visitors and falls back to views for legacy events', () => {
+  it('counts unique visitors only when every view has a visitor id', () => {
     const events = [
       { ...event('view', '2026-09-29T10:00:00.000Z'), visitorId: 'visitor-1' },
       { ...event('view', '2026-09-29T11:00:00.000Z'), visitorId: 'visitor-1' },
@@ -65,6 +65,7 @@ describe('statistics helpers', () => {
           return legacyEvent;
         }),
       ),
-    ).toBe(3);
+    ).toBeNull();
+    expect(countUniqueVisitors([])).toBe(0);
   });
 });

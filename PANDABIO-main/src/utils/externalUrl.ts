@@ -15,6 +15,14 @@ export const getSafeExternalUrl = (value?: string): string | null => {
   }
 };
 
+export const isShopeeUrl = (value?: string): boolean => {
+  const safeUrl = getSafeExternalUrl(value);
+  if (!safeUrl) return false;
+
+  const hostname = new URL(safeUrl).hostname.toLowerCase();
+  return hostname === 'shopee.com.br' || hostname.endsWith('.shopee.com.br');
+};
+
 export const getSafeImageUrl = (value?: string): string | null => {
   const candidate = value?.trim();
   if (!candidate) return null;

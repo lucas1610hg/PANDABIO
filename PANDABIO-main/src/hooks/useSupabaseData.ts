@@ -19,12 +19,14 @@ import {
   PublicAnalyticsService,
   PublicAnalyticsSummary,
 } from '../supabase/services/publicAnalyticsService';
+import { buildDashboardAnalytics } from '../utils/dashboardAnalytics';
 
 const emptyPublicAnalytics: PublicAnalyticsSummary = {
   visits: 0,
   clicks: 0,
-  uniqueVisitors: 0,
+  uniqueVisitors: null,
   events: [],
+  eventsAvailable: false,
   sales: [],
   salesAvailable: false,
 };
@@ -371,52 +373,15 @@ export const useSupabaseData = () => {
     }
   }, []);
 
-  // Cálculo de KPIs
-  const realKpiData: KpiData = (() => {
-    const totalClicks =
-      publicAnalytics.clicks || links.reduce((sum, l) => sum + (l.clicks || 0), 0);
-    const totalLeads = leads.length;
-    const totalConversions = products.reduce((sum, p) => sum + (p.salesCount || 0), 0);
-    const visits = publicAnalytics.visits;
-    const ctr = visits > 0 ? (totalClicks / visits) * 100 : 0;
-    const leadRate = totalClicks > 0 ? (totalLeads / totalClicks) * 100 : 0;
-    const convRate = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
-
-    return {
-      visits,
-      visitsGrowth: 0,
-      ctrGeneral: ctr,
-      clicks: totalClicks,
-      clicksGrowth: 0,
-      clickRate: ctr,
-      leads: totalLeads,
-      leadsGrowth: 0,
-      leadConversionRate: leadRate,
-      conversions: totalConversions,
-      conversionsGrowth: 0,
-      finalConversionRate: convRate,
-    };
-  })();
-
-  // Cálculo de Funil
-  const funnelData: FunnelData = (() => {
-    const totalClicks =
-      publicAnalytics.clicks || links.reduce((sum, l) => sum + (l.clicks || 0), 0);
-    const totalLeads = leads.length;
-    const totalConversions = products.reduce((sum, p) => sum + (p.salesCount || 0), 0);
-    const visits = publicAnalytics.visits;
-
-    return {
-      visits,
-      clicks: totalClicks,
-      leads: totalLeads,
-      conversions: totalConversions,
-      ctr: visits > 0 ? (totalClicks / visits) * 100 : 0,
-      leadRate: totalClicks > 0 ? (totalLeads / totalClicks) * 100 : 0,
-      conversionRate: totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0,
-      leadToConversionRate: totalLeads > 0 ? (totalConversions / totalLeads) * 100 : 0,
-    };
-  })();
+  const dashboardAnalytics = buildDashboardAnalytics({
+    events: publicAnalytics.events,
+    eventsAvailable: publicAnalytics.eventsAvailable,
+    leads,
+    sales: publicAnalytics.sales,
+    salesAvailable: publicAnalytics.salesAvailable,
+  });
+  const realKpiData: KpiData = dashboardAnalytics.kpis;
+  const funnelData: FunnelData = dashboardAnalytics.funnel;
 
   return {
     user,

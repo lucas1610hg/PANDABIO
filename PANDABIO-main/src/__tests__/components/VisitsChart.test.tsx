@@ -36,7 +36,7 @@ describe('VisitsChart', () => {
   });
 
   it('does not fabricate a trend when only an accumulated total is available', () => {
-    render(<VisitsChart totalVisits={12} events={[]} />);
+    render(<VisitsChart totalVisits={12} events={[]} eventsAvailable />);
 
     expect(screen.getByText('Histórico por período indisponível')).toBeTruthy();
     expect(screen.getByText(/Há 12 visitas acumuladas/)).toBeTruthy();
@@ -44,9 +44,16 @@ describe('VisitsChart', () => {
 
   it('distinguishes an empty selected period from missing date history', () => {
     const oldEvent = event('view', new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString());
-    render(<VisitsChart totalVisits={1} events={[oldEvent]} />);
+    render(<VisitsChart totalVisits={1} events={[oldEvent]} eventsAvailable />);
 
     expect(screen.getByText('Sem visitas neste período')).toBeTruthy();
     expect(screen.queryByText('Histórico por período indisponível')).toBeNull();
+  });
+
+  it('states clearly when the event analytics cannot be loaded', () => {
+    render(<VisitsChart eventsAvailable={false} />);
+
+    expect(screen.getByText('Analytics indisponível')).toBeTruthy();
+    expect(screen.getByText(/Não foi possível carregar o histórico de eventos/)).toBeTruthy();
   });
 });

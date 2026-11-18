@@ -93,6 +93,28 @@ describe('PagePreview link block', () => {
     expect(screen.queryByText('Outro link')).toBeNull();
   });
 
+  it('attributes clicks on each bio link to that individual link id', async () => {
+    const user = userEvent.setup();
+    const onInteractiveClick = vi.fn();
+    const block = { ...createPageBlock('link', 0), title: 'Links da bio' };
+
+    render(
+      <PagePreview
+        profile={profile}
+        theme={defaultPageTheme()}
+        blocks={[block]}
+        links={[link({ id: 'instagram-link', title: 'Instagram' })]}
+        device="mobile"
+        interactive
+        onInteractiveClick={onInteractiveClick}
+      />,
+    );
+
+    await user.click(screen.getByRole('link', { name: /Instagram/i }));
+
+    expect(onInteractiveClick).toHaveBeenCalledWith(block, 'instagram-link');
+  });
+
   it('exposes interactive actions for booking and products without a URL', async () => {
     const user = userEvent.setup();
     const onInteractiveClick = vi.fn();
@@ -112,6 +134,56 @@ describe('PagePreview link block', () => {
     await user.click(screen.getByRole('button', { name: 'Comprar' }));
 
     expect(onInteractiveClick).toHaveBeenCalledTimes(2);
+  });
+
+  it('opens Shopee catalog links in the same tab so mobile app links can be handled', () => {
+    const block = {
+      ...createPageBlock('produto', 0),
+      products: [
+        {
+          id: 'shopee-product',
+          name: 'Produto Shopee',
+          link: 'https://shopee.com.br/product/811034337/22096069216',
+        },
+      ],
+    };
+
+    render(
+      <PagePreview
+        profile={profile}
+        theme={defaultPageTheme()}
+        blocks={[block]}
+        device="mobile"
+        interactive
+      />,
+    );
+
+    const buyLink = screen.getByRole('link', { name: 'Comprar' });
+    expect(buyLink.getAttribute('href')).toBe(
+      'https://shopee.com.br/product/811034337/22096069216',
+    );
+    expect(buyLink.hasAttribute('target')).toBe(false);
+    expect(buyLink.className).toContain('min-h-11');
+  });
+
+  it('keeps non-Shopee product links opening in a new tab', () => {
+    const block = {
+      ...createPageBlock('produto', 0),
+      url: 'https://loja.example.com/produto',
+      productName: 'Produto externo',
+    };
+
+    render(
+      <PagePreview
+        profile={profile}
+        theme={defaultPageTheme()}
+        blocks={[block]}
+        device="mobile"
+        interactive
+      />,
+    );
+
+    expect(screen.getByRole('link', { name: 'Comprar' }).getAttribute('target')).toBe('_blank');
   });
 
   it('submits custom forms through preview callback', async () => {

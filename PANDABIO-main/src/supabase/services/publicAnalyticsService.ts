@@ -1,6 +1,9 @@
 import { isSupabaseConfigured, supabase } from '../client';
 import { ProfileService } from './profileService';
 import { TrackingEventType } from '../../types';
+import { fetchAllPages } from '../../utils/fetchAllPages';
+import { countUniqueVisitors, isClickEvent, isViewEvent } from '../../utils/statistics';
+import { getOrCreateVisitorId } from '../../utils/visitorId';
 
 export interface PublicAnalyticsEvent {
   eventType: TrackingEventType;
@@ -25,8 +28,9 @@ export interface PublicAnalyticsSale {
 export interface PublicAnalyticsSummary {
   visits: number;
   clicks: number;
-  uniqueVisitors: number;
+  uniqueVisitors: number | null;
   events: PublicAnalyticsEvent[];
+  eventsAvailable: boolean;
   sales: PublicAnalyticsSale[];
   salesAvailable: boolean;
 }
@@ -75,12 +79,12 @@ export function isMissingRelationError(error: unknown): boolean {
   const message = typeof candidate.message === 'string' ? candidate.message : '';
 
   return (
-    code === 'PGRST205' ||
-    code === 'PGRST202' ||
-    code === 'PGRST204' ||
+    ['PGRST202', 'PGRST204', 'PGRST205', '42P01', '42703', '42883'].includes(code) ||
     /relation .* does not exist/i.test(message) ||
     /column .* does not exist/i.test(message) ||
-    /public_page_events|record_public_page_event/i.test(message)
+    /function .* does not exist/i.test(message) ||
+    /could not find the function/i.test(message) ||
+    /schema cache.*(?:table|function|column)/i.test(message)
   );
 }
 
@@ -121,7 +125,7 @@ export class PublicAnalyticsService {
       };
       let { error } = await supabase.rpc('record_public_page_event', payload);
 
-      if (error) {
+      if (error && isMissingRelationError(error)) {
         const legacyResult = await supabase.rpc('record_public_page_event', {
           p_username: payload.p_username,
           p_event_type: payload.p_event_type === 'view' ? 'view' : 'click',
@@ -131,7 +135,7 @@ export class PublicAnalyticsService {
           p_visitor_id: payload.p_visitor_id,
         });
         error = legacyResult.error;
-        if (error) {
+        if (error && isMissingRelationError(error)) {
           const oldestResult = await supabase.rpc('record_public_page_event', {
             p_username: payload.p_username,
             p_event_type: payload.p_event_type === 'view' ? 'view' : 'click',
@@ -227,43 +231,54 @@ export class PublicAnalyticsService {
         landing_page?: string | null;
         created_at: string;
       };
-      const initialResult = await supabase
-        .from('public_page_events')
-        .select(
-          'event_type, target_id, device_type, referrer, visitor_id, source, medium, campaign, landing_page, created_at',
-        )
-        .eq('profile_id', profileId)
-        .order('created_at', { ascending: true });
-      let data = initialResult.data as RawPublicEvent[] | null;
+      const initialResult = await fetchAllPages<RawPublicEvent>((from, to) =>
+        supabase!
+          .from('public_page_events')
+          .select(
+            'event_type, target_id, device_type, referrer, visitor_id, source, medium, campaign, landing_page, created_at',
+          )
+          .eq('profile_id', profileId)
+          .order('created_at', { ascending: true })
+          .range(from, to)
+          .then(({ data, error }) => ({ data: data as RawPublicEvent[] | null, error })),
+      );
+      let data = initialResult.data;
       let error = initialResult.error;
 
       let hasVisitorColumn = true;
       if (error) {
-        if (isMissingRelationError(error)) {
-          const legacyResult = await supabase
-            .from('analytics')
-            .select('event_type, link_id, device_type, referrer, created_at')
-            .eq('profile_id', profileId)
-            .in('event_type', ['view', 'click'])
-            .order('created_at', { ascending: true });
+        if (!isMissingRelationError(error)) throw error;
 
+        const reducedResult = await fetchAllPages<RawPublicEvent>((from, to) =>
+          supabase!
+            .from('public_page_events')
+            .select('event_type, target_id, device_type, referrer, created_at')
+            .eq('profile_id', profileId)
+            .order('created_at', { ascending: true })
+            .range(from, to)
+            .then(({ data, error }) => ({ data: data as RawPublicEvent[] | null, error })),
+        );
+        data = reducedResult.data;
+        error = reducedResult.error;
+        hasVisitorColumn = false;
+
+        if (error && isMissingRelationError(error)) {
+          const legacyResult = await fetchAllPages<RawPublicEvent>((from, to) =>
+            supabase!
+              .from('analytics')
+              .select('event_type, link_id, device_type, referrer, created_at')
+              .eq('profile_id', profileId)
+              .in('event_type', ['view', 'click'])
+              .order('created_at', { ascending: true })
+              .range(from, to)
+              .then(({ data, error }) => ({ data: data as RawPublicEvent[] | null, error })),
+          );
           if (legacyResult.error) {
             if (isMissingRelationError(legacyResult.error)) return this.emptySummary();
             throw legacyResult.error;
           }
-
-          data = legacyResult.data as RawPublicEvent[] | null;
-          hasVisitorColumn = false;
+          data = legacyResult.data;
           error = null;
-        } else {
-          hasVisitorColumn = false;
-          const legacyResult = await supabase
-            .from('public_page_events')
-            .select('event_type, target_id, device_type, referrer, created_at')
-            .eq('profile_id', profileId)
-            .order('created_at', { ascending: true });
-          data = legacyResult.data as RawPublicEvent[] | null;
-          error = legacyResult.error;
         }
       }
       if (error) throw error;
@@ -283,12 +298,25 @@ export class PublicAnalyticsService {
           createdAt: event.created_at,
         }));
 
-      const salesResult = await supabase
-        .from('product_sales')
-        .select('product_id, quantity, amount, created_at')
-        .eq('profile_id', profileId)
-        .order('created_at', { ascending: true });
+      type RawPublicSale = {
+        product_id: string;
+        quantity: number;
+        amount: number | null;
+        created_at: string;
+      };
+      const salesResult = await fetchAllPages<RawPublicSale>((from, to) =>
+        supabase!
+          .from('product_sales')
+          .select('product_id, quantity, amount, created_at')
+          .eq('profile_id', profileId)
+          .order('created_at', { ascending: true })
+          .range(from, to)
+          .then(({ data, error }) => ({ data: data as RawPublicSale[] | null, error })),
+      );
       const salesAvailable = !salesResult.error;
+      if (salesResult.error && !isMissingRelationError(salesResult.error)) {
+        console.error('Error loading product sales analytics:', salesResult.error);
+      }
       const sales: PublicAnalyticsSale[] = salesAvailable
         ? (salesResult.data || []).map((sale) => ({
             productId: sale.product_id,
@@ -297,23 +325,14 @@ export class PublicAnalyticsService {
             createdAt: sale.created_at,
           }))
         : [];
-      const uniqueVisitorIds = new Set(
-        events
-          .filter((event) => event.eventType === 'view' || event.eventType === 'page_view')
-          .map((event) => event.visitorId),
-      );
-      uniqueVisitorIds.delete(null);
-      const visits = events.filter(
-        (event) => event.eventType === 'view' || event.eventType === 'page_view',
-      ).length;
+      const visits = events.filter(isViewEvent).length;
 
       return {
         visits,
-        clicks: events.filter(
-          (event) => event.eventType === 'click' || event.eventType === 'link_click',
-        ).length,
-        uniqueVisitors: uniqueVisitorIds.size || visits,
+        clicks: events.filter(isClickEvent).length,
+        uniqueVisitors: countUniqueVisitors(events),
         events,
+        eventsAvailable: true,
         sales,
         salesAvailable,
       };
@@ -329,8 +348,9 @@ export class PublicAnalyticsService {
     return {
       visits: 0,
       clicks: 0,
-      uniqueVisitors: 0,
+      uniqueVisitors: null,
       events: [],
+      eventsAvailable: false,
       sales: [],
       salesAvailable: false,
     };
@@ -339,10 +359,16 @@ export class PublicAnalyticsService {
   private static getVisitorId(): string | null {
     if (this.visitorId) return this.visitorId;
 
-    this.visitorId =
-      typeof globalThis.crypto?.randomUUID === 'function'
-        ? globalThis.crypto.randomUUID()
-        : `visitor-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    let storage: Storage | undefined;
+    try {
+      if (typeof window !== 'undefined') storage = window.localStorage;
+    } catch (error) {
+      console.warn('Could not access analytics visitor storage:', error);
+    }
+
+    this.visitorId = getOrCreateVisitorId(storage, (error) => {
+      console.warn('Could not persist analytics visitor ID:', error);
+    });
     return this.visitorId;
   }
 

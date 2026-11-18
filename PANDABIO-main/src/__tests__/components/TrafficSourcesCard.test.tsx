@@ -1,45 +1,59 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { TrafficSourcesCard } from '../../components/TrafficSourcesCard';
-import { BioLink } from '../../types';
+import type {
+  PublicAnalyticsEvent,
+  PublicAnalyticsSummary,
+} from '../../supabase/services/publicAnalyticsService';
 
-const links: BioLink[] = [
-  {
-    id: 'link-a',
-    title: 'Instagram',
-    url: 'https://instagram.com/pandabio',
-    clicks: 3,
-    leads: 0,
-    active: true,
-    icon: 'instagram',
-    type: 'social',
-  },
-  {
-    id: 'link-b',
-    title: 'Portfólio',
-    url: 'https://example.com',
-    clicks: 1,
-    leads: 0,
-    active: true,
-    icon: 'custom',
-    type: 'custom',
-  },
-];
+const now = new Date();
+const event = (source: string | null, referrer: string | null): PublicAnalyticsEvent => ({
+  eventType: 'view',
+  targetId: null,
+  deviceType: 'mobile',
+  referrer,
+  source,
+  createdAt: now.toISOString(),
+});
+
+const analytics = (
+  events: PublicAnalyticsEvent[],
+  eventsAvailable = true,
+): PublicAnalyticsSummary => ({
+  visits: events.length,
+  clicks: 0,
+  uniqueVisitors: events.length,
+  events,
+  eventsAvailable,
+  sales: [],
+  salesAvailable: true,
+});
 
 describe('TrafficSourcesCard', () => {
-  it('labels the chart as link-click distribution and shows each share', () => {
-    render(<TrafficSourcesCard links={links} />);
+  it('shows real visit attribution using UTM source and referrer domain', () => {
+    render(
+      <TrafficSourcesCard
+        analytics={analytics([
+          event('instagram', null),
+          event('instagram', null),
+          event('instagram', null),
+          event(null, 'https://google.com/search'),
+        ])}
+      />,
+    );
 
-    expect(screen.getByRole('heading', { name: 'Cliques por link' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Origem do tráfego' })).toBeTruthy();
+    expect(screen.getByText('instagram')).toBeTruthy();
+    expect(screen.getByText('google.com')).toBeTruthy();
     expect(screen.getByText('75%')).toBeTruthy();
     expect(screen.getByText('25%')).toBeTruthy();
   });
 
-  it('does not show device metrics when no device data is available', () => {
-    render(<TrafficSourcesCard links={[]} />);
+  it('distinguishes missing analytics from an empty period', () => {
+    const { rerender } = render(<TrafficSourcesCard analytics={analytics([], false)} />);
+    expect(screen.getByText('Analytics indisponível')).toBeTruthy();
 
-    expect(screen.getByText('Nenhum clique recebido ainda')).toBeTruthy();
-    expect(screen.queryByText(/Mobile:/)).toBeNull();
-    expect(screen.queryByText(/Desktop:/)).toBeNull();
+    rerender(<TrafficSourcesCard analytics={analytics([])} />);
+    expect(screen.getByText('Sem visitas nos últimos 7 dias')).toBeTruthy();
   });
 });

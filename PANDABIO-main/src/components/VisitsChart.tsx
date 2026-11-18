@@ -19,13 +19,18 @@ const TIMEFRAME_LABEL: Record<Timeframe, string> = {
 };
 
 interface VisitsChartProps {
-  totalVisits?: number;
+  totalVisits?: number | null;
   events?: PublicAnalyticsEvent[];
+  eventsAvailable?: boolean;
 }
 
 const formatNumber = (value: number) => value.toLocaleString('pt-BR');
 
-export const VisitsChart: React.FC<VisitsChartProps> = ({ totalVisits = 0, events = [] }) => {
+export const VisitsChart: React.FC<VisitsChartProps> = ({
+  totalVisits = 0,
+  events = [],
+  eventsAvailable = false,
+}) => {
   const [timeframe, setTimeframe] = useState<Timeframe>('7d');
   const [now] = useState(() => Date.now());
   const chart = useMemo(() => {
@@ -176,16 +181,20 @@ export const VisitsChart: React.FC<VisitsChartProps> = ({ totalVisits = 0, event
             <p className="text-xs sm:text-sm font-bold text-[#131b2e]">
               {hasDatedHistory
                 ? 'Sem visitas neste período'
-                : totalVisits > 0
-                  ? 'Histórico por período indisponível'
-                  : 'Aguardando primeiras visitas'}
+                : !eventsAvailable
+                  ? 'Analytics indisponível'
+                  : totalVisits !== null && totalVisits > 0
+                    ? 'Histórico por período indisponível'
+                    : 'Aguardando primeiras visitas'}
             </p>
             <p className="text-[11px] text-[#777587] max-w-xs mt-1">
               {hasDatedHistory
                 ? 'Não houve visitas nesse intervalo. Amplie o período para consultar o histórico.'
-                : totalVisits > 0
-                  ? `Há ${formatNumber(totalVisits)} visitas acumuladas, mas ainda não existe histórico por data para montar o gráfico.`
-                  : 'Compartilhe o link da sua bio para acompanhar o gráfico de tráfego.'}
+                : !eventsAvailable
+                  ? 'Não foi possível carregar o histórico de eventos. Tente novamente mais tarde.'
+                  : totalVisits !== null && totalVisits > 0
+                    ? `Há ${formatNumber(totalVisits)} visitas acumuladas, mas ainda não existe histórico por data para montar o gráfico.`
+                    : 'Compartilhe o link da sua bio para acompanhar o gráfico de tráfego.'}
             </p>
           </div>
         )}
