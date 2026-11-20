@@ -5,6 +5,7 @@ import {
   createPageBlock,
   duplicatePageBlock,
   movePageBlock,
+  movePageBlockTo,
   normalizePageData,
   normalizeForms,
   reorderPageBlocks,
@@ -86,10 +87,12 @@ describe('page data utilities', () => {
   });
 
   it('duplicates nested block data without sharing mutable references', () => {
+    const form = createDefaultCustomForm();
     const source = {
       ...createPageBlock('produto', 0),
       gallery: { layout: 'grid' as const, images: [{ id: 'image-1', url: 'image.jpg' }] },
       products: [{ id: 'product-1', name: 'Produto' }],
+      form,
     };
     const copy = duplicatePageBlock(source, 1);
 
@@ -98,6 +101,8 @@ describe('page data utilities', () => {
     expect(copy.gallery).not.toBe(source.gallery);
     expect(copy.products).not.toBe(source.products);
     expect(copy.gallery?.images[0]).not.toBe(source.gallery?.images[0]);
+    expect(copy.form).not.toBe(source.form);
+    expect(copy.form?.fields[0]).not.toBe(source.form?.fields[0]);
   });
 
   it('moves blocks and keeps order contiguous', () => {
@@ -108,5 +113,18 @@ describe('page data utilities', () => {
     expect(moved.map((block) => block.order)).toEqual([0, 1]);
     expect(movePageBlock(moved, moved[0].id, 'up')).toBe(moved);
     expect(reorderPageBlocks(moved).map((block) => block.order)).toEqual([0, 1]);
+  });
+
+  it('moves a block to a dropped position and keeps order contiguous', () => {
+    const blocks = [
+      createPageBlock('text', 0),
+      createPageBlock('link', 1),
+      createPageBlock('image', 2),
+    ];
+    const moved = movePageBlockTo(blocks, blocks[0].id, blocks[1].id, 'after');
+
+    expect(moved.map((block) => block.type)).toEqual(['link', 'text', 'image']);
+    expect(moved.map((block) => block.order)).toEqual([0, 1, 2]);
+    expect(movePageBlockTo(moved, moved[0].id, 'missing')).toBe(moved);
   });
 });

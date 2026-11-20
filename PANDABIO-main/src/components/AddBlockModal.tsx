@@ -25,6 +25,11 @@ interface AddBlockModalProps {
 export const AddBlockModal: React.FC<AddBlockModalProps> = ({ isOpen, onClose, onAddBlock }) => {
   const [selectedType, setSelectedType] = useState<BlockType | null>(null);
 
+  const handleClose = () => {
+    setSelectedType(null);
+    onClose();
+  };
+
   const blockTypes = [
     {
       type: 'link' as BlockType,
@@ -92,33 +97,36 @@ export const AddBlockModal: React.FC<AddBlockModalProps> = ({ isOpen, onClose, o
   const handleAdd = () => {
     if (selectedType) {
       onAddBlock(selectedType);
-      setSelectedType(null);
-      onClose();
+      handleClose();
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} titleId="add-block-title" size="lg">
+    <Modal isOpen={isOpen} onClose={handleClose} titleId="add-block-title" size="lg">
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-gray-200">
-        <h2 id="add-block-title" className="text-xl font-bold text-[#131b2e]">
-          Adicionar Bloco
-        </h2>
+      <div className="flex items-center justify-between gap-4 border-b border-gray-100 px-5 py-4 sm:px-6">
+        <div>
+          <h2 id="add-block-title" className="text-lg font-bold text-[#131b2e]">
+            Adicionar bloco
+          </h2>
+          <p className="mt-1 text-xs text-gray-500">Escolha o tipo de conteúdo para sua página.</p>
+        </div>
         <button
-          onClick={onClose}
+          type="button"
+          onClick={handleClose}
           aria-label="Fechar"
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+          className="rounded-xl p-2 transition-colors hover:bg-gray-100 cursor-pointer"
         >
           <X aria-hidden="true" className="w-5 h-5 text-gray-500" />
         </button>
       </div>
 
       {/* Block Types Grid */}
-      <div className="p-6 overflow-y-auto max-h-[60vh]">
+      <div className="max-h-[60vh] overflow-y-auto p-5 sm:p-6">
         <div
-          className="grid grid-cols-2 md:grid-cols-3 gap-4"
+          className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3"
           role="radiogroup"
           aria-label="Tipos de bloco"
         >
@@ -131,19 +139,25 @@ export const AddBlockModal: React.FC<AddBlockModalProps> = ({ isOpen, onClose, o
                 role="radio"
                 aria-checked={selectedType === block.type}
                 onClick={() => setSelectedType(block.type)}
-                className={`p-4 rounded-xl border-2 transition-all text-left cursor-pointer ${
+                className={`group rounded-2xl border p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5E00] focus-visible:ring-offset-2 cursor-pointer ${
                   selectedType === block.type
-                    ? 'border-[#FF5E00] bg-[#FF5E00]/5'
-                    : 'border-gray-200 hover:border-[#FF5E00] hover:bg-[#FF5E00]/5'
+                    ? 'border-[#FF5E00] bg-[#FFF7F0] shadow-sm'
+                    : 'border-gray-200 bg-white hover:border-[#FFB27A] hover:bg-[#FFFAF6]'
                 }`}
               >
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-gray-600" />
+                  <div
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${
+                      selectedType === block.type
+                        ? 'bg-[#FF5E00] text-white'
+                        : 'bg-[#FFF1E6] text-[#E55300] group-hover:bg-[#FFE5D1]'
+                    }`}
+                  >
+                    <Icon aria-hidden="true" className="w-5 h-5" />
                   </div>
                   <span className="font-semibold text-[#131b2e]">{block.label}</span>
                 </div>
-                <p className="text-xs text-gray-500">{block.description}</p>
+                <p className="text-xs leading-5 text-gray-500">{block.description}</p>
               </button>
             );
           })}
@@ -151,14 +165,16 @@ export const AddBlockModal: React.FC<AddBlockModalProps> = ({ isOpen, onClose, o
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
+      <div className="flex items-center justify-between gap-3 border-t border-gray-100 bg-gray-50/80 px-5 py-4 sm:px-6">
         <button
-          onClick={onClose}
+          type="button"
+          onClick={handleClose}
           className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 font-medium transition-colors cursor-pointer"
         >
           Cancelar
         </button>
         <button
+          type="button"
           onClick={handleAdd}
           disabled={!selectedType}
           className="px-6 py-2 rounded-lg bg-[#FF5E00] text-white hover:bg-[#E55300] disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors cursor-pointer"

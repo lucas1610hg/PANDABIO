@@ -204,6 +204,9 @@ export function duplicatePageBlock(block: PageBlock, order: number): PageBlock {
     products: block.products?.map((product) => ({ ...product })),
     socialLinks: block.socialLinks?.map((link) => ({ ...link })),
     contact: block.contact ? { ...block.contact } : undefined,
+    form: block.form
+      ? { ...block.form, fields: block.form.fields.map((field) => ({ ...field })) }
+      : undefined,
   };
 }
 
@@ -226,5 +229,28 @@ export function movePageBlock(
     nextBlocks[targetIndex],
     nextBlocks[currentIndex],
   ];
+  return reorderPageBlocks(nextBlocks);
+}
+
+export function movePageBlockTo(
+  blocks: PageBlock[],
+  blockId: string,
+  targetBlockId: string | null,
+  position: 'before' | 'after' = 'before',
+): PageBlock[] {
+  const sourceIndex = blocks.findIndex((block) => block.id === blockId);
+  if (sourceIndex < 0 || blockId === targetBlockId) return blocks;
+
+  const nextBlocks = [...blocks];
+  const [movedBlock] = nextBlocks.splice(sourceIndex, 1);
+  const targetIndex = targetBlockId
+    ? nextBlocks.findIndex((block) => block.id === targetBlockId)
+    : nextBlocks.length;
+  if (targetIndex < 0) return blocks;
+
+  const insertionIndex = targetIndex + (targetBlockId && position === 'after' ? 1 : 0);
+  nextBlocks.splice(insertionIndex, 0, movedBlock);
+  if (nextBlocks.every((block, index) => block.id === blocks[index].id)) return blocks;
+
   return reorderPageBlocks(nextBlocks);
 }

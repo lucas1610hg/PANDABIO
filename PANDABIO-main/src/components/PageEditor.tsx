@@ -47,6 +47,7 @@ import { ProfileService } from '../supabase/services/profileService';
 import { StorageService } from '../supabase/services/storageService';
 import { supabase } from '../supabase/client';
 import { getPageUrl } from '../utils/pageUrl';
+import { isValidUsername, usernameValidationMessage } from '../utils/username';
 import {
   PublicAvailabilityService,
   WorkspaceService,
@@ -58,6 +59,7 @@ import {
   createPageBlock,
   duplicatePageBlock,
   movePageBlock,
+  movePageBlockTo,
   normalizePageData,
   reorderPageBlocks,
   touchPageData,
@@ -77,8 +79,13 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
   const [isAddBlockModalOpen, setIsAddBlockModalOpen] = useState(false);
   const [editingBlock, setEditingBlock] = useState<PageBlock | null>(null);
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'desktop'>('mobile');
+  const [mobileBuilderView, setMobileBuilderView] = useState<'canvas' | 'editor'>('canvas');
+  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
+  const [draggingBlockId, setDraggingBlockId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const draggingBlockRef = useRef<string | null>(null);
   const hasLoadedRef = useRef(false);
   const bookingPreviewLoadedRef = useRef(false);
   const [pageData, setPageData] = useState<PageData>(() => createDefaultPageData(user));
@@ -276,6 +283,8 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
     );
   };
 
+  const usernameIsValid = isValidUsername(pageData.profile.username);
+
   const handleCopyLink = async () => {
     const url = getPageUrl(pageData.profile.bioUrl, pageData.profile.username);
     if (!navigator.clipboard?.writeText) {
@@ -338,6 +347,11 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
   };
 
   const handlePublish = async () => {
+    if (!usernameIsValid) {
+      toast.error(usernameValidationMessage);
+      return;
+    }
+
     setIsPublishing(true);
     try {
       const profileId = await getOrCreateProfileId();
@@ -471,6 +485,60 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
     });
   };
 
+  const handleCanvasBlockPointerDown = (
+    block: PageBlock,
+    event: React.PointerEvent<HTMLButtonElement>,
+  ) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    draggingBlockRef.current = block.id;
+    setDraggingBlockId(block.id);
+  };
+
+  const handleCanvasBlockPointerUp = (
+    block: PageBlock,
+    event: React.PointerEvent<HTMLButtonElement>,
+  ) => {
+    const sourceBlockId = draggingBlockRef.current;
+    if (!sourceBlockId || sourceBlockId !== block.id) return;
+
+    const elementUnderPointer = document.elementFromPoint(event.clientX, event.clientY);
+    const canvas = canvasRef.current;
+    if (elementUnderPointer && canvas?.contains(elementUnderPointer)) {
+      const target = elementUnderPointer.closest<HTMLElement>('[data-page-block-id]');
+      const targetBlockId = target?.dataset.pageBlockId || null;
+      const targetBounds = target?.getBoundingClientRect();
+      const targetPosition =
+        targetBounds && event.clientY > targetBounds.top + targetBounds.height / 2
+          ? 'after'
+          : 'before';
+
+      setPageData((previous) => {
+        const blocks = movePageBlockTo(
+          previous.blocks,
+          sourceBlockId,
+          targetBlockId,
+          targetPosition,
+        );
+        return blocks === previous.blocks ? previous : touchPageData(previous, { blocks });
+      });
+    }
+
+    draggingBlockRef.current = null;
+    setDraggingBlockId(null);
+  };
+
+  const handleCanvasBlockPointerCancel = () => {
+    draggingBlockRef.current = null;
+    setDraggingBlockId(null);
+  };
+
+  const handleSelectCanvasBlock = (block: PageBlock) => {
+    setSelectedBlockId(block.id);
+    setEditingBlock(block);
+  };
+
   const handlePreviewInteraction = (block: PageBlock) => {
     const labels: Partial<Record<BlockType, string>> = {
       link: 'link',
@@ -498,7 +566,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
   };
 
   return (
-    <div className="relative flex flex-col h-[calc(100dvh-9rem)] min-h-[520px] bg-[#F6EFE9]">
+    <div className="relative flex h-[calc(100dvh-9rem)] min-h-[520px] flex-col bg-[#f7f8fb]">
       {isLoadingPage && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#F6EFE9]/80 backdrop-blur-sm">
           <div className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-[#464555] shadow-sm">
@@ -508,9 +576,19 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
         </div>
       )}
       {/* Header do Editor */}
-      <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-gray-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
+      <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-gray-200/80 bg-white/95 px-4 py-3 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
         <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
-          <h1 className="shrink-0 text-lg font-bold text-[#131b2e] sm:text-xl">Minha Página</h1>
+          <div className="flex shrink-0 items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FFF1E6] text-[#E55300]">
+              <Eye aria-hidden="true" className="h-4 w-4" />
+            </span>
+            <div>
+              <h1 className="text-lg font-bold leading-tight text-[#131b2e] sm:text-xl">
+                Minha Página
+              </h1>
+              <p className="text-[11px] text-gray-500">Personalize seu espaço público</p>
+            </div>
+          </div>
           <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-gray-500 sm:text-sm">
             <span>Sua página:</span>
             <span
@@ -546,7 +624,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
             type="button"
             onClick={() => setIsPreviewMode(!isPreviewMode)}
             aria-pressed={isPreviewMode}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
               isPreviewMode
                 ? 'bg-[#FF5E00] text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -568,7 +646,8 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
           <button
             type="button"
             onClick={handlePublish}
-            disabled={isPublishing}
+            disabled={isPublishing || !usernameIsValid}
+            title={!usernameIsValid ? usernameValidationMessage : undefined}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#FF5E00] text-white font-medium hover:bg-[#E55300] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isPublishing ? (
@@ -592,15 +671,88 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
         </div>
       </div>
 
+      <div
+        className={`min-h-0 flex-1 overflow-hidden ${
+          mobileBuilderView === 'canvas' ? 'flex flex-col lg:hidden' : 'hidden'
+        }`}
+      >
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[#f1f3f7] px-4 py-4">
+          <div className="mb-4 text-center">
+            <h2 className="text-sm font-bold text-[#131b2e]">Sua página</h2>
+            <p className="mt-1 text-xs text-gray-500">
+              Toque em um bloco para editar. Arraste pelo ícone para reorganizar.
+            </p>
+          </div>
+          <div ref={canvasRef} className="mx-auto w-full max-w-[360px] pb-2">
+            <PagePreview
+              profile={pageData.profile}
+              theme={pageData.theme}
+              blocks={pageData.blocks}
+              forms={pageData.forms}
+              links={links}
+              device="mobile"
+              bookingAvailability={bookingAvailability}
+              editable
+              selectedBlockId={selectedBlockId}
+              draggingBlockId={draggingBlockId}
+              onSelectBlock={handleSelectCanvasBlock}
+              onBlockPointerDown={handleCanvasBlockPointerDown}
+              onBlockPointerUp={handleCanvasBlockPointerUp}
+              onBlockPointerCancel={handleCanvasBlockPointerCancel}
+            />
+          </div>
+        </div>
+        <div className="flex shrink-0 gap-2 border-t border-gray-200 bg-white p-3">
+          <button
+            type="button"
+            onClick={() => setIsAddBlockModalOpen(true)}
+            className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#FF5E00] px-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E55300]"
+          >
+            <Plus aria-hidden="true" className="h-4 w-4" />
+            Adicionar elemento
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setIsPreviewMode(false);
+              setMobileBuilderView('editor');
+            }}
+            className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+          >
+            <Settings aria-hidden="true" className="h-4 w-4" />
+            Editar página
+          </button>
+        </div>
+      </div>
+
       {/* Área Principal Dividida */}
-      <div className="flex-1 flex overflow-hidden min-h-0">
+      <div
+        className={`flex-1 flex overflow-hidden min-h-0 ${
+          mobileBuilderView === 'canvas' ? 'hidden lg:flex' : ''
+        }`}
+      >
         {/* Área de Configurações */}
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain border-r border-gray-200 p-4 sm:p-6">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain border-r border-gray-200/80 p-4 sm:p-6 lg:p-7">
           {!isPreviewMode && (
             <div className="space-y-6">
+              <div className="mb-4 lg:hidden">
+                <button
+                  type="button"
+                  onClick={() => setMobileBuilderView('canvas')}
+                  className="flex min-h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+                >
+                  <Smartphone aria-hidden="true" className="h-4 w-4 text-[#FF5E00]" />
+                  Voltar para a prévia visual
+                </button>
+              </div>
               {/* 1. Informações do Perfil */}
-              <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
-                <h2 className="text-lg font-bold text-[#131b2e] mb-4">Perfil</h2>
+              <div className="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm shadow-gray-900/[0.03] sm:p-6">
+                <div className="mb-5">
+                  <h2 className="text-lg font-bold text-[#131b2e]">Perfil</h2>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Apresente sua marca e deixe sua página fácil de encontrar.
+                  </p>
+                </div>
 
                 <div className="space-y-4">
                   {/* Foto de Perfil */}
@@ -617,8 +769,9 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
                       )}
                     </div>
                     <button
+                      type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+                      className="flex items-center gap-2 rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-50 cursor-pointer"
                     >
                       <Image aria-hidden="true" className="w-4 h-4 text-gray-500" />
                       Alterar foto
@@ -647,16 +800,18 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
                     </div>
                     <div className="flex flex-col gap-2">
                       <button
+                        type="button"
                         onClick={() => coverInputRef.current?.click()}
-                        className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+                        className="flex items-center gap-2 rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-50 cursor-pointer"
                       >
                         <Image aria-hidden="true" className="w-4 h-4 text-gray-500" />
                         {pageData.profile.coverUrl ? 'Alterar capa' : 'Adicionar capa'}
                       </button>
                       {pageData.profile.coverUrl && (
                         <button
+                          type="button"
                           onClick={handleRemoveCover}
-                          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                          className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-red-500 transition-colors hover:bg-red-50 cursor-pointer"
                         >
                           <Trash2 aria-hidden="true" className="w-4 h-4" />
                           Remover capa
@@ -678,27 +833,49 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
 
                   {/* Nome */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                    <label
+                      htmlFor="page-profile-name"
+                      className="mb-1 block text-sm font-medium text-gray-700"
+                    >
+                      Nome
+                    </label>
                     <input
+                      id="page-profile-name"
                       type="text"
                       value={pageData.profile.name}
                       maxLength={50}
+                      autoComplete="name"
                       onChange={(e) => updatePageProfile({ name: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent"
+                      className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:border-transparent focus:ring-2 focus:ring-[#FF5E00]"
                     />
                   </div>
 
                   {/* Usuário */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Usuário</label>
-                    <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-[#FF5E00]">
+                    <label
+                      htmlFor="page-profile-username"
+                      className="mb-1 block text-sm font-medium text-gray-700"
+                    >
+                      Usuário
+                    </label>
+                    <div
+                      className={`flex items-center overflow-hidden rounded-xl border focus-within:ring-2 ${
+                        usernameIsValid
+                          ? 'border-gray-300 focus-within:ring-[#FF5E00]'
+                          : 'border-red-300 focus-within:ring-red-300'
+                      }`}
+                    >
                       <span className="bg-gray-50 px-3 py-2 text-sm text-gray-500 border-r border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600">
                         @
                       </span>
                       <input
+                        id="page-profile-username"
                         type="text"
                         value={pageData.profile.username}
                         maxLength={20}
+                        autoComplete="username"
+                        aria-invalid={!usernameIsValid}
+                        aria-describedby="page-profile-username-help"
                         onChange={(e) => {
                           const username = e.target.value.replace(/\s+/g, '').toLowerCase();
                           updatePageProfile({
@@ -706,10 +883,16 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
                             bioUrl: `pandabio.com/${username}`,
                           });
                         }}
-                        className="flex-1 px-4 py-2 outline-none"
+                        className="min-w-0 flex-1 px-4 py-2.5 text-sm outline-none"
                       />
                     </div>
-                    <p className="text-[11px] text-gray-500 mt-1">
+                    <p
+                      id="page-profile-username-help"
+                      className={`mt-1 text-[11px] ${usernameIsValid ? 'text-gray-500' : 'text-red-600'}`}
+                    >
+                      {!usernameIsValid && (
+                        <span className="block mb-1">{usernameValidationMessage}</span>
+                      )}
                       Sua página:{' '}
                       <span className="font-mono text-[#FF5E00]">
                         {getPageUrl(undefined, pageData.profile.username)}
@@ -720,16 +903,22 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
                   {/* Bio */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <label className="block text-sm font-medium text-gray-700">Bio</label>
+                      <label
+                        htmlFor="page-profile-bio"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Bio
+                      </label>
                       <span className="text-[10px] text-gray-500 font-medium">
                         {(pageData.profile.bioDescription || '').length}/200
                       </span>
                     </div>
                     <textarea
+                      id="page-profile-bio"
                       value={pageData.profile.bioDescription}
                       maxLength={200}
                       onChange={(e) => updatePageProfile({ bioDescription: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent resize-none"
+                      className="w-full resize-none rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:border-transparent focus:ring-2 focus:ring-[#FF5E00]"
                       rows={3}
                       placeholder="Conte um pouco sobre você..."
                     />
@@ -737,13 +926,17 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
 
                   {/* Categoria */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="page-profile-category"
+                      className="mb-1 block text-sm font-medium text-gray-700"
+                    >
                       Categoria
                     </label>
                     <select
+                      id="page-profile-category"
                       value={pageData.profile.category || ''}
                       onChange={(e) => updatePageProfile({ category: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent"
+                      className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:border-transparent focus:ring-2 focus:ring-[#FF5E00]"
                     >
                       <option value="">Selecione...</option>
                       <option>Criador de conteúdo</option>
@@ -757,42 +950,62 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
 
                   {/* Localização */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="page-profile-location"
+                      className="mb-1 block text-sm font-medium text-gray-700"
+                    >
                       Localização
                     </label>
                     <input
+                      id="page-profile-location"
                       type="text"
                       value={pageData.profile.location || ''}
                       maxLength={100}
                       onChange={(e) => updatePageProfile({ location: e.target.value })}
                       placeholder="São Paulo, Brasil"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent"
+                      className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:border-transparent focus:ring-2 focus:ring-[#FF5E00]"
                     />
                   </div>
 
                   {/* Link Personalizado */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="page-profile-custom-link"
+                      className="mb-1 block text-sm font-medium text-gray-700"
+                    >
                       Link personalizado
                     </label>
                     <input
+                      id="page-profile-custom-link"
                       type="text"
                       value={pageData.profile.customLink || ''}
+                      maxLength={2048}
                       onChange={(e) => updatePageProfile({ customLink: e.target.value })}
                       placeholder="meusite.com"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5E00] focus:border-transparent"
+                      className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:border-transparent focus:ring-2 focus:ring-[#FF5E00]"
                     />
                   </div>
                 </div>
               </div>
 
               {/* 2. Blocos da Página */}
-              <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
-                <h2 className="text-lg font-bold text-[#131b2e] mb-4">Blocos</h2>
+              <div className="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm shadow-gray-900/[0.03] sm:p-6">
+                <div className="mb-5 flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <h2 className="text-lg font-bold text-[#131b2e]">Conteúdo da página</h2>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Organize links, produtos, redes sociais e outros blocos.
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">
+                    {pageData.blocks.length} {pageData.blocks.length === 1 ? 'bloco' : 'blocos'}
+                  </span>
+                </div>
 
                 <button
+                  type="button"
                   onClick={() => setIsAddBlockModalOpen(true)}
-                  className="w-full mb-4 px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-[#FF5E00] hover:text-[#FF5E00] transition-colors font-medium flex items-center justify-center gap-2 cursor-pointer"
+                  className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 px-4 py-3 font-medium text-gray-600 transition-colors hover:border-[#FF5E00] hover:bg-[#FFFAF6] hover:text-[#FF5E00] cursor-pointer"
                 >
                   <Plus aria-hidden="true" className="w-4 h-4" />
                   Adicionar bloco
@@ -808,7 +1021,7 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
                     {pageData.blocks.map((block, index) => (
                       <div
                         key={block.id}
-                        className={`grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-2.5 rounded-lg border bg-gray-50 p-3 transition-opacity sm:flex ${
+                        className={`grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-2.5 rounded-xl border bg-white p-3 transition-all hover:border-gray-300 hover:shadow-sm sm:flex ${
                           block.active === false ? 'opacity-55' : 'border-gray-200'
                         }`}
                       >
@@ -819,7 +1032,8 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
                           type="text"
                           value={block.title || getBlockPlaceholder(block.type)}
                           onChange={(e) => handleUpdateBlock(block.id, { title: e.target.value })}
-                          className="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-[#FF5E00] sm:flex-1"
+                          aria-label={`Título do bloco ${index + 1}`}
+                          className="w-full min-w-0 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-transparent focus:bg-white focus:ring-2 focus:ring-[#FF5E00] sm:flex-1"
                         />
                         {block.type === 'produto' && (block.products?.length ?? 0) > 0 && (
                           <span className="col-span-2 shrink-0 rounded-full bg-[#FF7A00]/10 px-2 py-1 text-[10px] font-bold whitespace-nowrap text-[#FF7A00] sm:col-span-1">
@@ -851,6 +1065,15 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
                             </span>
                           ) : null)}
                         <div className="col-span-2 flex items-center justify-end gap-0.5 sm:ml-auto sm:col-span-1">
+                          <span
+                            className={`mr-1 hidden rounded-full px-2 py-1 text-[10px] font-semibold sm:inline ${
+                              block.active === false
+                                ? 'bg-gray-100 text-gray-500'
+                                : 'bg-emerald-50 text-emerald-700'
+                            }`}
+                          >
+                            {block.active === false ? 'Oculto' : 'Visível'}
+                          </span>
                           <button
                             onClick={() => handleToggleBlockActive(block.id)}
                             title={block.active === false ? 'Ativar bloco' : 'Desativar bloco'}
@@ -913,8 +1136,13 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
               </div>
 
               {/* 3. Aparência */}
-              <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
-                <h2 className="text-lg font-bold text-[#131b2e] mb-4">Aparência</h2>
+              <div className="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm shadow-gray-900/[0.03] sm:p-6">
+                <div className="mb-5">
+                  <h2 className="text-lg font-bold text-[#131b2e]">Aparência</h2>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Ajuste cores, tipografia e estilo para combinar com sua identidade.
+                  </p>
+                </div>
                 <AppearancePanel
                   theme={pageData.theme}
                   onThemeUpdate={handleThemeUpdate}
@@ -1058,15 +1286,18 @@ export const PageEditor: React.FC<PageEditorProps> = ({ user, links = [], produc
       />
 
       {/* Configuração de bloco específico */}
-      <BlockConfigModal
-        block={editingBlock}
-        onClose={() => setEditingBlock(null)}
-        onUpdate={handleUpdateBlock}
-        onDelete={handleDeleteBlock}
-        links={links}
-        catalogProducts={products}
-        forms={pageData.forms}
-      />
+      {editingBlock && (
+        <BlockConfigModal
+          key={editingBlock.id}
+          block={editingBlock}
+          onClose={() => setEditingBlock(null)}
+          onUpdate={handleUpdateBlock}
+          onDelete={handleDeleteBlock}
+          links={links}
+          catalogProducts={products}
+          forms={pageData.forms}
+        />
+      )}
     </div>
   );
 };

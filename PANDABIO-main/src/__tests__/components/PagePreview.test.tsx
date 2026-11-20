@@ -29,7 +29,36 @@ const link = (overrides: Partial<BioLink>): BioLink => ({
   ...overrides,
 });
 
-describe('PagePreview link block', () => {
+describe('PagePreview', () => {
+  it('lets the mobile builder select and reveal hidden blocks for editing', async () => {
+    const user = userEvent.setup();
+    const onSelectBlock = vi.fn();
+    const hiddenBlock = {
+      ...createPageBlock('text', 0),
+      title: 'Bloco oculto',
+      active: false,
+    };
+
+    render(
+      <PagePreview
+        profile={profile}
+        theme={defaultPageTheme()}
+        blocks={[hiddenBlock]}
+        device="mobile"
+        editable
+        onSelectBlock={onSelectBlock}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Selecionar bloco: Bloco oculto' }));
+
+    expect(onSelectBlock).toHaveBeenCalledWith(hiddenBlock);
+    expect(screen.getByText('Oculto')).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Arrastar para reorganizar Bloco oculto' }),
+    ).toBeTruthy();
+  });
+
   it('renders active links from Links section and ignores inactive links', () => {
     const block = { ...createPageBlock('link', 0), title: 'Links da bio' };
 

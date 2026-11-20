@@ -30,7 +30,7 @@ interface AppearancePanelProps {
   hasCover?: boolean;
 }
 
-const SECTION_TITLE = 'block text-sm font-semibold text-gray-700 mb-2';
+const SECTION_TITLE = 'block text-sm font-semibold tracking-tight text-gray-800 mb-2';
 const SECTION_HINT = 'block text-xs text-gray-500 mb-2.5';
 const FIELD_LABEL = 'block text-xs text-gray-500 mb-1.5';
 const INPUT_BASE =
@@ -217,9 +217,9 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({
   } as React.CSSProperties;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Temas prontos por categoria */}
-      <div>
+      <div className="rounded-2xl border border-gray-100 bg-[#fbfbfc] p-4 sm:p-5">
         <div className="flex items-center justify-between mb-2">
           <h3 className={SECTION_TITLE + ' mb-0'}>Modelo por categoria</h3>
           <button
@@ -266,7 +266,7 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({
       </div>
 
       {/* Tema claro/escuro */}
-      <div>
+      <div className="rounded-2xl border border-gray-100 bg-[#fbfbfc] p-4 sm:p-5">
         <h3 className={SECTION_TITLE}>Modo de exibição</h3>
         <Segmented
           value={theme.theme}
@@ -287,7 +287,7 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({
       </div>
 
       {/* Cores por tema */}
-      <div>
+      <div className="rounded-2xl border border-gray-100 bg-[#fbfbfc] p-4 sm:p-5">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-semibold text-gray-700">Cores por tema</h3>
           <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
@@ -323,7 +323,7 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({
       </div>
 
       {/* Fundo */}
-      <div>
+      <div className="rounded-2xl border border-gray-100 bg-[#fbfbfc] p-4 sm:p-5">
         <h3 className={SECTION_TITLE}>Fundo</h3>
         <div className="flex gap-2 mb-3">
           <select
@@ -358,6 +358,7 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({
                       className={`h-11 rounded-xl border-2 transition-all cursor-pointer ${isSelected ? 'border-[#FF5E00] scale-[0.97]' : 'border-transparent hover:scale-[0.96]'}`}
                       style={{ background: `linear-gradient(135deg, ${g.from}, ${g.to})` }}
                       aria-label={`Gradiente ${g.label}`}
+                      aria-pressed={isSelected}
                     />
                   );
                 })}
@@ -476,7 +477,7 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({
       </div>
 
       {/* Capa */}
-      <div>
+      <div className="rounded-2xl border border-gray-100 bg-[#fbfbfc] p-4 sm:p-5">
         <h3 className={SECTION_TITLE}>Capa</h3>
         <div className="space-y-3">
           <div>
@@ -531,7 +532,7 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({
       </div>
 
       {/* Botão */}
-      <div>
+      <div className="rounded-2xl border border-gray-100 bg-[#fbfbfc] p-4 sm:p-5">
         <h3 className={SECTION_TITLE}>Botão</h3>
         <div className="space-y-3">
           <div>
@@ -588,7 +589,7 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({
       </div>
 
       {/* Fonte */}
-      <div>
+      <div className="rounded-2xl border border-gray-100 bg-[#fbfbfc] p-4 sm:p-5">
         <h3 className={SECTION_TITLE}>Fonte e tamanho</h3>
         <div className="space-y-3">
           <div>
@@ -618,7 +619,7 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({
       </div>
 
       {/* Animações */}
-      <div>
+      <div className="rounded-2xl border border-gray-100 bg-[#fbfbfc] p-4 sm:p-5">
         <h3 className={SECTION_TITLE}>Animações</h3>
         <Toggle
           label="Ativar animações"
@@ -636,7 +637,9 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({
                   return (
                     <button
                       key={a.id}
+                      type="button"
                       onClick={() => onThemeUpdate({ animationEffect: a.id })}
+                      aria-pressed={active}
                       style={effectFxVars}
                       className={`px-3.5 py-2 border rounded-lg text-sm transition-all cursor-pointer ${
                         active ? SEGMENT_ACTIVE : SEGMENT_IDLE
@@ -655,7 +658,9 @@ export const AppearancePanel: React.FC<AppearancePanelProps> = ({
                 {CARD_ANIMATION_OPTIONS.map((a) => (
                   <button
                     key={a.id}
+                    type="button"
                     onClick={() => onThemeUpdate({ cardAnimation: a.id })}
+                    aria-pressed={theme.cardAnimation === a.id}
                     className={`px-3.5 py-2 border rounded-lg text-sm transition-colors cursor-pointer ${theme.cardAnimation === a.id ? SEGMENT_ACTIVE : SEGMENT_IDLE}`}
                   >
                     {a.label}

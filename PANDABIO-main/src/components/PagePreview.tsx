@@ -24,6 +24,7 @@ import {
   Pin,
   Youtube,
   AtSign,
+  GripVertical,
 } from 'lucide-react';
 import { BioLink, UserProfile, PageBlock, PageTheme, SocialPlatform, CustomForm } from '../types';
 import { PublicLeadCaptureResult } from '../supabase/services/publicAnalyticsService';
@@ -63,6 +64,13 @@ interface PagePreviewProps {
     },
   ) => Promise<boolean | PublicLeadCaptureResult>;
   bookingAvailability?: PublicBookingAvailability[];
+  editable?: boolean;
+  selectedBlockId?: string | null;
+  draggingBlockId?: string | null;
+  onSelectBlock?: (block: PageBlock) => void;
+  onBlockPointerDown?: (block: PageBlock, event: React.PointerEvent<HTMLButtonElement>) => void;
+  onBlockPointerUp?: (block: PageBlock, event: React.PointerEvent<HTMLButtonElement>) => void;
+  onBlockPointerCancel?: (block: PageBlock) => void;
 }
 
 function getYouTubeThumbnail(url: string): string | null {
@@ -111,6 +119,13 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
   onInteractiveClick,
   onLeadCapture,
   bookingAvailability,
+  editable = false,
+  selectedBlockId = null,
+  draggingBlockId = null,
+  onSelectBlock,
+  onBlockPointerDown,
+  onBlockPointerUp,
+  onBlockPointerCancel,
 }) => {
   useEffect(() => {
     loadGoogleFont(theme.fontFamily);
@@ -1206,9 +1221,14 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
     }
   };
 
+  const previewBlocks = blocks
+    .filter((block) => editable || block.active !== false)
+    .sort((a, b) => a.order - b.order);
+
   return (
     <MotionConfig reducedMotion="user">
       <div
+        data-page-canvas={editable ? '' : undefined}
         className={`mx-auto w-full min-w-0 ${device === 'mobile' ? 'max-w-[320px]' : 'max-w-full'} rounded-3xl overflow-x-clip shadow-2xl border border-black/10`}
         style={{ ...backgroundStyle, fontFamily, color: textColor }}
       >
@@ -1335,38 +1355,71 @@ export const PagePreview: React.FC<PagePreviewProps> = ({
 
         {/* Blocks */}
         <div className="min-w-0 px-4 pb-6 space-y-2.5">
-          {blocks.length === 0 ? (
+          {previewBlocks.length === 0 ? (
             <div
               className={`${buttonRadius} border-2 border-dashed ${effectiveDark ? 'border-white/20' : 'border-gray-300'} p-4 text-center`}
             >
               <p className={`text-xs font-semibold ${muted}`}>Nenhum bloco adicionado</p>
               <p className={`text-[10px] mt-0.5 ${muted}`}>
-                Adicione blocos no editor para vê-los aqui.
+                {editable
+                  ? 'Adicione um elemento para começar a montar sua página.'
+                  : 'Adicione blocos no editor para vê-los aqui.'}
               </p>
             </div>
           ) : (
-            blocks
-              .filter((b) => b.active !== false)
-              .sort((a, b) => a.order - b.order)
-              .map((block, index) => (
-                <motion.div
-                  key={block.id}
-                  initial={theme.animationsEnabled ? cardMotion.initial : undefined}
-                  animate={theme.animationsEnabled ? cardMotion.animate : undefined}
-                  transition={
-                    cardMotion.spring
-                      ? {
-                          type: 'spring',
-                          bounce: 0.4,
-                          duration: animDuration * 1.2,
-                          delay: index * 0.06,
-                        }
-                      : { duration: animDuration, delay: index * 0.06 }
-                  }
-                >
-                  {renderBlock(block)}
-                </motion.div>
-              ))
+            previewBlocks.map((block, index) => (
+              <motion.div
+                key={block.id}
+                data-page-block-id={block.id}
+                className={`relative rounded-xl transition-shadow ${
+                  selectedBlockId === block.id ? 'ring-2 ring-[#FF5E00] ring-offset-2' : ''
+                } ${draggingBlockId === block.id ? 'scale-[0.98] opacity-60' : ''} ${
+                  block.active === false && editable ? 'opacity-50' : ''
+                }`}
+                initial={theme.animationsEnabled ? cardMotion.initial : undefined}
+                animate={theme.animationsEnabled ? cardMotion.animate : undefined}
+                transition={
+                  cardMotion.spring
+                    ? {
+                        type: 'spring',
+                        bounce: 0.4,
+                        duration: animDuration * 1.2,
+                        delay: index * 0.06,
+                      }
+                    : { duration: animDuration, delay: index * 0.06 }
+                }
+              >
+                {renderBlock(block)}
+                {editable && (
+                  <>
+                    <button
+                      type="button"
+                      aria-label={`Selecionar bloco: ${block.title || block.type}`}
+                      aria-pressed={selectedBlockId === block.id}
+                      onClick={() => onSelectBlock?.(block)}
+                      className="absolute inset-0 z-10 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5E00] focus-visible:ring-offset-2"
+                    />
+                    {block.active === false && (
+                      <span className="pointer-events-none absolute left-2 top-2 z-20 rounded-full bg-gray-900/75 px-2 py-1 text-[10px] font-semibold text-white">
+                        Oculto
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      aria-label={`Arrastar para reorganizar ${block.title || block.type}`}
+                      title="Segure e arraste para reorganizar"
+                      onPointerDown={(event) => onBlockPointerDown?.(block, event)}
+                      onPointerUp={(event) => onBlockPointerUp?.(block, event)}
+                      onPointerCancel={() => onBlockPointerCancel?.(block)}
+                      onClick={(event) => event.preventDefault()}
+                      className="absolute right-2 top-2 z-20 flex h-9 w-9 touch-none cursor-grab items-center justify-center rounded-xl border border-white/80 bg-white/95 text-gray-700 shadow-md transition hover:bg-white active:cursor-grabbing"
+                    >
+                      <GripVertical aria-hidden="true" className="h-4 w-4" />
+                    </button>
+                  </>
+                )}
+              </motion.div>
+            ))
           )}
         </div>
 

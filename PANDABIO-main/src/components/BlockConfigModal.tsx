@@ -328,7 +328,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const inputClass =
-  'w-full px-3.5 py-2.5 bg-[#f2f3ff] border-0 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#FF7A00] outline-none';
+  'w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-[#FF7A00] focus:bg-white focus:ring-2 focus:ring-[#FF7A00]/20';
 
 export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
   block,
@@ -339,18 +339,25 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
   catalogProducts = [],
   forms = [],
 }) => {
-  const [form, setForm] = useState<Partial<PageBlock>>({});
+  const [form, setForm] = useState<Partial<PageBlock>>(() => (block ? { ...block } : {}));
   const [gallery, setGallery] = useState<string[]>([]);
   const [fetchingProductId, setFetchingProductId] = useState<string | null>(null);
   const [galleryOpenFor, setGalleryOpenFor] = useState<string | null>(null);
   const [linkCandidates, setLinkCandidates] = useState<Record<string, string[]>>({});
   const [linkError, setLinkError] = useState<string | null>(null);
+  const [galleryError, setGalleryError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (block) setForm({ ...block });
-    void StorageService.listImages('product').then(setGallery);
-    setFetchingProductId(null);
-    setGalleryOpenFor(null);
+    let active = true;
+    if (block?.type === 'produto') {
+      void StorageService.listImages('product').then((images) => {
+        if (active) setGallery(images);
+      });
+    }
+
+    return () => {
+      active = false;
+    };
   }, [block]);
 
   if (!block) return null;
@@ -543,7 +550,7 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
       case 'image':
         return (
           <>
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
               <label className="block text-xs font-semibold text-gray-700">
                 Galeria de imagens ({form.gallery?.images.length ?? 0}/10)
               </label>
@@ -573,13 +580,26 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
               {form.gallery?.images.map((img, index) => (
                 <div
                   key={img.id}
-                  className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200"
+                  className="group relative aspect-square overflow-hidden rounded-xl border border-gray-200 bg-gray-100"
                 >
                   <img
                     src={img.url}
                     alt={`Imagem ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
+                  <button
+                    type="button"
+                    aria-label={`Remover imagem ${index + 1}`}
+                    onClick={() =>
+                      set('gallery', {
+                        images: (form.gallery?.images || []).filter((image) => image.id !== img.id),
+                        layout: form.gallery?.layout || 'grid',
+                      })
+                    }
+                    className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-red-600 opacity-100 shadow-sm transition hover:bg-red-50 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+                  >
+                    <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               ))}
               {(form.gallery?.images.length || 0) < 10 && (
@@ -592,29 +612,66 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
                     className="hidden"
                     onChange={async (e) => {
                       const files = Array.from(e.target.files || []);
+                      const invalidCount = files.filter(
+                        (file) => !file.type.startsWith('image/'),
+                      ).length;
                       const remaining = 10 - (form.gallery?.images.length || 0);
                       const toUpload = files
                         .filter((f) => f.type.startsWith('image/'))
                         .slice(0, remaining);
                       e.target.value = '';
-                      if (toUpload.length === 0) return;
+                      setGalleryError(null);
+                      if (invalidCount > 0) {
+                        setGalleryError('Arquivos que não são imagens foram ignorados.');
+                      }
+                      if (files.filter((f) => f.type.startsWith('image/')).length > remaining) {
+                        setGalleryError(
+                          'A galeria aceita até 10 imagens. Algumas imagens não foram incluídas.',
+                        );
+                      }
+                      if (toUpload.length === 0) {
+                        if (remaining === 0 && files.length > 0) {
+                          setGalleryError('A galeria já atingiu o limite de 10 imagens.');
+                        }
+                        return;
+                      }
                       const results = await Promise.all(
                         toUpload.map(async (file): Promise<BlockImage | null> => {
-                          const result = await StorageService.uploadImage(file, 'gallery', {
-                            maxDim: 900,
-                            quality: 0.8,
-                          });
-                          return result.success && result.url
-                            ? { id: crypto.randomUUID(), url: result.url }
-                            : null;
+                          try {
+                            const result = await StorageService.uploadImage(file, 'gallery', {
+                              maxDim: 900,
+                              quality: 0.8,
+                            });
+                            return result.success && result.url
+                              ? { id: crypto.randomUUID(), url: result.url }
+                              : null;
+                          } catch {
+                            return null;
+                          }
                         }),
                       );
-                      commitGallery(results.filter((r): r is BlockImage => r !== null));
+                      const added = results.filter(
+                        (result): result is BlockImage => result !== null,
+                      );
+                      commitGallery(added);
+                      if (added.length < toUpload.length) {
+                        setGalleryError(
+                          'Não foi possível enviar uma ou mais imagens. Tente novamente.',
+                        );
+                      }
                     }}
                   />
                 </label>
               )}
             </div>
+            {galleryError && (
+              <p
+                role="alert"
+                className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800"
+              >
+                {galleryError}
+              </p>
+            )}
             {form.gallery?.images && form.gallery.images.length > 0 && (
               <p className="text-[11px] text-gray-500">
                 A galeria salva imagens no Supabase Storage. Até 10 imagens por bloco.
@@ -1273,16 +1330,22 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
       titleId="block-config-title"
       size={block.type === 'produto' ? 'lg' : 'md'}
     >
-      <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-gray-100">
-        <h2 id="block-config-title" className="font-bold text-base text-[#131b2e]">
-          Configurar {BLOCK_NAMES[block.type]}
-        </h2>
+      <div className="flex items-center justify-between gap-4 border-b border-gray-100 px-5 py-4 sm:px-6">
+        <div>
+          <h2 id="block-config-title" className="font-bold text-base text-[#131b2e]">
+            Configurar {BLOCK_NAMES[block.type]}
+          </h2>
+          <p className="mt-1 text-xs text-gray-500">
+            Personalize o conteúdo que será exibido na sua página.
+          </p>
+        </div>
         <button
+          type="button"
           onClick={() => {
             onDelete(block.id);
             onClose();
           }}
-          className="flex items-center gap-1.5 text-xs font-semibold text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg px-2.5 py-1.5 transition-colors cursor-pointer"
+          className="shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-red-500 transition-colors hover:bg-red-50 hover:text-red-600 cursor-pointer"
         >
           Excluir bloco
         </button>
@@ -1294,14 +1357,16 @@ export const BlockConfigModal: React.FC<BlockConfigModalProps> = ({
 
       <div className="px-5 sm:px-6 py-3.5 bg-gray-50 border-t border-gray-100 flex justify-end gap-2">
         <button
+          type="button"
           onClick={onClose}
-          className="px-5 py-2 border border-gray-300 text-gray-700 hover:bg-gray-100 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+          className="rounded-xl border border-gray-300 px-5 py-2 text-xs font-bold text-gray-700 transition-colors hover:bg-gray-100 cursor-pointer"
         >
           Cancelar
         </button>
         <button
+          type="button"
           onClick={handleSave}
-          className="px-5 py-2 bg-[#FF7A00] hover:brightness-110 text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
+          className="rounded-xl bg-[#FF7A00] px-5 py-2 text-xs font-bold text-white transition-all hover:brightness-110 cursor-pointer"
         >
           Salvar alterações
         </button>
